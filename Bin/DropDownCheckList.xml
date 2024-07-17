@@ -1,0 +1,636 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>DropDownCheckList</name>
+    </assembly>
+    <members>
+        <member name="T:UNLV.IAP.WebControls.DropDownCheckList">
+            <summary>
+            Creates a multi selection check box group which is displayed and hidden
+            on the client through the use of a custom drop-down box; choices can be 
+            dynamically created by binding the control to a data source
+            </summary>
+            
+            <remarks>
+            <para>
+            The <b>DropDownCheckList</b> was designed as a subclass of 
+            <see cref="T:System.Web.UI.WebControls.CheckBoxList">CheckBoxList</see>, with a client-side library intended to provide 
+            cross-platform compatibility, at least with the modern versions of major browsers.  
+            It has been specifically tested with Internet Explorer 6.x, Netscape 7.x and 8.x, 
+            and Firefox 1.x.  The JavaScript file <i>DropDownCheckList.js</i> contains the client-side 
+            object definition for the DropDownCheckList.  To use the control, first copy the 
+            file <i>DropDownCheckList.js</i> to the following directory:
+            <pre>wwwroot\aspnet_client\UNLV_IAP_WebControls\DropDownCheckList</pre>
+            </para>
+            
+            <para>
+            Several properties are available to customize the display of the control.  Use the 
+            <see cref="P:UNLV.IAP.WebControls.DropDownCheckList.DisplayBoxCssClass">DisplayBoxCssClass</see> and/or 
+            <see cref="P:UNLV.IAP.WebControls.DropDownCheckList.DisplayBoxCssStyle">DisplayBoxCssStyle</see> properties to specify CSS 
+            styling for the display box.  Likewise, <see cref="P:UNLV.IAP.WebControls.DropDownCheckList.DisplayTextCssClass">DisplayTextCssClass</see> 
+            and <see cref="P:UNLV.IAP.WebControls.DropDownCheckList.DisplayTextCssStyle">DisplayTextCssStyle</see> specify the CSS styling for 
+            the display text, and <see cref="P:UNLV.IAP.WebControls.DropDownCheckList.CheckListCssClass">CheckListCssClass</see> 
+            and <see cref="P:UNLV.IAP.WebControls.DropDownCheckList.CheckListCssStyle">CheckListCssStyle</see> denote CSS styling 
+            for the checklist box.
+            </para>
+            
+            <para>
+            The rendering of a drop-down image in the display box is dependent on the 
+            <see cref="P:UNLV.IAP.WebControls.DropDownCheckList.DropImageSrc">DropImageSrc</see> and <see cref="P:UNLV.IAP.WebControls.DropDownCheckList.DropImagePosition">DropImagePosition</see> 
+            properties.  If <see cref="P:UNLV.IAP.WebControls.DropDownCheckList.DropImageSrc">DropImageSrc</see> is blank, or 
+            <see cref="P:UNLV.IAP.WebControls.DropDownCheckList.DropImagePosition">DropImagePosition</see> is set to <b>NoImage</b>, no image 
+            is displayed in the drop-down box.  If <see cref="P:UNLV.IAP.WebControls.DropDownCheckList.DropImageSrc">DropImageSrc</see> 
+            is specified, the position of the image will either be <b>Left</b>, <b>Right</b>, or <b>Both</b>, 
+            as indicated by <see cref="P:UNLV.IAP.WebControls.DropDownCheckList.DropImagePosition">DropImagePosition</see>.
+            </para>
+             
+            <para>
+            The control's behavior is defined through several additional properties.  
+            The <see cref="P:UNLV.IAP.WebControls.DropDownCheckList.DropDownMode">DropDownMode</see> property determines how the 
+            checklist will display.  If set to <b>Inline</b>, the checklist will expand 
+            within the surrounding HTML.  If set to <b>OnTop</b> or <b>OnTopWithShim</b>, 
+            the checklist will be absolutely positioned on top of other HTML content.  
+            The "shim" option exists to offer compatibility with Internet Explorer 6.x and 
+            provides the ability to drop-down a checklist on top of windowed controls in IE.  
+            </para>
+            
+            <para>
+            The <see cref="P:UNLV.IAP.WebControls.DropDownCheckList.Separator">Separator</see> property indicates the character(s) used 
+            to separate listed items.  <see cref="P:UNLV.IAP.WebControls.DropDownCheckList.DisplayTextWidth">DisplayTextWidth</see> specifies 
+            the maximum width in pixels available in the display box for listing checked options.  
+            When the listed options exceed this width, the text is truncated and the 
+            <see cref="P:UNLV.IAP.WebControls.DropDownCheckList.TruncateString">TruncateString</see> property is appended.  Typically, 
+            <see cref="P:UNLV.IAP.WebControls.DropDownCheckList.TruncateString">TruncateString</see> is an ellipsis (…) but may be set 
+            to other text or a blank string if desired.  If you prefer to allow the display box 
+            to expand rather than truncate the text, set 
+            <see cref="P:UNLV.IAP.WebControls.DropDownCheckList.DisplayTextWidth">DisplayTextWidth</see> to -1.  
+            </para>
+            
+            <para>
+            To indicate text to display when no options are checked, set the 
+            <see cref="P:UNLV.IAP.WebControls.DropDownCheckList.TextWhenNoneChecked">TextWhenNoneChecked</see> property to the desired string.   
+            You may also specify whether checkbox labels or values (the Text and Value properties 
+            of a given ListItem respectively) are listed in the display box by setting the 
+            <see cref="P:UNLV.IAP.WebControls.DropDownCheckList.DisplayTextList">DisplayTextList</see> property to either <b>Labels</b> 
+            or <b>Values</b>.
+            </para>
+             
+            <para>
+            As a subclass of <see cref="T:System.Web.UI.WebControls.CheckBoxList">CheckBoxList</see>, databinding properties such as 
+            <see cref="!:ListControl.DataSource">DataSource</see> and the <see cref="P:System.Web.UI.WebControls.ListControl.Items">Items</see> 
+            collection are inherited.  Upon form submission, the developer may inspect the 
+            <see cref="P:System.Web.UI.WebControls.ListControl.Items">Items</see> collection for selected checkboxes, just as one would with 
+            a <see cref="T:System.Web.UI.WebControls.CheckBoxList">CheckBoxList</see>.  The DropDownCheckList also exposes two 
+            overloaded utility methods:  
+            <see cref="M:UNLV.IAP.WebControls.DropDownCheckList.SelectedLabelsToString">SelectedLabelsToString()</see> and 
+            <see cref="M:UNLV.IAP.WebControls.DropDownCheckList.SelectedValuesToString">SelectedValuesToString()</see>.  
+            Each returns the selected items, listed as a single concatenated string.  
+            The overloads allow the developer to specify list separators and text delimiters.
+            </para>
+            </remarks>
+            
+            <example>
+            Here is an example of a complete .aspx page which uses the DropDownCheckList control, 
+            demonstrating several properties and the methods
+            <see cref="M:UNLV.IAP.WebControls.DropDownCheckList.SelectedLabelsToString">SelectedLabelsToString()</see> 
+            and <see cref="M:UNLV.IAP.WebControls.DropDownCheckList.SelectedValuesToString">SelectedValuesToString()</see>.  
+            <pre><![CDATA[
+            <%@ Page Language="c#" AutoEventWireup="true" %>
+            <%@ Register TagPrefix="cc1" 
+                         Namespace="UNLV.IAP.WebControls" 
+                         Assembly="DropDownCheckList" %>
+            
+            <script runat="server">
+                void Page_Load(object o, EventArgs e)
+                {
+                    lblResults.Text = "";
+                }
+                
+                void btnSubmit_Click(object o, EventArgs e)
+                {
+                    string sLabels = dd.SelectedLabelsToString(", ");
+                    string sValues = dd.SelectedValuesToString(", ", "'");
+                    
+                    lblResults.Text = "Selected Items:  " + sLabels
+                      + "<br />"
+                      + "Values: " + sValues;
+                }
+                
+                void btnClear_Click(object o, EventArgs e)
+                {
+                    dd.SelectedValue = null;
+                }
+                
+            </script>
+            
+            
+            <html>
+              <head>
+                <title>DropDownCheckList Sample</title>
+                <style>
+                  .boxStyle
+                  {
+                    border           : 2px solid darkBlue;
+                    background-color : lightBlue;
+                    padding          : 8px;
+                  }
+                </style>
+              </head>
+              
+              <body>
+                <form runat="server">
+                
+                    <h3>DropDownCheckList Sample</h3>
+                    <p>Click the drop-down box to select options</p>
+                    
+                    <cc1:DropDownCheckList id="dd" runat="server" 
+                            RepeatColumns       = "2"
+                            DropImageSrc        = "dropImage.gif"
+                            DropImagePosition   = "Right"
+                            DropDownMode        = "OnTopWithShim"
+                            CheckListCssClass   = "boxStyle"
+                            CheckListCssStyle   = ""
+                            DisplayTextCssStyle = "font-family: Tahoma;"
+                            DisplayTextWidth    = "180"
+                            DisplayTextList     = "Labels"
+                            Separator           = ", "
+                            TruncateString      = "..."
+                            TextWhenNoneChecked = "--select--"
+                        >
+                        <asp:ListItem text="North" value="N" />
+                        <asp:ListItem text="South" value="S" />
+                        <asp:ListItem text="East"  value="E" />
+                        <asp:ListItem text="West"  value="W" />
+                        <asp:ListItem text="Northeast" value="NE" />
+                        <asp:ListItem text="Southeast" value="SE" />
+                        <asp:ListItem text="Northwest" value="NW" />
+                        <asp:ListItem text="Southwest" value="SW" />            
+                    </cc1:DropDownCheckList>      
+                    
+                    <p>
+                        <asp:Button id="btnSubmit" runat="server" text="Submit Choices"
+                                    onClick="btnSubmit_Click" />
+            
+                        <asp:Button id="btnClear" runat="server" text="Clear Choices"
+                                    onClick="btnClear_Click" />
+                    </p>
+                    
+                    <p><asp:Label id="lblResults" runat="server" /></p>
+                
+                </form>
+              </body>
+              
+            </html>
+            ]]></pre>
+            </example>
+        </member>
+        <member name="M:UNLV.IAP.WebControls.DropDownCheckList.ClientJavascriptCodeScript">
+            <summary>
+            Generates a string containing a &lt;script&gt; tag identifying the
+            client-side javascript code to include on the page; this string
+            is registered with the page when a DropDownCheckList control is present.
+            </summary>
+            <returns>the &lt;script&gt; tag in a string</returns>
+        </member>
+        <member name="M:UNLV.IAP.WebControls.DropDownCheckList.GetScriptTemplate">
+            <summary>
+            Returns a consistent template for a client-side 
+            &lt;script&gt; tag
+            </summary>
+            <returns>the string</returns>
+        </member>
+        <member name="M:UNLV.IAP.WebControls.DropDownCheckList.ClientInitializeScript">
+            <summary>
+            Returns a string of javascript code to create
+            and initialize a DropDownCheckList object on the client;
+            this script is registered with the Page.
+            </summary>
+            <returns>the javascript code</returns>
+        </member>
+        <member name="M:UNLV.IAP.WebControls.DropDownCheckList.OnPreRender(System.EventArgs)">
+            <summary>
+            Registers client-side scripting code with the Page
+            </summary>
+            <param name="e">Event arguments</param>
+        </member>
+        <member name="M:UNLV.IAP.WebControls.DropDownCheckList.RenderDropImage(System.Web.UI.HtmlTextWriter)">
+            <summary>
+            Renders the drop-down image specified by 
+            <see cref="P:UNLV.IAP.WebControls.DropDownCheckList.DropImageSrc">DropImageSrc</see>
+            </summary>
+            <param name="output">the writer accepting the rendered output</param>
+        </member>
+        <member name="M:UNLV.IAP.WebControls.DropDownCheckList.ModifyRenderedCheckboxes(System.String)">
+            <summary>
+            Modifies the HTML code as rendered through the inheritence from CheckBoxList
+            to add additional custom attributes to each checkbox
+            </summary>
+            <param name="sHtml">the rendered HTML for the CheckBoxList</param>
+            <returns>the modified HTML as a string</returns>
+        </member>
+        <member name="M:UNLV.IAP.WebControls.DropDownCheckList.Render(System.Web.UI.HtmlTextWriter)">
+            <summary>
+            Renders the DropDownCheckList control
+            </summary>
+            <param name="output">the writer accepting the rendered output</param>
+        </member>
+        <member name="M:UNLV.IAP.WebControls.DropDownCheckList.SelectedLabelsToString">
+            <summary>
+            Generates a string of text labels from the selected items, using the
+            control's <see cref="P:UNLV.IAP.WebControls.DropDownCheckList.Separator">Separator</see> property to separate
+            listed items
+            </summary>
+            <returns>the string of selected text labels</returns>
+        </member>
+        <member name="M:UNLV.IAP.WebControls.DropDownCheckList.SelectedLabelsToString(System.String)">
+            <summary>
+            Generates a string of text labels from the selected items
+            </summary>
+            <param name="separator">text used to separate listed items</param>
+            <returns>the string of selected values</returns>
+        </member>
+        <member name="M:UNLV.IAP.WebControls.DropDownCheckList.SelectedLabelsToString(System.String,System.String)">
+            <summary>
+            Generates a string of delimited text labels from the selected items
+            </summary>
+            <param name="separator">text used to separate listed items</param>
+            <param name="delimiter">text used to delimit each listed item</param>
+            <returns>the string of selected values</returns>
+        </member>
+        <member name="M:UNLV.IAP.WebControls.DropDownCheckList.SelectedValuesToString">
+            <summary>
+            Generates a string of values from the selected items, using the
+            control's <see cref="P:UNLV.IAP.WebControls.DropDownCheckList.Separator">Separator</see> property to separate
+            listed items
+            </summary>
+            <returns>the string of selected values</returns>
+        </member>
+        <member name="M:UNLV.IAP.WebControls.DropDownCheckList.SelectedValuesToString(System.String)">
+            <summary>
+            Generates a string of values from the selected items
+            </summary>
+            <param name="separator">text used to separate listed items</param>
+            <returns>the string of selected values</returns>
+        </member>
+        <member name="M:UNLV.IAP.WebControls.DropDownCheckList.SelectedValuesToString(System.String,System.String)">
+            <summary>
+            Generates a string of delimited values from the selected items
+            </summary>
+            <param name="separator">text used to separate listed items</param>
+            <param name="delimiter">text used to delimit each listed item</param>
+            <returns>the string of selected values</returns>
+        </member>
+        <member name="M:UNLV.IAP.WebControls.DropDownCheckList.RenderSelectedItemsToString(System.Boolean,System.String,System.String)">
+            <summary>
+            Utility method for generating a string from the selected items
+            </summary>
+            <param name="bRenderLabel">true to use labels in the resultant string, false to use values </param>
+            <param name="sep">the separator to use when listing items</param>
+            <param name="delim">text delimiter to use </param>
+            <returns>a string of items delimited with <i>sep</i></returns>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.DropDownMode">
+            <summary>
+            Specifies whether the drop-down checklist will appear inline or on top of other
+            HTML content
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.DisplayBoxCssClass">
+            <summary>
+            Gets or sets the Cascading Style Sheet (CSS) class used when rendering
+            the display box
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.DisplayBoxCssStyle">
+            <summary>
+            Gets or sets the Cascading Style Sheet (CSS) style attribute used
+            when rendering the display box
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.DropImageSrc">
+            <summary>
+            Gets or sets the <b>src</b> attribute of the image that is rendered when 
+            <see cref="P:UNLV.IAP.WebControls.DropDownCheckList.DropImagePosition">DropImagePosition</see> is set to
+            <see cref="F:UNLV.IAP.WebControls.DropImagePositionEnum.Left">Left</see>,
+            <see cref="F:UNLV.IAP.WebControls.DropImagePositionEnum.Right">Right</see>, or
+            <see cref="F:UNLV.IAP.WebControls.DropImagePositionEnum.Both">Both</see>
+            </summary>
+            <remarks>
+            By default, this property is <see cref="F:System.String.Empty">String.Empty</see>,
+            which means that no image is rendered.
+            </remarks>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.DropImagePosition">
+            <summary>
+            Gets or sets the position relative to the display box where the 
+            drop-down image is rendered
+            </summary>
+            <remarks>
+            To specify the <b>src</b> attribute for the drop-down image,
+            set the <see cref="P:UNLV.IAP.WebControls.DropDownCheckList.DropImageSrc">DropImageSrc</see> property.
+            </remarks>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.DisplayTextWidth">
+            <summary>
+            Gets or sets the maximum width in pixels of text in the display box
+            </summary>
+            <remarks>
+            When the checked boxes make a string of text that exceeds the
+            <code>DisplayTextWidth</code> amount in width, the display text
+            is truncated to the maximum width, and the 
+            <see cref="P:UNLV.IAP.WebControls.DropDownCheckList.TruncateString">TruncateString</see> is appended 
+            (by default, an ellipsis).  To allow the string to expand to its
+            full width without truncating, set <code>DisplayTextWidth</code>
+            to -1.
+            </remarks>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.DisplayTextPaddingLeft">
+            <summary>
+            Gets or sets the amount of pixels to pad between the display text and the
+            left edge of the display box (or the drop-down image if present)
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.DisplayTextPaddingTop">
+            <summary>
+            Gets or sets the amount of pixels to pad between the display text and the
+            top edge of the display box
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.DisplayTextPaddingRight">
+            <summary>
+            Gets or sets the amount of pixels to pad between the display text and the
+            right edge of the display box (or the drop-down image if present)
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.DisplayTextPaddingBottom">
+            <summary>
+            Gets or sets the amount of pixels to pad between the display text and the
+            bottom edge of the display box
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.DisplayTextCssStyle">
+            <summary>
+            Gets or sets the Cascading Style Sheet (CSS) class used when rendering
+            the display text		
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.DisplayTextCssClass">
+            <summary>
+            Gets or sets the Cascading Style Sheet (CSS) style attribute used when rendering
+            the display text		
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.TextWhenNoneChecked">
+            <summary>
+            Gets or sets the text to display when no items are checked		
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.Separator">
+            <summary>
+            Gets or sets the text to use as a separater when listing checked choices
+            in the display text
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.TruncateString">
+            <summary>
+            Gets or sets the text to append to the truncated display text 
+            when the checked choices produce a string to wide for the display box
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.DisplayTextList">
+            <summary>
+            Gets or sets the option of displaying either labels or values
+            for checked boxes
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.CheckListCssClass">
+            <summary>
+            Gets or sets the Cascading Style Sheet (CSS) class used when rendering
+            the checklist box		
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.CheckListCssStyle">
+            <summary>
+            Gets or sets the Cascading Style Sheet (CSS) style attribute used when rendering
+            the checklist box		
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.CellPadding">
+            <summary>
+            Inherited from <see cref="P:System.Web.UI.WebControls.CheckBoxList.CellPadding">CheckBoxList</see>
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.CellSpacing">
+            <summary>
+            Inherited from <see cref="P:System.Web.UI.WebControls.CheckBoxList.CellSpacing">CheckBoxList</see>
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.Height">
+            <summary>
+            Inherited from <see cref="P:System.Web.UI.WebControls.WebControl.Height">CheckBoxList</see>
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.Width">
+            <summary>
+            Inherited from <see cref="P:System.Web.UI.WebControls.WebControl.Width">CheckBoxList</see>
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.RepeatColumns">
+            <summary>
+            Inherited from <see cref="P:System.Web.UI.WebControls.CheckBoxList.RepeatColumns">CheckBoxList</see>
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.RepeatDirection">
+            <summary>
+            Inherited from <see cref="P:System.Web.UI.WebControls.CheckBoxList.RepeatDirection">CheckBoxList</see>
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.RepeatLayout">
+            <summary>
+            Inherited from <see cref="P:System.Web.UI.WebControls.CheckBoxList.RepeatLayout">CheckBoxList</see>
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.BackColor">
+            <summary>
+            Inherited from <see cref="P:System.Web.UI.WebControls.WebControl.BackColor">CheckBoxList</see>
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.BorderColor">
+            <summary>
+            Inherited from <see cref="P:System.Web.UI.WebControls.WebControl.BorderColor">CheckBoxList</see>
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.BorderStyle">
+            <summary>
+            Inherited from <see cref="P:System.Web.UI.WebControls.WebControl.BorderStyle">CheckBoxList</see>
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.BorderWidth">
+            <summary>
+            Inherited from <see cref="P:System.Web.UI.WebControls.WebControl.BorderWidth">CheckBoxList</see>
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.CssClass">
+            <summary>
+            Inherited from <see cref="P:System.Web.UI.WebControls.WebControl.CssClass">CheckBoxList</see>
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.Font">
+            <summary>
+            Inherited from <see cref="P:System.Web.UI.WebControls.WebControl.Font">CheckBoxList</see>
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.ForeColor">
+            <summary>
+            Inherited from <see cref="P:System.Web.UI.WebControls.WebControl.ForeColor">CheckBoxList</see>
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.TextAlign">
+            <summary>
+            Inherited from <see cref="P:System.Web.UI.WebControls.CheckBoxList.TextAlign">CheckBoxList</see>
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.AccessKey">
+            <summary>
+            Inherited from <see cref="P:System.Web.UI.WebControls.WebControl.AccessKey">CheckBoxList</see>
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.AutoPostBack">
+            <summary>
+            Inherited from <see cref="P:System.Web.UI.WebControls.ListControl.AutoPostBack">CheckBoxList</see>
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.TabIndex">
+            <summary>
+            Inherited from <see cref="P:System.Web.UI.WebControls.WebControl.TabIndex">CheckBoxList</see>
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.ToolTip">
+            <summary>
+            Inherited from <see cref="P:System.Web.UI.WebControls.WebControl.ToolTip">CheckBoxList</see>
+            </summary>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.DropDownCheckList.ClientCodeLocation">
+            <summary>
+            Returns or sets the location of the client JavaScript code file
+            </summary>
+            <remarks>
+            <para>The <b>ClientCodeLocation</b> path is the url written as the
+            <b>src</b> attribute of a &lt;script&gt; tag as the control
+            is rendered.  By default, this location is 
+            <b>/aspnet_client/UNLV_IAP_WebControls/DropDownCheckList/DropDownCheckList.js</b>
+            </para>
+            <para>
+            If the client javascript file is not in the location specified by 
+            <b>ClientCodeLocation</b>, client-side javascript errors will occur
+            and the control will not function properly.
+            </para>
+            </remarks>
+        </member>
+        <member name="T:UNLV.IAP.WebControls.DisplayTextListEnum">
+            <summary>
+            Supplies options for determining if labels or values will be listed in 
+            the display box for checked boxes.
+            </summary>
+        </member>
+        <member name="F:UNLV.IAP.WebControls.DisplayTextListEnum.Labels">
+            <summary>
+            Indicates that labels should be listed in the display text for checked boxes.
+            </summary>
+        </member>
+        <member name="F:UNLV.IAP.WebControls.DisplayTextListEnum.Values">
+            <summary>
+            Indicates that values should be listed in the display text for checked boxes.
+            </summary>
+        </member>
+        <member name="T:UNLV.IAP.WebControls.DropImagePositionEnum">
+            <summary>
+            Supplies options for specifying the position for rendering the drop-down image
+            in a DropDownCheckList control, relative to the control's display box.
+            </summary>
+        </member>
+        <member name="F:UNLV.IAP.WebControls.DropImagePositionEnum.Left">
+            <summary>
+            Positions the drop-down image to the left of the display box
+            </summary>
+        </member>
+        <member name="F:UNLV.IAP.WebControls.DropImagePositionEnum.Right">
+            <summary>
+            Positions the drop-down image to the right of the display box
+            </summary>
+        </member>
+        <member name="F:UNLV.IAP.WebControls.DropImagePositionEnum.Both">
+            <summary>
+            Renders the drop-down image both left and right of the display box
+            </summary>
+        </member>
+        <member name="F:UNLV.IAP.WebControls.DropImagePositionEnum.NoImage">
+            <summary>
+            Specifies a drop-down image should not be rendered
+            </summary>
+        </member>
+        <member name="T:UNLV.IAP.WebControls.CssStyleUtility">
+            <summary>
+            Utility class for working with Cascading Style Sheet (CSS)
+            style attributes
+            </summary>
+            <remarks>
+            The <b>CssStyleUtility</b> class encapsulates a
+            <see cref="T:System.Collections.Specialized.StringDictionary">StringDictionary</see>, allowing for
+            the setting and retrieval of CSS style properties.  The constructor
+            takes a string parameter, representing the text in a style attribute,
+            and parses the string to populate the internal StringDictionary.
+            The <see cref="P:UNLV.IAP.WebControls.CssStyleUtility.StyleTable">StyleTable</see> property provides access
+            to the internal dictionary, and the <see cref="M:UNLV.IAP.WebControls.CssStyleUtility.ToString">ToString()</see>
+            method outputs the items of the dictionary as a complete CSS style string.
+            </remarks>
+        </member>
+        <member name="M:UNLV.IAP.WebControls.CssStyleUtility.#ctor(System.String)">
+            <summary>
+            Constructs a CssStyleUtility object, given a string of text
+            in the form of a CSS style attribute (in the form of
+            "key1: value1; key2: value2;" etc.)
+            </summary>
+            <param name="cssStyleString">the CSS style attribute text to be parsed</param>
+        </member>
+        <member name="M:UNLV.IAP.WebControls.CssStyleUtility.ToString">
+            <summary>
+            Joins the property items within this CssStyleUtility object
+            to return a single text string in the form of a CSS style attribute
+            </summary>
+            <returns>the CSS style attribute text</returns>
+        </member>
+        <member name="P:UNLV.IAP.WebControls.CssStyleUtility.StyleTable">
+            <summary>
+            Returns the internal dictionary of style properties
+            encapsulated within this CssStyleUtility object
+            </summary>
+        </member>
+        <member name="T:UNLV.IAP.WebControls.DropDownModeEnum">
+            <summary>
+            Supplies options for determining if the checklist will drop down inline with other
+            HTML items on the page, or on top of other HTML content.
+            </summary>
+        </member>
+        <member name="F:UNLV.IAP.WebControls.DropDownModeEnum.Inline">
+            <summary>
+            Renders the checklist using a CSS "position: relative" style attribute, placing
+            the checklist inline with other HTML content
+            </summary>
+        </member>
+        <member name="F:UNLV.IAP.WebControls.DropDownModeEnum.OnTop">
+            <summary>
+            Renders the checklist using a CSS "position: absolute" style attribute, placing
+            the checklist on top of other HTML content
+            </summary>
+        </member>
+        <member name="F:UNLV.IAP.WebControls.DropDownModeEnum.OnTopWithShim">
+            <summary>
+            Renders the checklist using a CSS "position: absolute" style attribute, with
+            an additional &lt;iframe&gt; tag which acts as a shim; this allows for Internet
+            Explorer versions 5.5 and greater to properly render the checklist above 
+            other windowed controls.
+            </summary>
+        </member>
+    </members>
+</doc>
