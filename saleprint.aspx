@@ -117,8 +117,8 @@
                 results += '<td style="text-align: center;">' + outward_subdetails[i].productname + '</td>';
                 results += '<td style="text-align: center;">' + outward_subdetails[i].Quantity + ' <br></td>';
                 results += '<td style="text-align: center;">' + outward_subdetails[i].PerUnitRs + '</td>';
-                results += '<td style="text-align: center;">' + subtotal.toFixed(2) + '</td></tr>';
-                withoutgstgrandtotal += (parseFloat(subtotal));
+                results += '<td style="text-align: center;">' + outward_subdetails[i].TotalCost + '</td></tr>';
+                withoutgstgrandtotal += (parseFloat(outward_subdetails[i].TotalCost));
                 var taxablevalue = outward_subdetails[i].TotalCost;
                 sumtotal += (parseFloat(taxablevalue));
                 var ordertax = outward_subdetails[i].ordertax;
