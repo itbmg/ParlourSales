@@ -239,7 +239,7 @@
             results += '<td scope="row" class="4" style="text-align: center; font-weight: bold;" >' + msg[i].productname + '</td>';
             results += '<td scope="row" class="5" style="text-align: center; font-weight: bold;" >' + msg[i].uim + '</td>';
             results += '<td scope="row" class="6" style="text-align: center; font-weight: bold;" >' + msg[i].billingprice + '</td>';
-            results += '<td scope="row" class="7" style="text-align: center; font-weight: bold;" >' + msg[i].price + '</td>';
+            results += '<td scope="row" class="7" style="text-align: center; font-weight: bold;" >' + msg[i].mrp + '</td>';
             results += '<td scope="row" class="8" style="text-align: center; font-weight: bold;" >' + msg[i].GSTTaxCategory + '</td>';
             results += '<td scope="row" class="9" style="text-align: center; font-weight: bold;" >' + msg[i].igst + '</td>';
             results += '<td data-title="status" class="10" style="text-align: center; font-weight: bold;">' + msg[i].status + '</td>';
@@ -265,7 +265,7 @@
         var puim = $(thisid).parent().parent().children('.16').html();
         var productname = $(thisid).parent().parent().children('.4').html();
         var sku = $(thisid).parent().parent().children('.18').html();
-        var price = $(thisid).parent().parent().children('.7').html();
+        var mrp = $(thisid).parent().parent().children('.7').html();
         var billingprice = $(thisid).parent().parent().children('.6').html();
         var gsttaxcategory = $(thisid).parent().parent().children('.8').html();
         var hsncode = $(thisid).parent().parent().children('.11').html();
@@ -282,7 +282,7 @@
         document.getElementById('txtitemname').value = productname;
         document.getElementById('txtsku').value = sku;
         document.getElementById('txtbillingprice').value = billingprice;
-        document.getElementById('txtmrp').value = price;
+        document.getElementById('txtmrp').value = mrp;
         document.getElementById('txthsncode').value = hsncode;
         document.getElementById('slctigst').value = igst;
         document.getElementById('txtcgst').value = cgst;

@@ -463,6 +463,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
         public string supplierid { get; set; }
         public string supplier { get; set; }
         public string price { get; set; }
+        public string mrp { get; set; }
         public string moniterqty { get; set; }
         public string puim { get; set; }
         public string sectionid { get; set; }
@@ -569,6 +570,16 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                 cmd.Parameters.Add("@createdon", ServerDateCurrentdate);
                 cmd.Parameters.Add("@sno", sno);
                 vdm.Update(cmd);
+
+                cmd = new SqlCommand("UPDATE productmoniter SET price=@mprice where productid=@productid and  branchid=@branchid");
+                cmd.Parameters.Add("@productid", sno);
+                cmd.Parameters.Add("@mqty", "0");
+                cmd.Parameters.Add("@mprice", billingprice);
+                cmd.Parameters.Add("@branchid", branchid);
+                cmd.Parameters.Add("@minstock", "1");
+                cmd.Parameters.Add("@maxstock", "100");
+                vdm.Update(cmd);
+
                 string Response = GetJson("Item Details are Successfully Modified");
                 context.Response.Write(Response);
             }
@@ -589,11 +600,11 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             string subcatid = context.Request["subcatid"].ToString();
             if (subcatid == "0")
             {
-                cmd = new SqlCommand("SELECT productmaster.productid, productmaster.categoryid, productmaster.imagepath, productmaster.subcategoryid, productmaster.uim AS Puim,  productmaster.productname, productmaster.billingprice,   productmaster.productcode, productmaster.hsncode, productmaster.sub_cat_code, productmaster.sku, productmaster.description, productmaster.igst, productmaster.cgst, productmaster.sgst, productmaster.gsttaxcategory, productmaster.status, productmaster.createdby, productmaster.createdon, uimmaster.uim, productmoniter.qty, productmoniter.price, categorymaster.category, subcategorymaster.subcategoryname, productmaster.supplierid  FROM productmaster INNER JOIN productmoniter ON productmaster.productid=productmoniter.productid INNER JOIN categorymaster ON productmaster.categoryid = categorymaster.categoryid INNER JOIN subcategorymaster ON productmaster.subcategoryid = subcategorymaster.subcategoryid LEFT OUTER JOIN uimmaster ON uimmaster.sno=productmaster.uim  WHERE (productmoniter.branchid = @branchid)");
+                cmd = new SqlCommand("SELECT productmaster.productid, productmaster.categoryid,productmaster.price as mrp, productmaster.imagepath, productmaster.subcategoryid, productmaster.uim AS Puim,  productmaster.productname, productmaster.billingprice,   productmaster.productcode, productmaster.hsncode, productmaster.sub_cat_code, productmaster.sku, productmaster.description, productmaster.igst, productmaster.cgst, productmaster.sgst, productmaster.gsttaxcategory, productmaster.status, productmaster.createdby, productmaster.createdon, uimmaster.uim, productmoniter.qty, productmoniter.price, categorymaster.category, subcategorymaster.subcategoryname, productmaster.supplierid  FROM productmaster INNER JOIN productmoniter ON productmaster.productid=productmoniter.productid INNER JOIN categorymaster ON productmaster.categoryid = categorymaster.categoryid INNER JOIN subcategorymaster ON productmaster.subcategoryid = subcategorymaster.subcategoryid LEFT OUTER JOIN uimmaster ON uimmaster.sno=productmaster.uim  WHERE (productmoniter.branchid = @branchid)");
             }
             else
             {
-                cmd = new SqlCommand("SELECT productmaster.productid, productmaster.categoryid, productmaster.imagepath, productmaster.subcategoryid, productmaster.uim AS Puim,  productmaster.productname, productmaster.billingprice,   productmaster.productcode, productmaster.hsncode, productmaster.sub_cat_code, productmaster.sku, productmaster.description, productmaster.igst, productmaster.cgst, productmaster.sgst, productmaster.gsttaxcategory, productmaster.status, productmaster.createdby, productmaster.createdon, uimmaster.uim, productmoniter.qty, productmoniter.price, categorymaster.category, subcategorymaster.subcategoryname, productmaster.supplierid  FROM productmaster INNER JOIN productmoniter ON productmaster.productid=productmoniter.productid INNER JOIN categorymaster ON productmaster.categoryid = categorymaster.categoryid INNER JOIN subcategorymaster ON productmaster.subcategoryid = subcategorymaster.subcategoryid LEFT OUTER JOIN uimmaster ON uimmaster.sno=productmaster.uim  WHERE (productmoniter.branchid = @branchid) AND (productmaster.subcategoryid=@subcatid)");
+                cmd = new SqlCommand("SELECT productmaster.productid, productmaster.categoryid,,productmaster.price as mrp, productmaster.imagepath, productmaster.subcategoryid, productmaster.uim AS Puim,  productmaster.productname, productmaster.billingprice,   productmaster.productcode, productmaster.hsncode, productmaster.sub_cat_code, productmaster.sku, productmaster.description, productmaster.igst, productmaster.cgst, productmaster.sgst, productmaster.gsttaxcategory, productmaster.status, productmaster.createdby, productmaster.createdon, uimmaster.uim, productmoniter.qty, productmoniter.price, categorymaster.category, subcategorymaster.subcategoryname, productmaster.supplierid  FROM productmaster INNER JOIN productmoniter ON productmaster.productid=productmoniter.productid INNER JOIN categorymaster ON productmaster.categoryid = categorymaster.categoryid INNER JOIN subcategorymaster ON productmaster.subcategoryid = subcategorymaster.subcategoryid LEFT OUTER JOIN uimmaster ON uimmaster.sno=productmaster.uim  WHERE (productmoniter.branchid = @branchid) AND (productmaster.subcategoryid=@subcatid)");
                 cmd.Parameters.Add("@subcatid", subcatid);
             }// cmd = new SqlCommand("SELECT productmaster.hsncode, productmaster.sgst, productmaster.cgst, productmaster.igst, productmaster.imagepath, productmaster.productid, productmaster.subcategoryid, productmoniter.qty, productmaster.productname, productmaster.productcode,  productmaster.sub_cat_code,  productmaster.sku,  productmaster.description, productmaster.supplierid,  productmaster.modifierset,uimmaster.uim, productmaster.availablestores,  productmaster.color,  productmaster.uim AS puim,  productmaster.price FROM  productmaster  INNER JOIN productmoniter ON productmaster.productid=productmoniter.productid LEFT OUTER JOIN uimmaster ON uimmaster.sno=productmaster.uim  WHERE (productmoniter.branchid = @branchid)");
             cmd.Parameters.Add("@branchid", branchid);
@@ -624,7 +635,8 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                 getproductdetails.sgst = dr["sgst"].ToString();
                 getproductdetails.cgst = dr["cgst"].ToString();
                 getproductdetails.igst = dr["igst"].ToString();
-                getproductdetails.price = dr["price"].ToString();
+                getproductdetails.mrp = dr["mrp"].ToString();
+                getproductdetails.price = dr["billingprice"].ToString();
                 getproductdetails.productid = dr["productid"].ToString();
                 getproductdetails.subcategoryid = dr["subcategoryid"].ToString();
                 // getproductdetails.imagepath = dr["imagepath"].ToString();
