@@ -135,6 +135,19 @@ public partial class Dailyreport : System.Web.UI.Page
         DailyReport.Columns.Add("Salevalue");
         DailyReport.Columns.Add("GST Tax Value");
         DailyReport.Columns.Add("Total Value");
+        //DailyReport.Columns.Add("Cash");
+        //DailyReport.Columns.Add("Phone Pay");
+
+        cmd = new SqlCommand("SELECT    sum(totalpaying) as amount ,modeofpay FROM        possale_maindetails where branchid=@branchid and doe BETWEEN @d1 AND @d2 group by modeofpay");
+        cmd.Parameters.Add("@d1", GetLowDate(fromdate));
+        cmd.Parameters.Add("@d2", GetHighDate(todate));
+        cmd.Parameters.Add("@branchid", BranchID);
+        DataTable dtAmount = SalesDB.SelectQuery(cmd).Tables[0];
+        if(dtAmount.Rows.Count > 0)
+        {
+            lblCash.Text = dtAmount.Rows[0]["amount"].ToString();
+            lblPhonePay.Text = dtAmount.Rows[1]["amount"].ToString();
+        }
 
         cmd = new SqlCommand("select subcategoryid, subcategoryname from subcategorymaster");
         DataTable dtssubcategory = SalesDB.SelectQuery(cmd).Tables[0];
