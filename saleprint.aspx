@@ -103,7 +103,7 @@
             var gsttwentyeight = 0;
             var withoutgstgrandtotal = 0;
             var results = '<table class="table table-striped table-condensed">';
-            results += '<thead><tr> <th class="text-center" style="width: 50%; border-bottom: 2px solid #ddd;"> Description </th> <th class="text-center" style="width: 12%; border-bottom: 2px solid #ddd;"> Quantity </th> <th class="text-center" style="width: 24%; border-bottom: 2px solid #ddd;">Price </th> <th class="text-center" style="width: 26%; border-bottom: 2px solid #ddd;"> Subtotal </th> </tr></thead></tbody>';
+            results += '<thead><tr> <th class="text-center" style="width: 50%; border-bottom: 2px solid #ddd;"> Description </th> <th class="text-center" style="width: 12%; border-bottom: 2px solid #ddd;"> Quantity </th> <th class="text-center" style="width: 24%; border-bottom: 2px solid #ddd;">Price </th> </tr></thead></tbody>';
             var outward_subdetails = msg[0].SubOutward;
             outward = msg[0].OutwardDetails;
             for (var i = 0; i < outward_subdetails.length; i++) {
@@ -116,8 +116,8 @@
                 results += '<tr>';
                 results += '<td style="text-align: center;">' + outward_subdetails[i].productname + '</td>';
                 results += '<td style="text-align: center;">' + outward_subdetails[i].Quantity + ' <br></td>';
-                results += '<td style="text-align: center;">' + outward_subdetails[i].PerUnitRs + '</td>';
-                results += '<td style="text-align: center;">' + outward_subdetails[i].TotalCost + '</td></tr>';
+                //results += '<td style="text-align: center;">' + outward_subdetails[i].PerUnitRs + '</td>';
+                results += '<td style="text-align: right;">' + outward_subdetails[i].TotalCost + '</td></tr>';
                 withoutgstgrandtotal += (parseFloat(outward_subdetails[i].TotalCost));
                 var taxablevalue = outward_subdetails[i].TotalCost;
                 sumtotal += (parseFloat(taxablevalue));
@@ -189,23 +189,20 @@
             }
             results += '<tr>';
             results += '<td></td>';
-            results += '<td></td>';
             results += '<td style="text-align: center;">Total</td>';
-            results += '<td style="text-align: right;padding-right: 13px;"><span id="spntotalamt">' + withoutgstgrandtotal.toFixed(2) + '</span></td></tr>';
+            results += '<td style="text-align: right;"><span id="spntotalamt">' + withoutgstgrandtotal.toFixed(2) + '</span></td></tr>';
 
             if (gsttwopointfive != 0) {
                 results += '<tr>';
                 var sgstamt = parseFloat(gsttwopointfive) / 2;
                 results += '<td style="text-align: center;">SGST 2.5(%)</td>';
                 results += '<td></td>';
-                results += '<td></td>';
-                results += '<td style="text-align: right;padding-right: 13px;"><span id="spntotalamt">' + sgstamt.toFixed(2) + '</span></td></tr>';
+                results += '<td style="text-align: right;"><span id="spntotalamt">' + sgstamt.toFixed(2) + '</span></td></tr>';
                 results += '<tr>';
                 var sgstamt = parseFloat(gsttwopointfive) / 2;
                 results += '<td style="text-align: center;">CGST 2.5(%)</td>';
                 results += '<td></td>';
-                results += '<td></td>';
-                results += '<td style="text-align: right;padding-right: 13px;"><span id="spntotalamt">' + sgstamt.toFixed(2) + '</span></td></tr>';
+                results += '<td style="text-align: right;"><span id="spntotalamt">' + sgstamt.toFixed(2) + '</span></td></tr>';
             }
 
             if (gsttwlve != 0) {
@@ -213,62 +210,54 @@
                 var sgstamTt = parseFloat(gsttwlve) / 2;
                 results += '<td style="text-align: center;">SGST 6(%)</td>';
                 results += '<td></td>';
-                results += '<td></td>';
-                results += '<td style="text-align: right;padding-right: 13px;"><span id="spntotalamt">' + sgstamTt.toFixed(2) + '</span></td></tr>';
+                results += '<td style="text-align: right; "><span id="spntotalamt">' + sgstamTt.toFixed(2) + '</span></td></tr>';
 
                 results += '<tr>';
                 results += '<td style="text-align: center;">CGST 6(%)</td>';
                 results += '<td></td>';
-                results += '<td></td>';
-                results += '<td style="text-align: right;padding-right: 13px;"><span id="spntotalamt">' + sgstamTt.toFixed(2) + '</span></td></tr>';
+                results += '<td style="text-align: right; "><span id="spntotalamt">' + sgstamTt.toFixed(2) + '</span></td></tr>';
             }
             if (gsteightenn != 0) {
                 results += '<tr>';
                 var sgstammt = parseFloat(gsteightenn) / 2;
                 results += '<td style="text-align: center;">SGST 9(%)</td>';
                 results += '<td></td>';
-                results += '<td></td>';
-                results += '<td style="text-align: right;padding-right: 13px;"><span id="spntotalamt">' + sgstammt.toFixed(2) + '</span></td></tr>';
+                results += '<td style="text-align: right; "><span id="spntotalamt">' + sgstammt.toFixed(2) + '</span></td></tr>';
 
                 results += '<tr>';
                 results += '<td style="text-align: center;">CGST 9(%)</td>';
                 results += '<td></td>';
-                results += '<td></td>';
-                results += '<td style="text-align: right;padding-right: 13px;"><span id="spntotalamt">' + sgstammt.toFixed(2) + '</span></td></tr>';
+                results += '<td style="text-align: right; "><span id="spntotalamt">' + sgstammt.toFixed(2) + '</span></td></tr>';
             }
             if (gsttwentyeight != 0) {
                 results += '<tr>';
                 var sgsttamt = parseFloat(gsttwentyeight) / 2;
                 results += '<td style="text-align: center;">SGST 14(%)</td>';
                 results += '<td></td>';
-                results += '<td></td>';
-                results += '<td style="text-align: right;padding-right: 13px;"><span id="spntotalamt">' + sgsttamt.toFixed(2) + '</span></td></tr>';
+                results += '<td style="text-align: right; "><span id="spntotalamt">' + sgsttamt.toFixed(2) + '</span></td></tr>';
 
                 results += '<tr>';
                 var sgstamt = parseFloat(gsttwopointfive) / 2;
                 results += '<td style="text-align: center;">CGST 14(%)</td>';
                 results += '<td></td>';
-                results += '<td></td>';
-                results += '<td style="text-align: right;padding-right: 13px;"><span id="spntotalamt">' + sgsttamt.toFixed(2) + '</span></td></tr>';
+                results += '<td style="text-align: right; "><span id="spntotalamt">' + sgsttamt.toFixed(2) + '</span></td></tr>';
             }
 
 //            results += '<tr>';
 //            results += '<td></td>';
 //            results += '<td></td>';
 //            results += '<td  style="text-align: center;">Rounding</td>';
-//            results += '<td  style="text-align: right;padding-right: 13px;"><span id="spnrountoff">' + diff.toFixed(2) + '</span></td></tr>';
+//            results += '<td  style="text-align: right; "><span id="spnrountoff">' + diff.toFixed(2) + '</span></td></tr>';
 
             results += '<tr>';
-            results += '<td></td>';
             results += '<td></td>';
             results += '<td  style="text-align: center;">Grand Total	</td>';
-            results += '<td  style="text-align: right;padding-right: 13px;"><span id="spngrdtotal">' + Math.round(grandtotalvalue).toFixed(2) + '</span></td></tr>';
+            results += '<td  style="text-align: right; "><span id="spngrdtotal">' + Math.round(grandtotalvalue).toFixed(2) + '</span></td></tr>';
 
             results += '<tr>';
             results += '<td></td>';
-            results += '<td></td>';
             results += '<td  style="text-align: center;">Discount :	</td>';
-            results += '<td  style="text-align: right;padding-right: 13px;"> <span id="spndiscount"></span></td></tr>';
+            results += '<td  style="text-align: right; "> <span id="spndiscount"></span></td></tr>';
             results += '</table>';
             grandttol = grandtotalvalue;
             $("#div_OutwardValue").html(results);
