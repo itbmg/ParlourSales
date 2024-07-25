@@ -6,8 +6,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using System.Data;
 using System.Data.SqlClient;
-
-public partial class Dailyreport : System.Web.UI.Page
+public partial class DailySalesReport : System.Web.UI.Page
 {
     SqlCommand cmd;
     string BranchID = "";
@@ -31,7 +30,7 @@ public partial class Dailyreport : System.Web.UI.Page
             }
         }
     }
-    
+
     private DateTime GetLowDate(DateTime dt)
     {
         double Hour, Min, Sec;
@@ -58,32 +57,6 @@ public partial class Dailyreport : System.Web.UI.Page
         DT = DT.AddSeconds(Sec);
         return DT;
     }
-
-    protected void grdsiloopening_RowDataBound(object sender, GridViewRowEventArgs e)
-    {
-        if (e.Row.RowType == DataControlRowType.DataRow)
-        {
-            if (e.Row.Cells[0].Text == "Total")
-            {
-                e.Row.BackColor = System.Drawing.Color.Aquamarine;
-                e.Row.Font.Size = FontUnit.Medium;
-                e.Row.Font.Bold = true;
-            }
-            if (e.Row.Cells[0].Text == "Receipts")
-            {
-                e.Row.BackColor = System.Drawing.Color.DeepSkyBlue;
-                e.Row.Font.Size = FontUnit.Large;
-                e.Row.Font.Bold = true;
-            }
-            if (e.Row.Cells[0].Text == "Buffalo")
-            {
-                e.Row.BackColor = System.Drawing.Color.LightBlue;
-                e.Row.Font.Size = FontUnit.Large;
-                e.Row.Font.Bold = true;
-            }
-        }
-    }
-
 
     protected void btn_Generate_Click(object sender, EventArgs e)
     {
@@ -113,10 +86,10 @@ public partial class Dailyreport : System.Web.UI.Page
             }
         }
 
-        Session["filename"] = "Daily Report";
-        Session["title"] = "Daily Report Details";
+        Session["filename"] = "Daily Sales Report";
+        Session["title"] = "Daily Sales Details";
 
-        
+
         double sumsalequantity = 0;
         double sumsalevalue = 0;
         double gsttaxvalue = 0;
@@ -128,34 +101,17 @@ public partial class Dailyreport : System.Web.UI.Page
         double grandtotalgrandtotalsumvalue = 0;
 
         DataTable DailyReport = new DataTable();
-        DailyReport.Columns.Add("SubCategory");
+        DailyReport.Columns.Add("Sno");
+        DailyReport.Columns.Add("Invoice no");
         DailyReport.Columns.Add("ItemName");
         DailyReport.Columns.Add("Sale(Qty)");
         DailyReport.Columns.Add("Price");
         DailyReport.Columns.Add("Salevalue");
         DailyReport.Columns.Add("GST Tax Value");
         DailyReport.Columns.Add("Total Value");
-        //DailyReport.Columns.Add("Cash");
-        //DailyReport.Columns.Add("Phone Pay");
-
-        cmd = new SqlCommand("SELECT    sum(totalpaying) as amount ,modeofpay FROM        possale_maindetails where branchid=@branchid and doe BETWEEN @d1 AND @d2 and modeofpay='Cash' group by modeofpay");
-        cmd.Parameters.Add("@d1", GetLowDate(fromdate));
-        cmd.Parameters.Add("@d2", GetHighDate(todate));
-        cmd.Parameters.Add("@branchid", BranchID);
-        DataTable dtAmount = SalesDB.SelectQuery(cmd).Tables[0];
-        if(dtAmount.Rows.Count > 0)
-        {
-            lblCash.Text = dtAmount.Rows[0]["amount"].ToString();
-        }
-        cmd = new SqlCommand("SELECT    sum(totalpaying) as amount ,modeofpay FROM        possale_maindetails where branchid=@branchid and doe BETWEEN @d1 AND @d2 and modeofpay='Phone pay' group by modeofpay");
-        cmd.Parameters.Add("@d1", GetLowDate(fromdate));
-        cmd.Parameters.Add("@d2", GetHighDate(todate));
-        cmd.Parameters.Add("@branchid", BranchID);
-        DataTable dtPhoneAmount = SalesDB.SelectQuery(cmd).Tables[0];
-        if (dtPhoneAmount.Rows.Count > 0)
-        {
-            lblPhonePay.Text = dtPhoneAmount.Rows[0]["amount"].ToString();
-        }
+        DailyReport.Columns.Add("Cash");
+        DailyReport.Columns.Add("Phone Pay");
+        DailyReport.Columns.Add("Free");
 
         cmd = new SqlCommand("select subcategoryid, subcategoryname from subcategorymaster");
         DataTable dtssubcategory = SalesDB.SelectQuery(cmd).Tables[0];
