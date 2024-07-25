@@ -17,7 +17,7 @@
             <div class="box box-primary">
                 <div class="box-header">
                     <h3 class="box-title">
-                        Daily Report</h3>
+                        Summary Report</h3>
                 </div>
                 <div class="box-body">
                     <div class="row">
