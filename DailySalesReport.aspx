@@ -17,7 +17,7 @@
             <div class="box box-primary">
                 <div class="box-header">
                     <h3 class="box-title">
-                        Daily Report</h3>
+                        Daily Sales Report</h3>
                 </div>
                 <div class="box-body">
                     <div class="row">
@@ -56,21 +56,10 @@
                            
                         </div>
                     </div>
-                    <div style="padding-left:40%;">
-                        <table >
-                            <tr>
-                                <td><asp:Label ID="Label2" runat="server" Font-Bold="true">Cash:</asp:Label></td>
-                                <td><asp:Label ID="lblCash" runat="server" Font-Bold="true"  ForeColor="Green" Font-Size="20px"></asp:Label></td>
-                                <td style="width:5px;"></td>
-                                <td><asp:Label ID="Label1" runat="server" Font-Bold="true" >Phone Pay:</asp:Label></td>
-                                <td><asp:Label ID="lblPhonePay" runat="server" Font-Bold="true" ForeColor="Green" Font-Size="20px"></asp:Label></td>
-                            </tr>
-                        </table>
-                    </div>
                     <div class="col-xs-12">
                         <div class="box box-primary" id="divPrint">
                             <asp:GridView ID="grdreport" runat="server" ForeColor="White" Width="100%" CssClass="gridcls"
-                                GridLines="Both" Font-Bold="true" OnRowDataBound="grdsiloopening_RowDataBound">
+                                GridLines="Both" Font-Bold="true" >
                                 <EditRowStyle BackColor="#999999" />
                                 <FooterStyle BackColor="Gray" Font-Bold="False" ForeColor="White" />
                                 <HeaderStyle BackColor="#f4f4f4" Font-Bold="False" ForeColor="Black" Font-Italic="False"

@@ -59,32 +59,6 @@ public partial class Dailyreport : System.Web.UI.Page
         return DT;
     }
 
-    protected void grdsiloopening_RowDataBound(object sender, GridViewRowEventArgs e)
-    {
-        if (e.Row.RowType == DataControlRowType.DataRow)
-        {
-            if (e.Row.Cells[0].Text == "Total")
-            {
-                e.Row.BackColor = System.Drawing.Color.Aquamarine;
-                e.Row.Font.Size = FontUnit.Medium;
-                e.Row.Font.Bold = true;
-            }
-            if (e.Row.Cells[0].Text == "Receipts")
-            {
-                e.Row.BackColor = System.Drawing.Color.DeepSkyBlue;
-                e.Row.Font.Size = FontUnit.Large;
-                e.Row.Font.Bold = true;
-            }
-            if (e.Row.Cells[0].Text == "Buffalo")
-            {
-                e.Row.BackColor = System.Drawing.Color.LightBlue;
-                e.Row.Font.Size = FontUnit.Large;
-                e.Row.Font.Bold = true;
-            }
-        }
-    }
-
-
     protected void btn_Generate_Click(object sender, EventArgs e)
     {
         getdata();

@@ -71,7 +71,7 @@
                     <div class="col-xs-12">
                         <div class="box box-primary" id="divPrint">
                             <asp:GridView ID="grdreport" runat="server" ForeColor="White" Width="100%" CssClass="gridcls"
-                                GridLines="Both" Font-Bold="true" OnRowDataBound="grdsiloopening_RowDataBound">
+                                GridLines="Both" Font-Bold="true">
                                 <EditRowStyle BackColor="#999999" />
                                 <FooterStyle BackColor="Gray" Font-Bold="False" ForeColor="White" />
                                 <HeaderStyle BackColor="#f4f4f4" Font-Bold="False" ForeColor="Black" Font-Italic="False"

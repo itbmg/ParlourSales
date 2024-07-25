@@ -137,7 +137,7 @@ public partial class SummaryReport : System.Web.UI.Page
                     foreach (DataRow dr in dtsales.Rows)
                     {
                         DataRow newrow = DailyReport.NewRow();
-                        newrow["SubCategory"] = subcategoryname;
+                        //newrow["SubCategory"] = subcategoryname;
                         newrow["ItemName"] = dr["productname"].ToString();
                         newrow["Price"] = dr["price"].ToString();
 
@@ -145,45 +145,45 @@ public partial class SummaryReport : System.Web.UI.Page
                         double.TryParse(dr["qty"].ToString(), out qty);
                         sumsalequantity += qty;
                         grandtotalsumsalequantity += qty;
-                        newrow["Sale(Qty)"] = dr["qty"].ToString();
+                        //newrow["Sale(Qty)"] = dr["qty"].ToString();
 
                         double totvalue = 0;
                         double.TryParse(dr["totvalue"].ToString(), out totvalue);
                         sumsalevalue += totvalue;
                         grandtotalsumsalevalue += totvalue;
 
-                        newrow["Salevalue"] = dr["totvalue"].ToString();
+                     //   newrow["Salevalue"] = dr["totvalue"].ToString();
 
                         double ordertax = 0;
                         double.TryParse(dr["ordertax"].ToString(), out ordertax);
                         gsttaxvalue += ordertax;
                         grandtotalgsttaxvalue += ordertax;
                         double ot = Math.Round(ordertax, 2);
-                        newrow["GST Tax Value"] = ot.ToString();
+                      //  newrow["GST Tax Value"] = ot.ToString();
 
                         double grandtotalvalue = totvalue + ordertax;
                         grandtotalsumvalue += grandtotalvalue;
                         grandtotalgrandtotalsumvalue += grandtotalvalue;
-                        newrow["Total Value"] = Math.Round(grandtotalvalue, 2).ToString();
+                      //  newrow["Total Value"] = Math.Round(grandtotalvalue, 2).ToString();
                         DailyReport.Rows.Add(newrow);
                     }
                     DataRow newvartical2 = DailyReport.NewRow();
-                    newvartical2["SubCategory"] = "Total";
-                    newvartical2["Sale(Qty)"] = Math.Round(sumsalequantity, 2);
-                    newvartical2["Salevalue"] = Math.Round(sumsalevalue, 2);
-                    newvartical2["GST Tax Value"] = Math.Round(gsttaxvalue, 2);
-                    newvartical2["Total Value"] = Math.Round(grandtotalsumvalue, 2);
+                    //newvartical2["SubCategory"] = "Total";
+                    //newvartical2["Sale(Qty)"] = Math.Round(sumsalequantity, 2);
+                    //newvartical2["Salevalue"] = Math.Round(sumsalevalue, 2);
+                    //newvartical2["GST Tax Value"] = Math.Round(gsttaxvalue, 2);
+                    //newvartical2["Total Value"] = Math.Round(grandtotalsumvalue, 2);
                     DailyReport.Rows.Add(newvartical2);
                 }
             }
 
 
             DataRow newvartical3 = DailyReport.NewRow();
-            newvartical3["SubCategory"] = "Grand Total";
-            newvartical3["Sale(Qty)"] = Math.Round(grandtotalsumsalequantity, 2);
-            newvartical3["Salevalue"] = Math.Round(grandtotalsumsalevalue, 2);
-            newvartical3["GST Tax Value"] = Math.Round(grandtotalgsttaxvalue, 2);
-            newvartical3["Total Value"] = Math.Round(grandtotalgrandtotalsumvalue, 2);
+            //newvartical3["SubCategory"] = "Grand Total";
+            //newvartical3["Sale(Qty)"] = Math.Round(grandtotalsumsalequantity, 2);
+            //newvartical3["Salevalue"] = Math.Round(grandtotalsumsalevalue, 2);
+            //newvartical3["GST Tax Value"] = Math.Round(grandtotalgsttaxvalue, 2);
+            //newvartical3["Total Value"] = Math.Round(grandtotalgrandtotalsumvalue, 2);
             DailyReport.Rows.Add(newvartical3);
 
 

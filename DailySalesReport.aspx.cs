@@ -99,6 +99,9 @@ public partial class DailySalesReport : System.Web.UI.Page
         double grandtotalsumsalevalue = 0;
         double grandtotalgsttaxvalue = 0;
         double grandtotalgrandtotalsumvalue = 0;
+        double grandtotalCash = 0;
+        double grandtotalPhonePay = 0;
+        double grandtotalFree = 0;
 
         DataTable DailyReport = new DataTable();
         DailyReport.Columns.Add("Sno");
@@ -113,20 +116,24 @@ public partial class DailySalesReport : System.Web.UI.Page
         DailyReport.Columns.Add("Phone Pay");
         DailyReport.Columns.Add("Free");
 
-        cmd = new SqlCommand("select subcategoryid, subcategoryname from subcategorymaster");
-        DataTable dtssubcategory = SalesDB.SelectQuery(cmd).Tables[0];
-        if (dtssubcategory.Rows.Count > 0)
+        cmd = new SqlCommand("SELECT     sno,  totalpaying,modeofpay FROM possale_maindetails where doe BETWEEN @d1 AND @d2 and branchid=@branchid ");
+        cmd.Parameters.AddWithValue("@d1", GetLowDate(fromdate));
+        cmd.Parameters.AddWithValue("@d2", GetHighDate(todate));
+        cmd.Parameters.AddWithValue("@branchid", BranchID);
+        DataTable dtInvoice = SalesDB.SelectQuery(cmd).Tables[0];
+                    int J = 1;
+        if (dtInvoice.Rows.Count > 0)
         {
-            foreach (DataRow drsub in dtssubcategory.Rows)
+            foreach (DataRow drsub in dtInvoice.Rows)
             {
-                string subcatid = drsub["subcategoryid"].ToString();
-                string subcategoryname = drsub["subcategoryname"].ToString();
+                string refno = drsub["sno"].ToString();
 
-                cmd = new SqlCommand("SELECT   Sum(possale_subdetails.qty) AS qty, productmaster.productname, possale_subdetails.price, Sum(possale_subdetails.totvalue) AS totvalue, Sum(possale_subdetails.ordertax) AS ordertax FROM possale_maindetails INNER JOIN possale_subdetails on possale_subdetails.refno = possale_maindetails.sno INNER JOIN productmaster ON productmaster.productid = possale_subdetails.productid  WHERE possale_maindetails.doe BETWEEN @d1 AND @d2 AND possale_maindetails.branchid=@bid AND productmaster.subcategoryid=@subcatid  GROUP BY  productmaster.productname, possale_subdetails.price");
-                cmd.Parameters.Add("@d1", GetLowDate(fromdate));
-                cmd.Parameters.Add("@d2", GetHighDate(todate));
-                cmd.Parameters.Add("@bid", BranchID);
-                cmd.Parameters.Add("@subcatid", subcatid);
+
+                cmd = new SqlCommand("SELECT   possale_subdetails.qty, productmaster.productname, possale_subdetails.price, possale_subdetails.totvalue,possale_subdetails.ordertax FROM possale_maindetails INNER JOIN possale_subdetails on possale_subdetails.refno = possale_maindetails.sno INNER JOIN productmaster ON productmaster.productid = possale_subdetails.productid  WHERE possale_maindetails.doe BETWEEN @d1 AND @d2 AND possale_maindetails.branchid=@bid AND possale_maindetails.sno=@refno");
+                cmd.Parameters.AddWithValue("@d1", GetLowDate(fromdate));
+                cmd.Parameters.AddWithValue("@d2", GetHighDate(todate));
+                cmd.Parameters.AddWithValue("@bid", BranchID);
+                cmd.Parameters.AddWithValue("@refno", refno);
                 DataTable dtsales = SalesDB.SelectQuery(cmd).Tables[0];
                 if (dtsales.Rows.Count > 0)
                 {
@@ -138,7 +145,8 @@ public partial class DailySalesReport : System.Web.UI.Page
                     foreach (DataRow dr in dtsales.Rows)
                     {
                         DataRow newrow = DailyReport.NewRow();
-                        newrow["SubCategory"] = subcategoryname;
+                        newrow["sno"] = J++.ToString();
+                        newrow["Invoice no"] = "";
                         newrow["ItemName"] = dr["productname"].ToString();
                         newrow["Price"] = dr["price"].ToString();
 
@@ -169,22 +177,48 @@ public partial class DailySalesReport : System.Web.UI.Page
                         DailyReport.Rows.Add(newrow);
                     }
                     DataRow newvartical2 = DailyReport.NewRow();
-                    newvartical2["SubCategory"] = "Total";
+                    newvartical2["Invoice no"] = refno;
+                    newvartical2["ItemName"] = "Total";
                     newvartical2["Sale(Qty)"] = Math.Round(sumsalequantity, 2);
                     newvartical2["Salevalue"] = Math.Round(sumsalevalue, 2);
                     newvartical2["GST Tax Value"] = Math.Round(gsttaxvalue, 2);
                     newvartical2["Total Value"] = Math.Round(grandtotalsumvalue, 2);
+                    string modeofpay = drsub["modeofpay"].ToString();
+                    if (modeofpay.ToLower() == "cash")
+                    {
+                        newvartical2["Cash"] = drsub["totalpaying"].ToString();
+                        double ordercash = 0;
+                        double.TryParse(drsub["totalpaying"].ToString(), out ordercash);
+                        grandtotalCash += ordercash;
+                    }
+                    if (modeofpay.ToLower() == "phonepay")
+                    {
+                        newvartical2["Phone Pay"] = drsub["totalpaying"].ToString();
+                        double ordercash = 0;
+                        double.TryParse(drsub["totalpaying"].ToString(), out ordercash);
+                        grandtotalPhonePay += ordercash;
+                    }
+                    if (modeofpay.ToLower() == "free")
+                    {
+                        newvartical2["Free"] = drsub["totalpaying"].ToString();
+                        double ordercash = 0;
+                        double.TryParse(drsub["totalpaying"].ToString(), out ordercash);
+                        grandtotalFree += ordercash;
+                    }
                     DailyReport.Rows.Add(newvartical2);
                 }
             }
 
 
             DataRow newvartical3 = DailyReport.NewRow();
-            newvartical3["SubCategory"] = "Grand Total";
+            newvartical3["Invoice no"] = "Grand Total";
             newvartical3["Sale(Qty)"] = Math.Round(grandtotalsumsalequantity, 2);
             newvartical3["Salevalue"] = Math.Round(grandtotalsumsalevalue, 2);
             newvartical3["GST Tax Value"] = Math.Round(grandtotalgsttaxvalue, 2);
             newvartical3["Total Value"] = Math.Round(grandtotalgrandtotalsumvalue, 2);
+            newvartical3["Cash"] = Math.Round(grandtotalCash, 2);
+            newvartical3["Phone Pay"] = Math.Round(grandtotalPhonePay, 2);
+            newvartical3["Free"] = Math.Round(grandtotalFree, 2);
             DailyReport.Rows.Add(newvartical3);
 
 
