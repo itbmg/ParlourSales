@@ -127,8 +127,6 @@ public partial class DailySalesReport : System.Web.UI.Page
             foreach (DataRow drsub in dtInvoice.Rows)
             {
                 string refno = drsub["sno"].ToString();
-
-
                 cmd = new SqlCommand("SELECT   possale_subdetails.qty, productmaster.productname, possale_subdetails.price, possale_subdetails.totvalue,possale_subdetails.ordertax FROM possale_maindetails INNER JOIN possale_subdetails on possale_subdetails.refno = possale_maindetails.sno INNER JOIN productmaster ON productmaster.productid = possale_subdetails.productid  WHERE possale_maindetails.doe BETWEEN @d1 AND @d2 AND possale_maindetails.branchid=@bid AND possale_maindetails.sno=@refno");
                 cmd.Parameters.AddWithValue("@d1", GetLowDate(fromdate));
                 cmd.Parameters.AddWithValue("@d2", GetHighDate(todate));

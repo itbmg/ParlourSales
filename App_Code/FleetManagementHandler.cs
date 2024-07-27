@@ -297,8 +297,8 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                     break;
 
 
-                    //sales
-                    case "intialize_productsmanagement_products":
+                //sales
+                case "intialize_productsmanagement_products":
                     intialize_productsmanagement_products(context);
                     break;
                 case "get_subcategory_data":
@@ -313,7 +313,9 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                 case "get_agentindent_details":
                     get_agentindent_details(context);
                     break;
-
+                case "get_Sales_details":
+                    get_Sales_details(context);
+                    break;
                 default:
                     var jsonString = string.Empty;
                     context.Request.InputStream.Position = 0;
@@ -345,6 +347,10 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                             case "save_possale":
                                 save_possale(context);
                                 break;
+                            case "Update_possale":
+                                Update_possale(context);
+                                break;
+                                
                             case "save_inwarddetails":
                                 save_inwarddetails(context);
                                 break;
@@ -380,6 +386,10 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                             case "btnOrderSaveClick":
                                 btnOrderSaveClick(context);
                                 break;
+
+                           
+
+                                
                         }
                     }
                     break;
@@ -680,7 +690,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             cmd = new SqlCommand("SELECT sno, distibutorid, price, I_createdby, doe, productid  FROM    distibutorratemoniter Where distibutorid=@distibutorid");
             cmd.Parameters.Add("@distibutorid", distibutorid);
             DataTable distibutoritems = vdm.SelectQuery(cmd).Tables[0];
-           
+
             List<ProductDetails> ProductDetails = new List<ProductDetails>();
             foreach (DataRow dr in routes.Rows)
             {
@@ -732,7 +742,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
         }
     }
 
-    
+
 
     private void get_productwise_details(HttpContext context)
     {
@@ -916,6 +926,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
         public string cgst { get; set; }
         public string sgst { get; set; }
         public string ordertax { get; set; }
+        public string InvoiceNo { get; set; }
     }
 
     public class getOutwardData
@@ -3135,6 +3146,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
         public string dinamination { get; set; }
         public string Quantity { get; set; }
         public string hdnproductsno { get; set; }
+        public string price { get; set; }
     }
 
     public class getRegcloseDetails
@@ -3145,82 +3157,82 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
 
     private void backdatesave_parlorerclosingregister(HttpContext context)
     {
-        try
-        {
-            vdm = new SalesDBManager();
-            var js = new JavaScriptSerializer();
-            var title1 = context.Request.Params[1];
-            RegcloseDetails obj = js.Deserialize<RegcloseDetails>(title1);
-            string cashinhand = obj.cashinhand;
-            string cashsale = obj.cashsale;
-            string chequesale = obj.chequesale;
-            string giftcardsale = obj.giftcardsale;
-            string ccsale = obj.ccsale;
-            string stripesale = obj.stripesale;
-            string othersale = obj.othersale;
-            string totalsale = obj.totalsale;
-            string expenses = obj.expenses;
-            string totalcash = obj.totalcash;
-            string submittedcash = obj.submittedcash;
-            string submittedslips = obj.submittedslips;
-            string submittedchecks = obj.submittedchecks;
-            string description = obj.description;
-            string btnreg = obj.btnreg;
-            string phonepay = obj.phonepay;
-            string paytm = obj.paytm;
-            string branchid = context.Session["BranchID"].ToString();
-            string createdby = context.Session["Employ_Sno"].ToString();
-            DateTime ServerDateCurrentdate = SalesDBManager.GetTime(vdm.conn);
-            DateTime closedate = ServerDateCurrentdate.AddDays(-1);
-            if (btnreg == "closereg")
-            {
-                cmd = new SqlCommand("insert into registorclosingdetails(cashinhand, cashsale, chequesale, giftcardsale, ccsale, stripesale, othersale, totalsale, expenses, totalcash, submittedcash, submittedslips, submittedchecks, description, parlorid, createdon, closedby, doe, paytm, phonepay) values (@cashinhand, @cashsale,  @chequesale,  @giftcardsale, @ccsale, @stripesale, @othersale, @totalsale, @expenses, @totalcash, @submittedcash, @submittedslips, @submittedchecks, @description, @parlorid, @createdon, @closedby, @doe, @paytm, @phonepay)");//,color,@color
-                cmd.Parameters.Add("@cashinhand", cashinhand);
-                cmd.Parameters.Add("@cashsale", cashsale);
-                cmd.Parameters.Add("@chequesale", chequesale);
-                cmd.Parameters.Add("@giftcardsale", giftcardsale);
-                cmd.Parameters.Add("@ccsale", ccsale);
-                cmd.Parameters.Add("@stripesale", stripesale);
-                cmd.Parameters.Add("@othersale", othersale);
-                cmd.Parameters.Add("@totalsale", totalsale);
-                cmd.Parameters.Add("@expenses", expenses);
-                cmd.Parameters.Add("@totalcash", totalcash);//@submittedcash, @submittedslips, @submittedchecks, @description, @parlorid, @createdon, @closedby
-                cmd.Parameters.Add("@submittedcash", submittedcash);
-                cmd.Parameters.Add("@submittedslips", submittedslips);
-                cmd.Parameters.Add("@submittedchecks", submittedchecks);
-                cmd.Parameters.Add("@description", description);
-                cmd.Parameters.Add("@paytm", paytm);
-                cmd.Parameters.Add("@phonepay", phonepay);
-                cmd.Parameters.Add("@parlorid", branchid);
-                cmd.Parameters.Add("@createdon", ServerDateCurrentdate);
-                cmd.Parameters.Add("@doe", closedate);
-                cmd.Parameters.Add("@closedby", createdby);
-                vdm.insert(cmd);
-                cmd = new SqlCommand("select MAX(sno) as refno from registorclosingdetails");
-                DataTable dtoutward = vdm.SelectQuery(cmd).Tables[0];
-                string refno = dtoutward.Rows[0]["refno"].ToString();
-                foreach (SubRegcloseDetails si in obj.closeitems)
-                {
-                    if (si.hdnproductsno != "0")
-                    {
-                        //
-                        cmd = new SqlCommand("insert into registorclosing_dinaminationdetails(dinaminationid, dinamination, qty, refno) values(@productid, @dinamination, @quantity, @in_refno)");
-                        cmd.Parameters.Add("@dinamination", si.dinamination);
-                        cmd.Parameters.Add("@productid", si.hdnproductsno);
-                        cmd.Parameters.Add("@quantity", si.Quantity);
-                        cmd.Parameters.Add("@in_refno", refno);
-                        vdm.insert(cmd);
-                    }
-                }
-                string Response = GetJson("Register Details are Successfully Closed");
-                context.Response.Write(Response);
-            }
-        }
-        catch (Exception ex)
-        {
-            string Response = GetJson(ex.Message);
-            context.Response.Write(Response);
-        }
+        //try
+        //{
+        //    vdm = new SalesDBManager();
+        //    var js = new JavaScriptSerializer();
+        //    var title1 = context.Request.Params[1];
+        //    RegcloseDetails obj = js.Deserialize<RegcloseDetails>(title1);
+        //    string cashinhand = obj.cashinhand;
+        //    string cashsale = obj.cashsale;
+        //    string chequesale = obj.chequesale;
+        //    string giftcardsale = obj.giftcardsale;
+        //    string ccsale = obj.ccsale;
+        //    string stripesale = obj.stripesale;
+        //    string othersale = obj.othersale;
+        //    string totalsale = obj.totalsale;
+        //    string expenses = obj.expenses;
+        //    string totalcash = obj.totalcash;
+        //    string submittedcash = obj.submittedcash;
+        //    string submittedslips = obj.submittedslips;
+        //    string submittedchecks = obj.submittedchecks;
+        //    string description = obj.description;
+        //    string btnreg = obj.btnreg;
+        //    string phonepay = obj.phonepay;
+        //    string paytm = obj.paytm;
+        //    string branchid = context.Session["BranchID"].ToString();
+        //    string createdby = context.Session["Employ_Sno"].ToString();
+        //    DateTime ServerDateCurrentdate = SalesDBManager.GetTime(vdm.conn);
+        //    DateTime closedate = ServerDateCurrentdate.AddDays(-1);
+        //    if (btnreg == "closereg")
+        //    {
+        //        cmd = new SqlCommand("insert into registorclosingdetails(cashinhand, cashsale, chequesale, giftcardsale, ccsale, stripesale, othersale, totalsale, expenses, totalcash, submittedcash, submittedslips, submittedchecks, description, parlorid, createdon, closedby, doe, paytm, phonepay) values (@cashinhand, @cashsale,  @chequesale,  @giftcardsale, @ccsale, @stripesale, @othersale, @totalsale, @expenses, @totalcash, @submittedcash, @submittedslips, @submittedchecks, @description, @parlorid, @createdon, @closedby, @doe, @paytm, @phonepay)");//,color,@color
+        //        cmd.Parameters.Add("@cashinhand", cashinhand);
+        //        cmd.Parameters.Add("@cashsale", cashsale);
+        //        cmd.Parameters.Add("@chequesale", chequesale);
+        //        cmd.Parameters.Add("@giftcardsale", giftcardsale);
+        //        cmd.Parameters.Add("@ccsale", ccsale);
+        //        cmd.Parameters.Add("@stripesale", stripesale);
+        //        cmd.Parameters.Add("@othersale", othersale);
+        //        cmd.Parameters.Add("@totalsale", totalsale);
+        //        cmd.Parameters.Add("@expenses", expenses);
+        //        cmd.Parameters.Add("@totalcash", totalcash);//@submittedcash, @submittedslips, @submittedchecks, @description, @parlorid, @createdon, @closedby
+        //        cmd.Parameters.Add("@submittedcash", submittedcash);
+        //        cmd.Parameters.Add("@submittedslips", submittedslips);
+        //        cmd.Parameters.Add("@submittedchecks", submittedchecks);
+        //        cmd.Parameters.Add("@description", description);
+        //        cmd.Parameters.Add("@paytm", paytm);
+        //        cmd.Parameters.Add("@phonepay", phonepay);
+        //        cmd.Parameters.Add("@parlorid", branchid);
+        //        cmd.Parameters.Add("@createdon", ServerDateCurrentdate);
+        //        cmd.Parameters.Add("@doe", closedate);
+        //        cmd.Parameters.Add("@closedby", createdby);
+        //        vdm.insert(cmd);
+        //        cmd = new SqlCommand("select MAX(sno) as refno from registorclosingdetails");
+        //        DataTable dtoutward = vdm.SelectQuery(cmd).Tables[0];
+        //        string refno = dtoutward.Rows[0]["refno"].ToString();
+        //        foreach (SubRegcloseDetails si in obj.closeitems)
+        //        {
+        //            if (si.hdnproductsno != "0")
+        //            {
+        //                //
+        //                cmd = new SqlCommand("insert into registorclosing_dinaminationdetails(dinaminationid, dinamination, qty, refno) values(@productid, @dinamination, @quantity, @in_refno)");
+        //                cmd.Parameters.Add("@dinamination", si.dinamination);
+        //                cmd.Parameters.Add("@productid", si.hdnproductsno);
+        //                cmd.Parameters.Add("@quantity", si.Quantity);
+        //                cmd.Parameters.Add("@in_refno", refno);
+        //                vdm.insert(cmd);
+        //            }
+        //        }
+        //        string Response = GetJson("Register Details are Successfully Closed");
+        //        context.Response.Write(Response);
+        //    }
+        //}
+        //catch (Exception ex)
+        //{
+        //    string Response = GetJson(ex.Message);
+        //    context.Response.Write(Response);
+        //}
 
     }
 
@@ -3277,7 +3289,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                 cmd.Parameters.Add("@closedby", createdby);
                 cmd.Parameters.Add("@paytm", paytm);
                 cmd.Parameters.Add("@phonepay", phonepay);
-                vdm.insert(cmd);
+                //vdm.insert(cmd);
                 cmd = new SqlCommand("select MAX(sno) as refno from registorclosingdetails");
                 DataTable dtoutward = vdm.SelectQuery(cmd).Tables[0];
                 string refno = dtoutward.Rows[0]["refno"].ToString();
@@ -3290,8 +3302,70 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                         cmd.Parameters.Add("@productid", si.hdnproductsno);
                         cmd.Parameters.Add("@quantity", si.Quantity);
                         cmd.Parameters.Add("@in_refno", refno);
-                        vdm.insert(cmd);
+                        //vdm.insert(cmd);
+
+
                     }
+                }
+                cmd = new SqlCommand("select price,productid,branchid from productmaster");
+                DataTable dtproduct = vdm.SelectQuery(cmd).Tables[0];
+
+                cmd = new SqlCommand("select op_bal,refno, productid, price, clo_bal,doe,branchid from sub_registorclosingdetails where branchid=@branchid and doe between @d1 and @d2");
+                cmd.Parameters.Add("@d1", GetLowDate(closedate).AddDays(-1));
+                cmd.Parameters.Add("@d2", GetHighDate(closedate).AddDays(-1));
+                cmd.Parameters.Add("@branchid", branchid);
+                DataTable dtop = vdm.SelectQuery(cmd).Tables[0];
+
+
+                cmd = new SqlCommand("SELECT SUM(inward_subdetails.qty) AS inwardqty  FROM   inward_maindetails INNER JOIN  inward_subdetails ON inward_maindetails.sno = inward_subdetails.refno INNER JOIN productmaster ON productmaster.productid = inward_subdetails.productid  WHERE (inward_maindetails.doe BETWEEN @d11 AND @d22) AND (inward_maindetails.branchid = @bidd) AND (inward_maindetails.status = 'A')");
+                cmd.Parameters.Add("@d11", GetLowDate(closedate));
+                cmd.Parameters.Add("@d22", GetHighDate(closedate));
+                cmd.Parameters.Add("@bidd", branchid);
+                DataTable dtinward = vdm.SelectQuery(cmd).Tables[0];
+
+                cmd = new SqlCommand("SELECT   Sum(possale_subdetails.qty) AS outwardqty, productmaster.productid,productmaster.productname, possale_subdetails.price, Sum(possale_subdetails.totvalue) AS totvalue, Sum(possale_subdetails.ordertax) AS ordertax FROM possale_maindetails INNER JOIN possale_subdetails on possale_subdetails.refno = possale_maindetails.sno INNER JOIN productmaster ON productmaster.productid = possale_subdetails.productid  WHERE possale_maindetails.doe BETWEEN @d1 AND @d2 AND possale_maindetails.branchid=@bid  GROUP BY  productmaster.productname, possale_subdetails.price,productmaster.productid");
+                cmd.Parameters.Add("@d1", GetLowDate(closedate));
+                cmd.Parameters.Add("@d2", GetHighDate(closedate));
+                cmd.Parameters.Add("@bid", branchid);
+                DataTable dtouward = vdm.SelectQuery(cmd).Tables[0];
+
+
+                foreach (DataRow dr in dtproduct.Rows)
+                {
+                    double opqty = 0;
+                    double inward = 0;
+                    double outward = 0;
+                    double closing = 0;
+                    foreach (DataRow drop in dtop.Select("productid='" + dr["productid"].ToString() + "'"))
+                    {
+                        double.TryParse(drop["op_bal"].ToString(), out opqty);
+                    }
+                    foreach (DataRow drin in dtinward.Select("productid='" + dr["productid"].ToString() + "'"))
+                    {
+                        double.TryParse(drin["inwardqty"].ToString(), out inward);
+                    }
+                    foreach (DataRow drout in dtouward.Select("productid='" + dr["productid"].ToString() + "'"))
+                    {
+                        double.TryParse(drout["outwardqty"].ToString(), out outward);
+                    }
+                    double total = opqty + inward;
+                    closing = total - outward;
+                    cmd = new SqlCommand("insert into sub_registorclosingdetails(refno, productid, price, clo_bal,op_bal,doe,branchid) values(@refno, @productid, @price, @clo_bal,@op_bal,@doe,@branchid)");
+                    cmd.Parameters.Add("@refno", refno);
+                    cmd.Parameters.Add("@productid", dr["productid"].ToString());
+                    cmd.Parameters.Add("@price", dr["price"].ToString());
+                    cmd.Parameters.Add("@clo_bal", closing);
+                    if (opqty != 0)
+                    {
+                        cmd.Parameters.Add("@op_bal", opqty);
+                    }
+                    else
+                    {
+                        cmd.Parameters.Add("@op_bal", "0");
+                    }
+                    cmd.Parameters.Add("@doe", closedate);
+                    cmd.Parameters.Add("@branchid", branchid);
+                    vdm.insert(cmd);
                 }
                 string Response = GetJson("Register Details are Successfully Closed");
                 context.Response.Write(Response);
@@ -7297,7 +7371,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                 if (vdm.Update(cmd) == 0)
                 {
                     cmd = new SqlCommand("insert into distibutorduemonitor(distibutorid, amount, branchid) values (@distid,@amount,@bbid)");
-                    cmd.Parameters.Add("@distid",frombranch);
+                    cmd.Parameters.Add("@distid", frombranch);
                     cmd.Parameters.Add("@amount", billtotalvalue);
                     cmd.Parameters.Add("@bbid", branchid);
                     vdm.insert(cmd);
@@ -8757,7 +8831,135 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             context.Response.Write(Response);
         }
     }
-        //  
+    //  
+
+    private void get_Sales_details(HttpContext context)
+    {
+        try
+        {
+            vdm = new SalesDBManager();
+            string julydt = "07/01/2017";
+            DateTime gst_dt = Convert.ToDateTime(julydt);
+            DateTime ServerDateCurrentdate = SalesDBManager.GetTime(vdm.conn);
+            string InvoicNo = context.Request["InvoicNo"];
+            string refno = context.Request["refno"];
+            string branchid = context.Session["BranchID"].ToString();
+            //SELECT  distibutorsalemaindetails.sno, distibutorsalemaindetails.distibutorid, distibutorsalemaindetails.branchid, distibutorsalemaindetails.invoiceno, distibutorsalemaindetails.invoicedate,  distibutorsalemaindetails.status, distibutorsalemaindetails.doe, distibutorsalemaindetails.remarks, distibutorsalemaindetails.billtotalvalue, distibutorsalemaindetails.refnote, distibutorsalemaindetails.createdby,  distibutorsalemaindetails.createdon, distibutorsalesubdetails.sno AS Expr1, distibutorsalesubdetails.productid, distibutorsalesubdetails.quantity, distibutorsalesubdetails.price, distibutorsalesubdetails.totvalue,  distibutorsalesubdetails.stock_refno, distibutorsalesubdetails.igst, distibutorsalesubdetails.cgst, distibutorsalesubdetails.sgst FROM            distibutorsalemaindetails INNER JOIN distibutorsalesubdetails ON distibutorsalemaindetails.sno = distibutorsalesubdetails.stock_refno WHERE        (distibutorsalemaindetails.branchid = @bid) AND (distibutorsalemaindetails.invoicedate BETWEEN @D1 AND @D2)
+            cmd = new SqlCommand("SELECT branchmaster.address, branchmaster.phone, branchmaster.gstin, PM.sno, PM.custmorid, customermaster.name AS custmorname, PM.referencenote, PM.totalitems,  PM.totalpayble, PM.totalpaying, PM.balance, PM.description, PM.modeofpay, PM.payiningnote, PM.discount, PM.status, PM.branchid, PM.doe,  PM.createdby, PM.issueno, PS.refno, PS.productid, PS.productname, PS.qty, PS.totvalue, PS.ordertax, productmaster.sgst, productmaster.cgst, productmaster.igst, PS.price  FROM  possale_maindetails AS PM INNER JOIN  possale_subdetails AS PS ON PM.sno = PS.refno INNER JOIN  customermaster ON PM.custmorid = customermaster.sno INNER JOIN productmaster ON PS.productid = productmaster.productid INNER JOIN branchmaster ON branchmaster.branchid=PM.branchid INNER JOIN productmoniter ON productmoniter.productid=PS.productid WHERE (PM.sno = @SNO) AND productmoniter.branchid=@BID");
+            cmd.Parameters.Add("@SNO", InvoicNo);
+            cmd.Parameters.Add("@BID", branchid);
+            DataTable routes = vdm.SelectQuery(cmd).Tables[0];
+            DataView view = new DataView(routes);
+            DataTable dtoutward = view.ToTable(true, "sno", "custmorid", "totalitems", "totalpayble", "totalpaying", "balance", "doe", "issueno", "custmorname", "modeofpay", "discount", "address", "phone", "gstin");
+            DataTable dtsuboutward = view.ToTable(true, "productid", "productname", "qty", "price", "totvalue", "sgst", "cgst", "igst", "ordertax");
+            List<SubOutward> suboutwardlist = new List<SubOutward>();
+            foreach (DataRow dr in dtsuboutward.Rows)
+            {
+                SubOutward getsuboutward = new SubOutward();
+                getsuboutward.productname = dr["productname"].ToString();
+                getsuboutward.Quantity = dr["qty"].ToString();
+                getsuboutward.hdnproductsno = dr["productid"].ToString();
+                getsuboutward.PerUnitRs = dr["price"].ToString();
+                getsuboutward.TotalCost = dr["totvalue"].ToString();
+                getsuboutward.sgst = dr["sgst"].ToString();
+                getsuboutward.cgst = dr["cgst"].ToString();
+                getsuboutward.ordertax = dr["ordertax"].ToString();
+                getsuboutward.InvoiceNo = InvoicNo;
+                suboutwardlist.Add(getsuboutward);
+            }
+            string response = GetJson(suboutwardlist);
+            context.Response.Write(response);
+        }
+        catch (Exception ex)
+        {
+            string Response = GetJson(ex.Message);
+            context.Response.Write(Response);
+        }
+    }
+
+    private void Update_possale(HttpContext context)
+    {
+        try
+        {
+            var js = new JavaScriptSerializer();
+            var title1 = context.Request.Params[1];
+            
+            OutwardDetails obj = js.Deserialize<OutwardDetails>(title1);
+            string totalpaying = obj.totalpaying;
+            string InvoiceNo = obj.sno;
+            string balance = obj.balance;
+            string btnval = obj.btnvalue;
+            string billtotalvalue = obj.billtotalvalue;
+            string status = "";
+            if (btnval == "Save")
+            {
+                status = "C";
+            }
+            else
+            {
+                status = "H";
+            }
+            // string btnval = "Save";
+            string branchid = context.Session["BranchID"].ToString();
+            string createdby = context.Session["Employ_Sno"].ToString();
+            DateTime ServerDateCurrentdate = SalesDBManager.GetTime(vdm.conn);
+            vdm = new SalesDBManager();
+
+            DateTime dtapril = new DateTime();
+            DateTime dtmarch = new DateTime();
+            int currentyear = ServerDateCurrentdate.Year;
+            int nextyear = ServerDateCurrentdate.Year + 1;
+            if (ServerDateCurrentdate.Month > 3)
+            {
+                string apr = "4/1/" + currentyear;
+                dtapril = DateTime.Parse(apr);
+                string march = "3/31/" + nextyear;
+                dtmarch = DateTime.Parse(march);
+            }
+            if (ServerDateCurrentdate.Month <= 3)
+            {
+                string apr = "4/1/" + (currentyear - 1);
+                dtapril = DateTime.Parse(apr);
+                string march = "3/31/" + (nextyear - 1);
+                dtmarch = DateTime.Parse(march);
+            }
+
+            cmd = new SqlCommand("update possale_maindetails set totalpaying=totalpaying where sno=@sno)");
+            cmd.Parameters.Add("@totalpaying", totalpaying);
+            cmd.Parameters.Add("@sno", InvoiceNo);
+            //vdm.Update(cmd);
+            string refno = "";
+            foreach (SubOutward si in obj.fillitems)
+            {
+                if (si.hdnproductsno != "0")
+                {
+                    cmd = new SqlCommand("update possale_subdetails set productid=@productid, qty=qty, price=price, totvalue=totvalue,ordertax=@ordertax where productid=@productid and refno=refno");
+                    cmd.Parameters.Add("@productname", si.productname);
+                    cmd.Parameters.Add("@productid", si.hdnproductsno);
+                    cmd.Parameters.Add("@qty", si.Quantity);
+                    cmd.Parameters.Add("@price", si.PerUnitRs);
+                    cmd.Parameters.Add("@totvalue", si.TotalCost);
+                    cmd.Parameters.Add("@ordertax", si.ordertax);
+                    cmd.Parameters.Add("@refno", InvoiceNo);
+                    //vdm.Update(cmd);
+
+                    cmd = new SqlCommand("UPDATE productmoniter set qty=qty-@qty WHERE productid=@productid AND branchid=@bid");
+                    cmd.Parameters.Add("@qty", si.Quantity);
+                    cmd.Parameters.Add("@productid", si.hdnproductsno);
+                    cmd.Parameters.Add("@bid", branchid);
+                    //vdm.Update(cmd);
+                }
+            }
+            string msg = "Sale successfully Updated";
+            string Response = GetJson(msg);
+            context.Response.Write(Response);
+        }
+        catch (Exception ex)
+        {
+            string Response = GetJson(ex.Message);
+            context.Response.Write(Response);
+        }
+    }
 }
 
 
