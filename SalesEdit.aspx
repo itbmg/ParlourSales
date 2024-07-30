@@ -1,4 +1,4 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/MasterPage.master" AutoEventWireup="true" CodeFile="StockEdit.aspx.cs" Inherits="StockEdit" %>
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/MasterPage.master" AutoEventWireup="true" CodeFile="SalesEdit.aspx.cs" Inherits="StockEdit" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
     <script src="bootstrap/js/JTemplate.js"></script>
@@ -88,7 +88,7 @@
             $(document).ajaxStart($.blockUI).ajaxStop($.unblockUI);
             callHandler(data, s, e);
         }
-        
+
         function bindBranchName(msg) {
             var ddlRouteName = document.getElementById('ddlBranchName');
             var length = ddlRouteName.options.length;
@@ -105,16 +105,16 @@
                 }
             }
         }
-        
- 
-       
-        
-       
+
+
+
+
+
         function DeliversCloseClick() {
             $('#divDeliveryProducts').css('display', 'none');
         }
-       
-      
+
+
         function GetEditIndentValues() {
             var ddlCompanyName = document.getElementById('ddlCompanyName').value;
             if (ddlCompanyName == "Select Company" || ddlCompanyName == "") {
@@ -137,7 +137,7 @@
                     //BindDeliverInventory();
                     //BindCollectionInventory();
                     $('#divFillScreen').removeTemplate();
-                    $('#divFillScreen').setTemplateURL('StockEdit.htm');
+                    $('#divFillScreen').setTemplateURL('SalesEdit1.htm');
                     $('#divFillScreen').processTemplate(msg);
                     calcTot();
                 }
@@ -153,13 +153,16 @@
 
         function btnEditIndentSaveClick(id) {
             var InvoiceNo = document.getElementById('txtInvoiceNo').value;
+            var Paying = document.getElementById('txtPaying').value;
+            var Payable = document.getElementById('txt_TotalAmount').innerHTML;
+            
             var rows = $("#table_Indent_details tr:gt(0)");
             var fillitems = new Array();
             $(rows).each(function (i, obj) {
                 if ($(this).find('#txtProductName').text() != "") {
-                    var TotalCost = document.getElementById('txt_TotalAmount').innerHTML;
+                    //var TotalCost = document.getElementById('txt_TotalAmount').innerHTML;
 
-                    fillitems.push({ hdnproductsno: $(this).find('#hdnProductSno').val(), productname: $(this).find('#txtProductName').text(), PerUnitRs: $(this).find('#txtLtr_rate').text(), Quantity: $(this).find('#txtPkts_Dqty').val(), pkt_qty: $(this).find('#hdnPkt_UnitQty').val(), PerUnitRs: $(this).find('#txtPkt_rate').text(), TotalCost: TotalCost });
+                    fillitems.push({ hdnproductsno: $(this).find('#hdnProductSno').val(), productname: $(this).find('#txtProductName').text(), PerUnitRs: $(this).find('#txtLtr_rate').text(), Quantity: $(this).find('#txtPkts_Dqty').val(), pkt_qty: $(this).find('#hdnPkt_UnitQty').val(), PerUnitRs: $(this).find('#txtPkt_rate').text(), TotalCost: $(this).find('#txtTotal_Value').text(), ordertax: $(this).find('#hdnOrderTax').val()  });
                 }
             });
 
@@ -174,7 +177,7 @@
                 alert("Please Select Parloural Name");
                 return false;
             }
-            var data = { 'op': 'Update_possale', 'fillitems': fillitems, 'ddlCompanyName': ddlCompanyName, 'Branchname': ddlBranchName, 'sno': InvoiceNo };
+            var data = { 'op': 'Update_possale', 'fillitems': fillitems, 'ddlCompanyName': ddlCompanyName, 'Branchname': ddlBranchName, 'sno': InvoiceNo, 'totalpaying': Paying, 'totalpayable': Payable, 'billtotalvalue': Payable };
             var s = function (msg) {
                 if (msg) {
                 }
@@ -186,7 +189,7 @@
             $(document).ajaxStart($.blockUI).ajaxStop($.unblockUI);
             CallHandlerUsingJson(data, s, e);
         }
-       
+
         function OrderPktQtyChange(PktQty) {
             if (PktQty.value == "") {
 
@@ -202,7 +205,7 @@
                 calcTot();
             }
         }
-       
+
         var FinalAmount;
         function calcTot() {
             var qty = 0.0;
@@ -279,18 +282,18 @@
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="Server">
     <section class="content-header">
-        <h1>Edit Indent<small>Preview</small>
+        <h1>Edit Sales<small>Preview</small>
         </h1>
         <ol class="breadcrumb">
             <li><a href="#"><i class="fa fa-dashboard"></i>Operations</a></li>
-            <li><a href="#">Edit Indent</a></li>
+            <li><a href="#">Edit Sales</a></li>
         </ol>
     </section>
     <section class="content">
         <div class="box box-info">
             <div class="box-header with-border">
                 <h3 class="box-title">
-                    <i style="padding-right: 5px;" class="fa fa-cog"></i>Edit Indent Details
+                    <i style="padding-right: 5px;" class="fa fa-cog"></i>Edit Sales Details
                 </h3>
             </div>
             <div class="box-body">
@@ -308,7 +311,7 @@
                                 </select>
                             </td>
                         </tr>
-                         <tr>
+                        <tr>
                             <td>
                                 <label for="lblBranch">
                                     BranchName</label>
@@ -336,8 +339,22 @@
                     </table>
                     <div id="divFillScreen">
                     </div>
-                    <div align="center">
-                    <input type="button" id="btnSave" value="Save" onclick="btnEditIndentSaveClick();" class="btn btn-primary" style="text-align: center" />
+                    <div style="height: 5%;">
+                        <table align="center">
+                            <tr>
+                                <td style="width: 35%;"></td>
+                                <td style="width: 25%;">
+                                    <input type="button" id="btnSave" value="Save" onclick="btnEditIndentSaveClick();" class="btn btn-primary" />
+                                </td>
+                                <td style="width: 5%;">
+                                    <span style="font-weight: bold; font-size: 14px;">Paying</span>
+                                </td>
+                                <td style="width: 20%;">
+                                    <input type="text" id="txtPaying" class="form-control" />
+                                </td>
+
+                            </tr>
+                        </table>
                     </div>
                 </div>
             </div>

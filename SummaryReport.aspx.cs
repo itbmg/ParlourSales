@@ -93,9 +93,11 @@ public partial class SummaryReport : System.Web.UI.Page
         double sumsalevalue = 0;
         double gsttaxvalue = 0;
         double grandtotalsumvalue = 0;
-
+        double suminwardqty = 0;
+        double grandtotalsuminwardqty = 0;
         double grandtotalsumsalequantity = 0;
         double grandtotalsumsalevalue = 0;
+        double grandtotalsuminwardvalue = 0;
         double grandtotalgsttaxvalue = 0;
         double grandtotalgrandtotalsumvalue = 0;
         double grand_totaloppbal = 0;
@@ -118,17 +120,19 @@ public partial class SummaryReport : System.Web.UI.Page
         cmd.Parameters.Add("@d2", GetHighDate(todate));
         cmd.Parameters.Add("@bid", BranchID);
         DataTable dtsales = SalesDB.SelectQuery(cmd).Tables[0];
-        cmd = new SqlCommand("SELECT   Pmaster.productname,Pmaster.price,Pmaster.productid,subreg.op_bal,subreg.clo_bal from sub_registorclosingdetails as subreg INNER JOIN  productmaster as Pmaster ON subreg.productid=Pmaster.productid  where (subreg.branchid=@branchid) and (subreg.doe between @d1 and @d2)");
+        cmd = new SqlCommand("SELECT   Pmaster.productname,Pmaster.price,Pmaster.productid,subreg.op_bal,subreg.clo_bal,subreg.inwardqty,subreg.saleqty from sub_registorclosingdetails as subreg INNER JOIN  productmaster as Pmaster ON subreg.productid=Pmaster.productid  where (subreg.branchid=@branchid) and (subreg.doe between @d1 and @d2)");
         cmd.Parameters.Add("@branchid", BranchID);
         cmd.Parameters.Add("@d1", GetLowDate(fromdate));
         cmd.Parameters.Add("@d2", GetHighDate(todate));
         DataTable dtclosing = SalesDB.SelectQuery(cmd).Tables[0];
-        if (dtsales.Rows.Count > 0)
+        if (dtclosing.Rows.Count > 0)
         {
             sumsalequantity = 0;
             sumsalevalue = 0;
             gsttaxvalue = 0;
             grandtotalsumvalue = 0;
+            suminwardqty =0;
+            grandtotalsuminwardqty =0;
             int i = 1;
             foreach (DataRow drtrans in dtclosing.Rows)
             {
@@ -155,29 +159,47 @@ public partial class SummaryReport : System.Web.UI.Page
                 newrow["Clos(Qty)"] = closqty;
                 newrow["Clos Value"] = closvalue;
                 grand_totalClosingbal += closqty;
-                foreach (DataRow dr in dtsales.Select("productid='" + drtrans["productid"].ToString() + "'"))
-                {
-                    double qty = 0;
-                    double.TryParse(dr["qty"].ToString(), out qty);
-                    sumsalequantity += qty;
-                    grandtotalsumsalequantity += qty;
-                    newrow["Issue(Qty)"] = dr["qty"].ToString();
-                    double totvalue = 0;
-                    double.TryParse(dr["totvalue"].ToString(), out totvalue);
-                    sumsalevalue += totvalue;
-                    grandtotalsumsalevalue += totvalue;
 
-                    newrow["Issue Value"] = dr["totvalue"].ToString();
 
-                    double ordertax = 0;
-                    double.TryParse(dr["ordertax"].ToString(), out ordertax);
-                    gsttaxvalue += ordertax;
-                    grandtotalgsttaxvalue += ordertax;
-                    double ot = Math.Round(ordertax, 2);
-                    double grandtotalvalue = totvalue + ordertax;
-                    grandtotalsumvalue += grandtotalvalue;
-                    grandtotalgrandtotalsumvalue += grandtotalvalue;
-                }
+
+                double inwardqty = 0;
+                double.TryParse(drtrans["inwardqty"].ToString(), out inwardqty);
+                suminwardqty += inwardqty;
+                grandtotalsuminwardqty += inwardqty;
+                newrow["Rec(Qty)"] = drtrans["inwardqty"].ToString();
+                double totvalue = 0;
+                double.TryParse(drtrans["price"].ToString(), out price);
+                totvalue = price * inwardqty;
+                sumsalevalue += totvalue;
+                grandtotalsuminwardvalue += totvalue;
+
+                newrow["Rec Value"] = totvalue;
+
+
+
+
+
+
+                double saleqty = 0;
+                double.TryParse(drtrans["saleqty"].ToString(), out saleqty);
+                double ordertax = 0;
+                //double.TryParse(drtrans["ordertax"].ToString(), out ordertax);
+                sumsalequantity += saleqty;
+                grandtotalsumsalequantity += saleqty;
+                newrow["Issue(Qty)"] = drtrans["saleqty"].ToString();
+                double totsalevalue = 0;
+                double.TryParse(drtrans["price"].ToString(), out price);
+                totsalevalue = price * saleqty;
+                sumsalevalue += totsalevalue;
+                grandtotalsumsalevalue += totsalevalue;
+                newrow["Issue Value"] = totsalevalue;
+               
+                gsttaxvalue += ordertax;
+                grandtotalgsttaxvalue += ordertax;
+                double ot = Math.Round(ordertax, 2);
+                double grandtotalvalue = totvalue + ordertax;
+                grandtotalsumvalue += grandtotalvalue;
+                grandtotalgrandtotalsumvalue += grandtotalvalue;
                 DailyReport.Rows.Add(newrow);
 
             }
@@ -185,6 +207,8 @@ public partial class SummaryReport : System.Web.UI.Page
 
 
         DataRow newvartical3 = DailyReport.NewRow();
+        newvartical3["Rec(Qty)"] = Math.Round(grandtotalsuminwardqty, 2);
+        newvartical3["Rec Value"] = Math.Round(grandtotalsumsalevalue, 2);
         newvartical3["Issue(Qty)"] = Math.Round(grandtotalsumsalequantity, 2);
         newvartical3["Issue Value"] = Math.Round(grandtotalsumsalevalue, 2);
         newvartical3["Opp(Qty)"] = Math.Round(grand_totaloppbal, 2);

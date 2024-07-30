@@ -24,13 +24,13 @@
                 </td>
                 <td style="width: 12%; text-align: center; height: 20px; font-size: 12px; font-weight: bold;
                     color: #2f3293;">
-                    Ind Qty
+                    ActualQty
                     <br />
                 </td>
 
                 <td style="width: 12%;text-align: center; height: 20px; font-size: 18px; font-weight: bold;
                     color: #2f3293;">
-                    <b> Qty(Pkts)</b>
+                    <b> Qty</b>
                     <br />
                 </td>
                
@@ -84,6 +84,7 @@
                 <td style="width: 12%; height: 30px; font-size: 11px; vertical-align: middle; text-align: center;
                     color: Gray;" align="center">
                     <span id="txtTotal_Value" class="clsTotal" style="font-size: 15px; color: Red; font-weight: bold;"><b>{ $T.data.TotalCost }</b></span>
+                    <input type="hidden" id="hdnOrderTax" value="{ $T.data.ordertax }" class="clshdnOrderTax" style="width:100%;height:34px;border:1px solid gray; border-radius:6px 6px 6px 6px;font-size:16px;" />
                 </td>
 
             </tr>

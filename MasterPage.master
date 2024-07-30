@@ -267,6 +267,8 @@
                         <li id="purchases_add_expense"><a href="expences.aspx"><i class="fa fa-circle-o"></i>Add Expenses</a></li>
                         <li id="Li3"><a href="itemmonitor.aspx"><i class="fa fa-circle-o"></i>Item Monitor</a></li>
                         <li id="Li7"><a href="stockclosing.aspx"><i class="fa fa-circle-o"></i>Stock Details</a></li>
+                        <li id="Li7"><a href="SalesEdit.aspx"><i class="fa fa-circle-o"></i>SalesEdit</a></li>
+                        <li id="Li7"><a href="EditClosing.aspx"><i class="fa fa-circle-o"></i>EditClosing</a></li>
                     </ul>
                 </li>
 
