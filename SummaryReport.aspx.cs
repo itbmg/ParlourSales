@@ -102,6 +102,8 @@ public partial class SummaryReport : System.Web.UI.Page
         double grandtotalgrandtotalsumvalue = 0;
         double grand_totaloppbal = 0;
         double grand_totalClosingbal = 0;
+        double grand_totalOppValbal = 0;
+        double grand_totalClosValbal = 0;
         DataTable DailyReport = new DataTable();
         DailyReport.Columns.Add("Sno");
         DailyReport.Columns.Add("ItemName");
@@ -159,6 +161,8 @@ public partial class SummaryReport : System.Web.UI.Page
                 newrow["Clos(Qty)"] = closqty;
                 newrow["Clos Value"] = closvalue;
                 grand_totalClosingbal += closqty;
+                grand_totalOppValbal += oppvalue;
+                grand_totalClosValbal += closvalue;
 
 
 
@@ -212,7 +216,9 @@ public partial class SummaryReport : System.Web.UI.Page
         newvartical3["Issue(Qty)"] = Math.Round(grandtotalsumsalequantity, 2);
         newvartical3["Issue Value"] = Math.Round(grandtotalsumsalevalue, 2);
         newvartical3["Opp(Qty)"] = Math.Round(grand_totaloppbal, 2);
+        newvartical3["OppValue"] = Math.Round(grand_totalOppValbal, 2);
         newvartical3["Clos(Qty)"] = Math.Round(grand_totalClosingbal, 2);
+        newvartical3["Clos Value"] = Math.Round(grand_totalClosValbal, 2);
         //newvartical3["GST Tax Value"] = Math.Round(grandtotalgsttaxvalue, 2);
         //newvartical3["Total Value"] = Math.Round(grandtotalgrandtotalsumvalue, 2);
         DailyReport.Rows.Add(newvartical3);
