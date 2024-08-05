@@ -3256,7 +3256,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                 DataTable dtouward = vdm.SelectQuery(cmd).Tables[0];
 
 
-                foreach (DataRow dr in dtop.Rows)
+                foreach (DataRow dr in dtitem.Rows)
                 {
                     double opqty = 0;
                     double inward = 0;
@@ -3264,15 +3264,15 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                     double closing = 0;
                     double ordertax = 0;
                     double totaloutward = 0;
-                    //foreach (DataRow drop in dtop.Select("productid='" + dr["productid"].ToString() + "'"))
-                    //{
-                    //    double.TryParse(drop["qty"].ToString(), out opqty);
-                    //}
+                    foreach (DataRow drop in dtop.Select("productid='" + dr["productid"].ToString() + "'"))
+                    {
+                        double.TryParse(drop["clo_bal"].ToString(), out opqty);
+                    }
                     //string date = "";
-                    DateTime dt = Convert.ToDateTime(dr["doe"].ToString());
-                    string date = dt.AddDays(1).ToString("yyyy-MM-dd");
-                    double.TryParse(dr["clo_bal"].ToString(), out opqty);
-                    foreach (DataRow drin in dtinward.Select("productid='" + dr["productid"].ToString() + "'AND doe='" + date + "'"))
+                    // DateTime dt = Convert.ToDateTime(dr["doe"].ToString());
+                    // string date = dt.AddDays(1).ToString("yyyy-MM-dd");
+                 //   double.TryParse(dr["clo_bal"].ToString(), out opqty);
+                    foreach (DataRow drin in dtinward.Select("productid='" + dr["productid"].ToString() + "'"))
                     {
                         double.TryParse(drin["inwardqty"].ToString(), out inward);
                     }
