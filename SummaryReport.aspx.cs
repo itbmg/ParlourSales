@@ -212,7 +212,7 @@ public partial class SummaryReport : System.Web.UI.Page
 
         DataRow newvartical3 = DailyReport.NewRow();
         newvartical3["Rec(Qty)"] = Math.Round(grandtotalsuminwardqty, 2);
-        newvartical3["Rec Value"] = Math.Round(grandtotalsumsalevalue, 2);
+        newvartical3["Rec Value"] = Math.Round(grandtotalsuminwardvalue, 2);
         newvartical3["Issue(Qty)"] = Math.Round(grandtotalsumsalequantity, 2);
         newvartical3["Issue Value"] = Math.Round(grandtotalsumsalevalue, 2);
         newvartical3["Opp(Qty)"] = Math.Round(grand_totaloppbal, 2);
