@@ -106,6 +106,7 @@ public partial class SummaryReport : System.Web.UI.Page
         double grand_totalClosValbal = 0;
         DataTable DailyReport = new DataTable();
         DailyReport.Columns.Add("Sno");
+        DailyReport.Columns.Add("Itemcode");
         DailyReport.Columns.Add("ItemName");
         DailyReport.Columns.Add("Price");
         DailyReport.Columns.Add("Opp(Qty)");
@@ -122,7 +123,7 @@ public partial class SummaryReport : System.Web.UI.Page
         cmd.Parameters.Add("@d2", GetHighDate(todate));
         cmd.Parameters.Add("@bid", BranchID);
         DataTable dtsales = SalesDB.SelectQuery(cmd).Tables[0];
-        cmd = new SqlCommand("SELECT   Pmaster.productname,Pmaster.price,Pmaster.productid,subreg.op_bal,subreg.clo_bal,subreg.inwardqty,subreg.saleqty from sub_registorclosingdetails as subreg INNER JOIN  productmaster as Pmaster ON subreg.productid=Pmaster.productid  where (subreg.branchid=@branchid) and (subreg.doe between @d1 and @d2)");
+        cmd = new SqlCommand("SELECT   Pmaster.productname,Pmaster.price,Pmaster.productid,subreg.op_bal,subreg.clo_bal,subreg.inwardqty,subreg.saleqty from sub_registorclosingdetails as subreg INNER JOIN  productmaster as Pmaster ON subreg.productid=Pmaster.productid  where (subreg.branchid=@branchid) and (subreg.doe between @d1 and @d2) order by Pmaster.productid");
         cmd.Parameters.Add("@branchid", BranchID);
         cmd.Parameters.Add("@d1", GetLowDate(fromdate));
         cmd.Parameters.Add("@d2", GetHighDate(todate));
@@ -140,6 +141,7 @@ public partial class SummaryReport : System.Web.UI.Page
             {
                 DataRow newrow = DailyReport.NewRow();
                 newrow["Sno"] = i++.ToString();
+                newrow["Itemcode"] = drtrans["productid"].ToString();
                 newrow["ItemName"] = drtrans["productname"].ToString();
                 newrow["Price"] = drtrans["price"].ToString();
                 double opqty = 0;
