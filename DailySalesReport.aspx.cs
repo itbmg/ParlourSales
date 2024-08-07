@@ -102,7 +102,7 @@ public partial class DailySalesReport : System.Web.UI.Page
         double grandtotalCash = 0;
         double grandtotalPhonePay = 0;
         double grandtotalFree = 0;
-
+        double grandtotalCredit = 0;
         DataTable DailyReport = new DataTable();
         DailyReport.Columns.Add("Sno");
         DailyReport.Columns.Add("Invoice no");
@@ -115,6 +115,7 @@ public partial class DailySalesReport : System.Web.UI.Page
         DailyReport.Columns.Add("Cash");
         DailyReport.Columns.Add("Phone Pay");
         DailyReport.Columns.Add("Free");
+        DailyReport.Columns.Add("Credit");
 
         cmd = new SqlCommand("SELECT     sno,  totalpaying,modeofpay FROM possale_maindetails where doe BETWEEN @d1 AND @d2 and branchid=@branchid ");
         cmd.Parameters.AddWithValue("@d1", GetLowDate(fromdate));
@@ -203,6 +204,13 @@ public partial class DailySalesReport : System.Web.UI.Page
                         double.TryParse(drsub["totalpaying"].ToString(), out ordercash);
                         grandtotalFree += ordercash;
                     }
+                    if (modeofpay.ToLower() == "Credit")
+                    {
+                        newvartical2["Credit"] = drsub["totalpaying"].ToString();
+                        double ordercash = 0;
+                        double.TryParse(drsub["totalpaying"].ToString(), out ordercash);
+                        grandtotalCredit += ordercash;
+                    }
                     DailyReport.Rows.Add(newvartical2);
                 }
             }
@@ -217,6 +225,7 @@ public partial class DailySalesReport : System.Web.UI.Page
             newvartical3["Cash"] = Math.Round(grandtotalCash, 2);
             newvartical3["Phone Pay"] = Math.Round(grandtotalPhonePay, 2);
             newvartical3["Free"] = Math.Round(grandtotalFree, 2);
+            newvartical3["Credit"] = Math.Round(grandtotalCredit, 2);
             DailyReport.Rows.Add(newvartical3);
 
 

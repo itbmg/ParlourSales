@@ -1814,7 +1814,7 @@
                                         <select id="paid_by" class="form-control"
                                             style="width: 100%;" tabindex="-1" aria-hidden="true">
                                             <option value="cash" selected>Cash</option>
-                                            <option value="CC">Credit Card</option>
+                                            <option value="Credit">Credit </option>
                                             <option value="Paytm">Paytm</option>
                                             <option value="Phonepay">Phone pay</option>
                                             <option value="CC">Credit Card</option>
