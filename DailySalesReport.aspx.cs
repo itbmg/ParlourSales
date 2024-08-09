@@ -204,7 +204,7 @@ public partial class DailySalesReport : System.Web.UI.Page
                         double.TryParse(drsub["totalpaying"].ToString(), out ordercash);
                         grandtotalFree += ordercash;
                     }
-                    if (modeofpay.ToLower() == "Credit")
+                    if (modeofpay.ToLower() == "credit")
                     {
                         newvartical2["Credit"] = drsub["totalpaying"].ToString();
                         double ordercash = 0;
