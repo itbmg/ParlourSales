@@ -1181,7 +1181,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             string description = obj.description;
             string btnval = obj.btnvalue;
             string sno = obj.sno;
-            string status = "P";
+            string status = "A";
             string billtotalvalue = obj.totalvalue;
             string branchid = context.Session["BranchID"].ToString();
             string createdby = context.Session["Employ_Sno"].ToString();
@@ -1499,7 +1499,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             string description = obj.description;
             string btnval = obj.btnvalue;
             string sno = obj.sno;
-            string status = "P";
+            string status = "A";
             string billtotalvalue = obj.totalvalue;
             string branchid = context.Session["BranchID"].ToString();
             string createdby = context.Session["Employ_Sno"].ToString();
@@ -4261,7 +4261,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             string description = obj.description;
             string btnval = obj.btnvalue;
             string sno = obj.sno;
-            string status = "P";
+            string status = "A";
             string billtotalvalue = obj.totalvalue;
             string vendor = obj.vendor;
             if (vendor == null || vendor == "")
@@ -7389,7 +7389,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             string description = obj.description;
             string btnval = obj.btnvalue;
             string sno = obj.sno;
-            string status = "P";
+            string status = "A";
             string billtotalvalue = obj.totalvalue;
             string branchid = context.Session["BranchID"].ToString();
             string createdby = context.Session["Employ_Sno"].ToString();
