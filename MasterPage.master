@@ -224,6 +224,7 @@
                         <li id="itemmst"><a href="itemmaster.aspx"><i class="fa fa-circle-o"></i>Item Master</a></li>
                         <li id="supmst"><a href="suppliermaster.aspx"><i class="fa fa-circle-o"></i>Supplier Master</a></li>
                         <li id="empmst"><a href="empmaster.aspx"><i class="fa fa-circle-o"></i>Employe Master</a></li>
+                        <li id="HeadOfAcMaster"><a href="HeadOfAcMaster.aspx"><i class="fa fa-circle-o"></i>Head Of Accounts</a></li>
                     </ul>
                 </li>
                 <li class="treeview mm_sales" id="lidistibutor"> 
@@ -285,6 +286,18 @@
                         <li id="gift_cards_add"><a href="#"><i class="fa fa-circle-o"></i> Add Gift Card</a></li>
                     </ul>
                 </li>--%>
+
+                 <li class="treeview mm_purchases" id="liOperations"> 
+                    <a href="#">
+                        <i class="fa fa-plus"></i>
+                        <span>Operations</span>
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </a>
+                    <ul class="treeview-menu">
+                        <li id="LiVoucher"><a href="CashForm.aspx"><i class="fa fa-circle-o"></i> Voucher Form</a></li>
+                      <%--  <li id="LiVoucherApproval"><a href="inwardapproval.aspx"><i class="fa fa-circle-o"></i> Voucher Aprroval</a></li>--%>
+                    </ul>
+                     </li>
                 
                 <li class="treeview mm_reports" id="lireports">
                     <a href="#">
