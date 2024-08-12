@@ -25,15 +25,25 @@
                             <div class="well well-sm col-sm-12">
                             <table style="width:100%;">
                             <tr>
-                            <td>
+                                <td>
                              <label for="cash_in_hand">
-                                    Date</label>
+                                    FromDate</label>
                                 <asp:TextBox ID="dtp_FromDate" runat="server" CssClass="form-control"></asp:TextBox>
                                 <asp:CalendarExtender ID="stcalender" runat="server" Enabled="True"
                                     TargetControlID="dtp_FromDate" Format="dd-MM-yyyy HH:mm">
                                 </asp:CalendarExtender>
                             </td>
                             <td style="width:2%;"></td>
+                                <td>
+                             <label for="cash_in_hand">
+                                    ToDate</label>
+                                <asp:TextBox ID="dtp_ToDate" runat="server" CssClass="form-control"></asp:TextBox>
+                                <asp:CalendarExtender ID="CalendarExtender1" runat="server" Enabled="True"
+                                    TargetControlID="dtp_ToDate" Format="dd-MM-yyyy HH:mm">
+                                </asp:CalendarExtender>
+                            </td>
+                            <td style="width:2%;"></td>
+                           
                             <td>
                             <asp:Button ID="Button2" runat="server" Text="GENERATE" CssClass="btn btn-success"
                                     OnClick="btn_Generate_Click" />

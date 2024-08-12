@@ -302,6 +302,7 @@
                         <li id="reports_payments"><a href="Cashclosingdetails.aspx"><i class="fa fa-circle-o"></i> Parlor Wise Register Closing Details</a></li>
                         <li class="divider"></li>
                         <li id="reports_monthly_sales"><a href="branchwisesalerpt.aspx"><i class="fa fa-circle-o"></i> Branch Wise Sales</a></li>
+                        <li id="CreditReport"><a href="CreditReport.aspx"><i class="fa fa-circle-o"></i> CreditReport</a></li>
                         <%--<li id="reports_registers"><a href="#"><i class="fa fa-circle-o"></i> Supplier Wise Purchase Report</a></li>
                         <li class="divider"></li>
                         <li id="Li2"><a href="#"><i class="fa fa-circle-o"></i> Products Report</a></li>

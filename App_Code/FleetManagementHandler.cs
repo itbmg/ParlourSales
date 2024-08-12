@@ -3195,117 +3195,124 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             string createdby = context.Session["Employ_Sno"].ToString();
             DateTime ServerDateCurrentdate = SalesDBManager.GetTime(vdm.conn);
             DateTime closedate = ServerDateCurrentdate.AddDays(-1);
-            if (btnreg == "closereg")
+            cmd = new SqlCommand("select * from registorclosingdetails where doe between @d1 and @d2");
+            cmd.Parameters.Add("@d1", GetLowDate(closedate).AddDays(-1));
+            cmd.Parameters.Add("@d2", GetHighDate(closedate).AddDays(-1));
+            DataTable dtexisting = vdm.SelectQuery(cmd).Tables[0];
+            if (dtexisting.Rows.Count == 0)
             {
-                cmd = new SqlCommand("insert into registorclosingdetails(cashinhand, cashsale, chequesale, giftcardsale, ccsale, stripesale, othersale, totalsale, expenses, totalcash, submittedcash, submittedslips, submittedchecks, description, parlorid, createdon, closedby, doe, paytm, phonepay) values (@cashinhand, @cashsale,  @chequesale,  @giftcardsale, @ccsale, @stripesale, @othersale, @totalsale, @expenses, @totalcash, @submittedcash, @submittedslips, @submittedchecks, @description, @parlorid, @createdon, @closedby, @doe, @paytm, @phonepay)");//,color,@color
-                cmd.Parameters.Add("@cashinhand", cashinhand);
-                cmd.Parameters.Add("@cashsale", cashsale);
-                cmd.Parameters.Add("@chequesale", chequesale);
-                cmd.Parameters.Add("@giftcardsale", giftcardsale);
-                cmd.Parameters.Add("@ccsale", ccsale);
-                cmd.Parameters.Add("@stripesale", stripesale);
-                cmd.Parameters.Add("@othersale", othersale);
-                cmd.Parameters.Add("@totalsale", totalsale);
-                cmd.Parameters.Add("@expenses", expenses);
-                cmd.Parameters.Add("@totalcash", totalcash);//@submittedcash, @submittedslips, @submittedchecks, @description, @parlorid, @createdon, @closedby
-                cmd.Parameters.Add("@submittedcash", submittedcash);
-                cmd.Parameters.Add("@submittedslips", submittedslips);
-                cmd.Parameters.Add("@submittedchecks", submittedchecks);
-                cmd.Parameters.Add("@description", description);
-                cmd.Parameters.Add("@paytm", paytm);
-                cmd.Parameters.Add("@phonepay", phonepay);
-                cmd.Parameters.Add("@parlorid", branchid);
-                cmd.Parameters.Add("@createdon", ServerDateCurrentdate);
-                cmd.Parameters.Add("@doe", closedate);
-                cmd.Parameters.Add("@closedby", createdby);
-                vdm.insert(cmd);
-                cmd = new SqlCommand("select MAX(sno) as refno from registorclosingdetails");
-                DataTable dtoutward = vdm.SelectQuery(cmd).Tables[0];
-                string refno = dtoutward.Rows[0]["refno"].ToString();
-                foreach (SubRegcloseDetails si in obj.closeitems)
+                if (btnreg == "closereg")
                 {
-                    if (si.hdnproductsno != "0")
+                    cmd = new SqlCommand("insert into registorclosingdetails(cashinhand, cashsale, chequesale, giftcardsale, ccsale, stripesale, othersale, totalsale, expenses, totalcash, submittedcash, submittedslips, submittedchecks, description, parlorid, createdon, closedby, doe, paytm, phonepay) values (@cashinhand, @cashsale,  @chequesale,  @giftcardsale, @ccsale, @stripesale, @othersale, @totalsale, @expenses, @totalcash, @submittedcash, @submittedslips, @submittedchecks, @description, @parlorid, @createdon, @closedby, @doe, @paytm, @phonepay)");//,color,@color
+                    cmd.Parameters.Add("@cashinhand", cashinhand);
+                    cmd.Parameters.Add("@cashsale", cashsale);
+                    cmd.Parameters.Add("@chequesale", chequesale);
+                    cmd.Parameters.Add("@giftcardsale", giftcardsale);
+                    cmd.Parameters.Add("@ccsale", ccsale);
+                    cmd.Parameters.Add("@stripesale", stripesale);
+                    cmd.Parameters.Add("@othersale", othersale);
+                    cmd.Parameters.Add("@totalsale", totalsale);
+                    cmd.Parameters.Add("@expenses", expenses);
+                    cmd.Parameters.Add("@totalcash", totalcash);//@submittedcash, @submittedslips, @submittedchecks, @description, @parlorid, @createdon, @closedby
+                    cmd.Parameters.Add("@submittedcash", submittedcash);
+                    cmd.Parameters.Add("@submittedslips", submittedslips);
+                    cmd.Parameters.Add("@submittedchecks", submittedchecks);
+                    cmd.Parameters.Add("@description", description);
+                    cmd.Parameters.Add("@paytm", paytm);
+                    cmd.Parameters.Add("@phonepay", phonepay);
+                    cmd.Parameters.Add("@parlorid", branchid);
+                    cmd.Parameters.Add("@createdon", ServerDateCurrentdate);
+                    cmd.Parameters.Add("@doe", closedate);
+                    cmd.Parameters.Add("@closedby", createdby);
+                    vdm.insert(cmd);
+                    cmd = new SqlCommand("select MAX(sno) as refno from registorclosingdetails");
+                    DataTable dtoutward = vdm.SelectQuery(cmd).Tables[0];
+                    string refno = dtoutward.Rows[0]["refno"].ToString();
+                    foreach (SubRegcloseDetails si in obj.closeitems)
                     {
-                        cmd = new SqlCommand("insert into registorclosing_dinaminationdetails(dinaminationid, dinamination, qty, refno) values(@productid, @dinamination, @quantity, @in_refno)");
-                        cmd.Parameters.Add("@dinamination", si.dinamination);
-                        cmd.Parameters.Add("@productid", si.hdnproductsno);
-                        cmd.Parameters.Add("@quantity", si.Quantity);
-                        cmd.Parameters.Add("@in_refno", refno);
+                        if (si.hdnproductsno != "0")
+                        {
+                            cmd = new SqlCommand("insert into registorclosing_dinaminationdetails(dinaminationid, dinamination, qty, refno) values(@productid, @dinamination, @quantity, @in_refno)");
+                            cmd.Parameters.Add("@dinamination", si.dinamination);
+                            cmd.Parameters.Add("@productid", si.hdnproductsno);
+                            cmd.Parameters.Add("@quantity", si.Quantity);
+                            cmd.Parameters.Add("@in_refno", refno);
+                            vdm.insert(cmd);
+                        }
+                    }
+                    cmd = new SqlCommand("select * from productmoniter");
+                    DataTable dtitem = vdm.SelectQuery(cmd).Tables[0];
+                    cmd = new SqlCommand("select op_bal,refno, productid, price, clo_bal,doe,branchid from sub_registorclosingdetails where branchid=@branchid and doe between @d1 and @d2");
+                    cmd.Parameters.Add("@d1", GetLowDate(closedate).AddDays(-1));
+                    cmd.Parameters.Add("@d2", GetHighDate(closedate).AddDays(-1));
+                    cmd.Parameters.Add("@branchid", branchid);
+                    DataTable dtop = vdm.SelectQuery(cmd).Tables[0];
+
+                    DateTime dt_fromdate = Convert.ToDateTime(closedate);
+                    cmd = new SqlCommand("SELECT SUM(inward_subdetails.qty) AS inwardqty,productmaster.productname, productmaster.productid,(CONVERT(NVARCHAR(10), inward_maindetails.doe, 120)) AS doe  FROM   inward_maindetails INNER JOIN  inward_subdetails ON inward_maindetails.sno = inward_subdetails.refno INNER JOIN productmaster ON productmaster.productid = inward_subdetails.productid  WHERE (inward_maindetails.doe BETWEEN @d11 AND @d22) AND (inward_maindetails.branchid = @bidd) AND (inward_maindetails.status = 'A') group by productmaster.productname, (CONVERT(NVARCHAR(10), inward_maindetails.doe, 120)),productmaster.productid");
+                    cmd.Parameters.Add("@d11", GetLowDate(dt_fromdate).AddDays(-1));
+                    cmd.Parameters.Add("@d22", GetHighDate(dt_fromdate));
+                    cmd.Parameters.Add("@bidd", branchid);
+                    DataTable dtinward = vdm.SelectQuery(cmd).Tables[0];
+
+                    cmd = new SqlCommand("SELECT   Sum(possale_subdetails.qty) AS outwardqty, productmaster.productid, Sum(possale_subdetails.totvalue) AS totvalue, Sum(possale_subdetails.ordertax) AS ordertax,CAST(possale_maindetails.doe AS date) FROM possale_maindetails INNER JOIN possale_subdetails on possale_subdetails.refno = possale_maindetails.sno INNER JOIN productmaster ON productmaster.productid = possale_subdetails.productid  WHERE possale_maindetails.doe BETWEEN @d1 AND @d2 AND possale_maindetails.branchid=@bid  GROUP BY  productmaster.productid,CAST(possale_maindetails.doe AS date)");
+                    cmd.Parameters.Add("@d1", GetLowDate(closedate));
+                    cmd.Parameters.Add("@d2", GetHighDate(closedate));
+                    cmd.Parameters.Add("@bid", branchid);
+                    DataTable dtouward = vdm.SelectQuery(cmd).Tables[0];
+
+
+                    foreach (DataRow dr in dtitem.Rows)
+                    {
+                        double opqty = 0;
+                        double inward = 0;
+                        double outward = 0;
+                        double closing = 0;
+                        double ordertax = 0;
+                        double totaloutward = 0;
+                        foreach (DataRow drop in dtop.Select("productid='" + dr["productid"].ToString() + "'"))
+                        {
+                            double.TryParse(drop["clo_bal"].ToString(), out opqty);
+                        }
+                        //string date = "";
+                        // DateTime dt = Convert.ToDateTime(dr["doe"].ToString());
+                        // string date = dt.AddDays(1).ToString("yyyy-MM-dd");
+                        //   double.TryParse(dr["clo_bal"].ToString(), out opqty);
+                        foreach (DataRow drin in dtinward.Select("productid='" + dr["productid"].ToString() + "'"))
+                        {
+                            double.TryParse(drin["inwardqty"].ToString(), out inward);
+                        }
+                        foreach (DataRow drout in dtouward.Select("productid='" + dr["productid"].ToString() + "'"))
+                        {
+                            double.TryParse(drout["outwardqty"].ToString(), out outward);
+                            double.TryParse(drout["ordertax"].ToString(), out ordertax);
+                            totaloutward = outward + ordertax;
+                            totaloutward = Math.Round(totaloutward, 2);
+                        }
+                        double total = opqty + inward;
+                        closing = total - outward;
+                        cmd = new SqlCommand("insert into sub_registorclosingdetails(refno, productid, price, clo_bal,op_bal,doe,branchid,inwardqty,saleqty) values(@refno, @productid, @price, @clo_bal,@op_bal,@doe,@branchid,@inwardqty,@saleqty)");
+                        cmd.Parameters.Add("@refno", refno);
+                        cmd.Parameters.Add("@productid", dr["productid"].ToString());
+                        cmd.Parameters.Add("@price", dr["price"].ToString());
+                        cmd.Parameters.Add("@clo_bal", closing);
+                        if (opqty != 0)
+                        {
+                            cmd.Parameters.Add("@op_bal", opqty);
+                        }
+                        else
+                        {
+                            cmd.Parameters.Add("@op_bal", "0");
+                        }
+                        cmd.Parameters.Add("@doe", closedate);
+                        cmd.Parameters.Add("@branchid", branchid);
+                        cmd.Parameters.Add("@inwardqty", inward);
+                        cmd.Parameters.Add("@saleqty", outward);
                         vdm.insert(cmd);
                     }
+                    string Response = GetJson("Register Details are Successfully Closed");
+                    context.Response.Write(Response);
                 }
-                cmd = new SqlCommand("select * from productmoniter");
-                DataTable dtitem = vdm.SelectQuery(cmd).Tables[0];
-                cmd = new SqlCommand("select op_bal,refno, productid, price, clo_bal,doe,branchid from sub_registorclosingdetails where branchid=@branchid and doe between @d1 and @d2");
-                cmd.Parameters.Add("@d1", GetLowDate(closedate).AddDays(-1));
-                cmd.Parameters.Add("@d2", GetHighDate(closedate).AddDays(-1));
-                cmd.Parameters.Add("@branchid", branchid);
-                DataTable dtop = vdm.SelectQuery(cmd).Tables[0];
-
-                DateTime dt_fromdate = Convert.ToDateTime(closedate);
-                cmd = new SqlCommand("SELECT SUM(inward_subdetails.qty) AS inwardqty,productmaster.productname, productmaster.productid,(CONVERT(NVARCHAR(10), inward_maindetails.doe, 120)) AS doe  FROM   inward_maindetails INNER JOIN  inward_subdetails ON inward_maindetails.sno = inward_subdetails.refno INNER JOIN productmaster ON productmaster.productid = inward_subdetails.productid  WHERE (inward_maindetails.doe BETWEEN @d11 AND @d22) AND (inward_maindetails.branchid = @bidd) AND (inward_maindetails.status = 'A') group by productmaster.productname, (CONVERT(NVARCHAR(10), inward_maindetails.doe, 120)),productmaster.productid");
-                cmd.Parameters.Add("@d11", GetLowDate(dt_fromdate).AddDays(-1));
-                cmd.Parameters.Add("@d22", GetHighDate(dt_fromdate));
-                cmd.Parameters.Add("@bidd", branchid);
-                DataTable dtinward = vdm.SelectQuery(cmd).Tables[0];
-
-                cmd = new SqlCommand("SELECT   Sum(possale_subdetails.qty) AS outwardqty, productmaster.productid, Sum(possale_subdetails.totvalue) AS totvalue, Sum(possale_subdetails.ordertax) AS ordertax,CAST(possale_maindetails.doe AS date) FROM possale_maindetails INNER JOIN possale_subdetails on possale_subdetails.refno = possale_maindetails.sno INNER JOIN productmaster ON productmaster.productid = possale_subdetails.productid  WHERE possale_maindetails.doe BETWEEN @d1 AND @d2 AND possale_maindetails.branchid=@bid  GROUP BY  productmaster.productid,CAST(possale_maindetails.doe AS date)");
-                cmd.Parameters.Add("@d1", GetLowDate(closedate));
-                cmd.Parameters.Add("@d2", GetHighDate(closedate));
-                cmd.Parameters.Add("@bid", branchid);
-                DataTable dtouward = vdm.SelectQuery(cmd).Tables[0];
-
-
-                foreach (DataRow dr in dtitem.Rows)
-                {
-                    double opqty = 0;
-                    double inward = 0;
-                    double outward = 0;
-                    double closing = 0;
-                    double ordertax = 0;
-                    double totaloutward = 0;
-                    foreach (DataRow drop in dtop.Select("productid='" + dr["productid"].ToString() + "'"))
-                    {
-                        double.TryParse(drop["clo_bal"].ToString(), out opqty);
-                    }
-                    //string date = "";
-                    // DateTime dt = Convert.ToDateTime(dr["doe"].ToString());
-                    // string date = dt.AddDays(1).ToString("yyyy-MM-dd");
-                 //   double.TryParse(dr["clo_bal"].ToString(), out opqty);
-                    foreach (DataRow drin in dtinward.Select("productid='" + dr["productid"].ToString() + "'"))
-                    {
-                        double.TryParse(drin["inwardqty"].ToString(), out inward);
-                    }
-                    foreach (DataRow drout in dtouward.Select("productid='" + dr["productid"].ToString() + "'"))
-                    {
-                        double.TryParse(drout["outwardqty"].ToString(), out outward);
-                        double.TryParse(drout["ordertax"].ToString(), out ordertax);
-                        totaloutward = outward + ordertax;
-                        totaloutward = Math.Round(totaloutward, 2);
-                    }
-                    double total = opqty + inward;
-                    closing = total - outward;
-                    cmd = new SqlCommand("insert into sub_registorclosingdetails(refno, productid, price, clo_bal,op_bal,doe,branchid,inwardqty,saleqty) values(@refno, @productid, @price, @clo_bal,@op_bal,@doe,@branchid,@inwardqty,@saleqty)");
-                    cmd.Parameters.Add("@refno", refno);
-                    cmd.Parameters.Add("@productid", dr["productid"].ToString());
-                    cmd.Parameters.Add("@price", dr["price"].ToString());
-                    cmd.Parameters.Add("@clo_bal", closing);
-                    if (opqty != 0)
-                    {
-                        cmd.Parameters.Add("@op_bal", opqty);
-                    }
-                    else
-                    {
-                        cmd.Parameters.Add("@op_bal", "0");
-                    }
-                    cmd.Parameters.Add("@doe", closedate);
-                    cmd.Parameters.Add("@branchid", branchid);
-                    cmd.Parameters.Add("@inwardqty", inward);
-                    cmd.Parameters.Add("@saleqty", outward);
-                    vdm.insert(cmd);
-                }
-                string Response = GetJson("Register Details are Successfully Closed");
-                context.Response.Write(Response);
             }
         }
         catch (Exception ex)
@@ -3344,121 +3351,128 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             string createdby = context.Session["Employ_Sno"].ToString();
             DateTime ServerDateCurrentdate = SalesDBManager.GetTime(vdm.conn);
             DateTime closedate = ServerDateCurrentdate;
-            if (btnreg == "closereg")
+            cmd = new SqlCommand("select * from registorclosingdetails where doe between @d1 and @d2");
+            cmd.Parameters.Add("@d1", GetLowDate(closedate).AddDays(-1));
+            cmd.Parameters.Add("@d2", GetHighDate(closedate).AddDays(-1));
+            DataTable dtexisting = vdm.SelectQuery(cmd).Tables[0];
+            if (dtexisting.Rows.Count == 0)
             {
-                cmd = new SqlCommand("insert into registorclosingdetails(cashinhand, cashsale, chequesale, giftcardsale, ccsale, stripesale, othersale, totalsale, expenses, totalcash, submittedcash, submittedslips, submittedchecks, description, parlorid, createdon, closedby, doe, paytm, phonepay) values (@cashinhand, @cashsale,  @chequesale,  @giftcardsale, @ccsale, @stripesale, @othersale, @totalsale, @expenses, @totalcash, @submittedcash, @submittedslips, @submittedchecks, @description, @parlorid, @createdon, @closedby, @doe, @paytm, @phonepay)");//,color,@color
-                cmd.Parameters.Add("@cashinhand", cashinhand);
-                cmd.Parameters.Add("@cashsale", cashsale);
-                cmd.Parameters.Add("@chequesale", chequesale);
-                cmd.Parameters.Add("@giftcardsale", giftcardsale);
-                cmd.Parameters.Add("@ccsale", ccsale);
-                cmd.Parameters.Add("@stripesale", stripesale);
-                cmd.Parameters.Add("@othersale", othersale);
-                cmd.Parameters.Add("@totalsale", totalsale);
-
-                cmd.Parameters.Add("@expenses", expenses);
-                cmd.Parameters.Add("@totalcash", totalcash);//@submittedcash, @submittedslips, @submittedchecks, @description, @parlorid, @createdon, @closedby
-                cmd.Parameters.Add("@submittedcash", submittedcash);
-                cmd.Parameters.Add("@submittedslips", submittedslips);
-                cmd.Parameters.Add("@submittedchecks", submittedchecks);
-                cmd.Parameters.Add("@description", description);
-                cmd.Parameters.Add("@parlorid", branchid);
-                cmd.Parameters.Add("@createdon", ServerDateCurrentdate);
-                cmd.Parameters.Add("@doe", closedate);
-                cmd.Parameters.Add("@closedby", createdby);
-                cmd.Parameters.Add("@paytm", paytm);
-                cmd.Parameters.Add("@phonepay", phonepay);
-                vdm.insert(cmd);
-                cmd = new SqlCommand("select MAX(sno) as refno from registorclosingdetails");
-                DataTable dtoutward = vdm.SelectQuery(cmd).Tables[0];
-                string refno = dtoutward.Rows[0]["refno"].ToString();
-                foreach (SubRegcloseDetails si in obj.closeitems)
+                if (btnreg == "closereg")
                 {
-                    if (si.hdnproductsno != "0")
-                    {
-                        cmd = new SqlCommand("insert into registorclosing_dinaminationdetails(dinaminationid, dinamination, qty, refno) values(@productid, @dinamination, @quantity, @in_refno)");
-                        cmd.Parameters.Add("@dinamination", si.dinamination);
-                        cmd.Parameters.Add("@productid", si.hdnproductsno);
-                        cmd.Parameters.Add("@quantity", si.Quantity);
-                        cmd.Parameters.Add("@in_refno", refno);
-                        vdm.insert(cmd);
+                    cmd = new SqlCommand("insert into registorclosingdetails(cashinhand, cashsale, chequesale, giftcardsale, ccsale, stripesale, othersale, totalsale, expenses, totalcash, submittedcash, submittedslips, submittedchecks, description, parlorid, createdon, closedby, doe, paytm, phonepay) values (@cashinhand, @cashsale,  @chequesale,  @giftcardsale, @ccsale, @stripesale, @othersale, @totalsale, @expenses, @totalcash, @submittedcash, @submittedslips, @submittedchecks, @description, @parlorid, @createdon, @closedby, @doe, @paytm, @phonepay)");//,color,@color
+                    cmd.Parameters.Add("@cashinhand", cashinhand);
+                    cmd.Parameters.Add("@cashsale", cashsale);
+                    cmd.Parameters.Add("@chequesale", chequesale);
+                    cmd.Parameters.Add("@giftcardsale", giftcardsale);
+                    cmd.Parameters.Add("@ccsale", ccsale);
+                    cmd.Parameters.Add("@stripesale", stripesale);
+                    cmd.Parameters.Add("@othersale", othersale);
+                    cmd.Parameters.Add("@totalsale", totalsale);
 
-
-                    }
-                }
-
-                cmd = new SqlCommand("select * from productmoniter");
-                DataTable dtitem = vdm.SelectQuery(cmd).Tables[0];
-                cmd = new SqlCommand("select op_bal,refno, productid, price, clo_bal,doe,branchid from sub_registorclosingdetails where branchid=@branchid and doe between @d1 and @d2");
-                cmd.Parameters.Add("@d1", GetLowDate(closedate).AddDays(-1));
-                cmd.Parameters.Add("@d2", GetHighDate(closedate).AddDays(-1));
-                cmd.Parameters.Add("@branchid", branchid);
-                DataTable dtop = vdm.SelectQuery(cmd).Tables[0];
-
-                DateTime dt_fromdate = Convert.ToDateTime(closedate);
-                cmd = new SqlCommand("SELECT SUM(inward_subdetails.qty) AS inwardqty,productmaster.productname, productmaster.productid,(CONVERT(NVARCHAR(10), inward_maindetails.doe, 120)) AS doe  FROM   inward_maindetails INNER JOIN  inward_subdetails ON inward_maindetails.sno = inward_subdetails.refno INNER JOIN productmaster ON productmaster.productid = inward_subdetails.productid  WHERE (inward_maindetails.doe BETWEEN @d11 AND @d22) AND (inward_maindetails.branchid = @bidd) AND (inward_maindetails.status = 'A') group by productmaster.productname, (CONVERT(NVARCHAR(10), inward_maindetails.doe, 120)),productmaster.productid");
-                cmd.Parameters.Add("@d11", GetLowDate(dt_fromdate).AddDays(-1));
-                cmd.Parameters.Add("@d22", GetHighDate(dt_fromdate));
-                cmd.Parameters.Add("@bidd", branchid);
-                DataTable dtinward = vdm.SelectQuery(cmd).Tables[0];
-
-                cmd = new SqlCommand("SELECT   Sum(possale_subdetails.qty) AS outwardqty, productmaster.productid, Sum(possale_subdetails.totvalue) AS totvalue, Sum(possale_subdetails.ordertax) AS ordertax,CAST(possale_maindetails.doe AS date) FROM possale_maindetails INNER JOIN possale_subdetails on possale_subdetails.refno = possale_maindetails.sno INNER JOIN productmaster ON productmaster.productid = possale_subdetails.productid  WHERE possale_maindetails.doe BETWEEN @d1 AND @d2 AND possale_maindetails.branchid=@bid  GROUP BY  productmaster.productid,CAST(possale_maindetails.doe AS date)");
-                cmd.Parameters.Add("@d1", GetLowDate(closedate));
-                cmd.Parameters.Add("@d2", GetHighDate(closedate));
-                cmd.Parameters.Add("@bid", branchid);
-                DataTable dtouward = vdm.SelectQuery(cmd).Tables[0];
-
-
-                foreach (DataRow dr in dtop.Rows)
-                {
-                    double opqty = 0;
-                    double inward = 0;
-                    double outward = 0;
-                    double closing = 0;
-                    double ordertax = 0;
-                    double totaloutward = 0;
-                    //foreach (DataRow drop in dtop.Select("productid='" + dr["productid"].ToString() + "'"))
-                    //{
-                    //    double.TryParse(drop["qty"].ToString(), out opqty);
-                    //}
-                    //string date = "";
-                    DateTime dt = Convert.ToDateTime(dr["doe"].ToString());
-                    string date = dt.AddDays(1).ToString("yyyy-MM-dd");
-                    double.TryParse(dr["clo_bal"].ToString(), out opqty);
-                    foreach (DataRow drin in dtinward.Select("productid='" + dr["productid"].ToString() + "'AND doe='" + date + "'"))
-                    {
-                        double.TryParse(drin["inwardqty"].ToString(), out inward);
-                    }
-                    foreach (DataRow drout in dtouward.Select("productid='" + dr["productid"].ToString() + "'"))
-                    {
-                        double.TryParse(drout["outwardqty"].ToString(), out outward);
-                        double.TryParse(drout["ordertax"].ToString(), out ordertax);
-                        totaloutward = outward + ordertax;
-                        totaloutward = Math.Round(totaloutward, 2);
-                    }
-                    double total = opqty + inward;
-                    closing = total - outward;
-                    cmd = new SqlCommand("insert into sub_registorclosingdetails(refno, productid, price, clo_bal,op_bal,doe,branchid,inwardqty,saleqty) values(@refno, @productid, @price, @clo_bal,@op_bal,@doe,@branchid,@inwardqty,@saleqty)");
-                    cmd.Parameters.Add("@refno", refno);
-                    cmd.Parameters.Add("@productid", dr["productid"].ToString());
-                    cmd.Parameters.Add("@price", dr["price"].ToString());
-                    cmd.Parameters.Add("@clo_bal", closing);
-                    if (opqty != 0)
-                    {
-                        cmd.Parameters.Add("@op_bal", opqty);
-                    }
-                    else
-                    {
-                        cmd.Parameters.Add("@op_bal", "0");
-                    }
+                    cmd.Parameters.Add("@expenses", expenses);
+                    cmd.Parameters.Add("@totalcash", totalcash);//@submittedcash, @submittedslips, @submittedchecks, @description, @parlorid, @createdon, @closedby
+                    cmd.Parameters.Add("@submittedcash", submittedcash);
+                    cmd.Parameters.Add("@submittedslips", submittedslips);
+                    cmd.Parameters.Add("@submittedchecks", submittedchecks);
+                    cmd.Parameters.Add("@description", description);
+                    cmd.Parameters.Add("@parlorid", branchid);
+                    cmd.Parameters.Add("@createdon", ServerDateCurrentdate);
                     cmd.Parameters.Add("@doe", closedate);
-                    cmd.Parameters.Add("@branchid", branchid);
-                    cmd.Parameters.Add("@inwardqty", inward);
-                    cmd.Parameters.Add("@saleqty", outward);
+                    cmd.Parameters.Add("@closedby", createdby);
+                    cmd.Parameters.Add("@paytm", paytm);
+                    cmd.Parameters.Add("@phonepay", phonepay);
                     vdm.insert(cmd);
+                    cmd = new SqlCommand("select MAX(sno) as refno from registorclosingdetails");
+                    DataTable dtoutward = vdm.SelectQuery(cmd).Tables[0];
+                    string refno = dtoutward.Rows[0]["refno"].ToString();
+                    foreach (SubRegcloseDetails si in obj.closeitems)
+                    {
+                        if (si.hdnproductsno != "0")
+                        {
+                            cmd = new SqlCommand("insert into registorclosing_dinaminationdetails(dinaminationid, dinamination, qty, refno) values(@productid, @dinamination, @quantity, @in_refno)");
+                            cmd.Parameters.Add("@dinamination", si.dinamination);
+                            cmd.Parameters.Add("@productid", si.hdnproductsno);
+                            cmd.Parameters.Add("@quantity", si.Quantity);
+                            cmd.Parameters.Add("@in_refno", refno);
+                            vdm.insert(cmd);
+
+
+                        }
+                    }
+
+                    cmd = new SqlCommand("select * from productmoniter");
+                    DataTable dtitem = vdm.SelectQuery(cmd).Tables[0];
+                    cmd = new SqlCommand("select op_bal,refno, productid, price, clo_bal,doe,branchid from sub_registorclosingdetails where branchid=@branchid and doe between @d1 and @d2");
+                    cmd.Parameters.Add("@d1", GetLowDate(closedate).AddDays(-1));
+                    cmd.Parameters.Add("@d2", GetHighDate(closedate).AddDays(-1));
+                    cmd.Parameters.Add("@branchid", branchid);
+                    DataTable dtop = vdm.SelectQuery(cmd).Tables[0];
+
+                    DateTime dt_fromdate = Convert.ToDateTime(closedate);
+                    cmd = new SqlCommand("SELECT SUM(inward_subdetails.qty) AS inwardqty,productmaster.productname, productmaster.productid,(CONVERT(NVARCHAR(10), inward_maindetails.doe, 120)) AS doe  FROM   inward_maindetails INNER JOIN  inward_subdetails ON inward_maindetails.sno = inward_subdetails.refno INNER JOIN productmaster ON productmaster.productid = inward_subdetails.productid  WHERE (inward_maindetails.doe BETWEEN @d11 AND @d22) AND (inward_maindetails.branchid = @bidd) AND (inward_maindetails.status = 'A') group by productmaster.productname, (CONVERT(NVARCHAR(10), inward_maindetails.doe, 120)),productmaster.productid");
+                    cmd.Parameters.Add("@d11", GetLowDate(dt_fromdate).AddDays(-1));
+                    cmd.Parameters.Add("@d22", GetHighDate(dt_fromdate));
+                    cmd.Parameters.Add("@bidd", branchid);
+                    DataTable dtinward = vdm.SelectQuery(cmd).Tables[0];
+
+                    cmd = new SqlCommand("SELECT   Sum(possale_subdetails.qty) AS outwardqty, productmaster.productid, Sum(possale_subdetails.totvalue) AS totvalue, Sum(possale_subdetails.ordertax) AS ordertax,CAST(possale_maindetails.doe AS date) FROM possale_maindetails INNER JOIN possale_subdetails on possale_subdetails.refno = possale_maindetails.sno INNER JOIN productmaster ON productmaster.productid = possale_subdetails.productid  WHERE possale_maindetails.doe BETWEEN @d1 AND @d2 AND possale_maindetails.branchid=@bid  GROUP BY  productmaster.productid,CAST(possale_maindetails.doe AS date)");
+                    cmd.Parameters.Add("@d1", GetLowDate(closedate));
+                    cmd.Parameters.Add("@d2", GetHighDate(closedate));
+                    cmd.Parameters.Add("@bid", branchid);
+                    DataTable dtouward = vdm.SelectQuery(cmd).Tables[0];
+
+
+                    foreach (DataRow dr in dtop.Rows)
+                    {
+                        double opqty = 0;
+                        double inward = 0;
+                        double outward = 0;
+                        double closing = 0;
+                        double ordertax = 0;
+                        double totaloutward = 0;
+                        //foreach (DataRow drop in dtop.Select("productid='" + dr["productid"].ToString() + "'"))
+                        //{
+                        //    double.TryParse(drop["qty"].ToString(), out opqty);
+                        //}
+                        //string date = "";
+                        DateTime dt = Convert.ToDateTime(dr["doe"].ToString());
+                        string date = dt.AddDays(1).ToString("yyyy-MM-dd");
+                        double.TryParse(dr["clo_bal"].ToString(), out opqty);
+                        foreach (DataRow drin in dtinward.Select("productid='" + dr["productid"].ToString() + "'AND doe='" + date + "'"))
+                        {
+                            double.TryParse(drin["inwardqty"].ToString(), out inward);
+                        }
+                        foreach (DataRow drout in dtouward.Select("productid='" + dr["productid"].ToString() + "'"))
+                        {
+                            double.TryParse(drout["outwardqty"].ToString(), out outward);
+                            double.TryParse(drout["ordertax"].ToString(), out ordertax);
+                            totaloutward = outward + ordertax;
+                            totaloutward = Math.Round(totaloutward, 2);
+                        }
+                        double total = opqty + inward;
+                        closing = total - outward;
+                        cmd = new SqlCommand("insert into sub_registorclosingdetails(refno, productid, price, clo_bal,op_bal,doe,branchid,inwardqty,saleqty) values(@refno, @productid, @price, @clo_bal,@op_bal,@doe,@branchid,@inwardqty,@saleqty)");
+                        cmd.Parameters.Add("@refno", refno);
+                        cmd.Parameters.Add("@productid", dr["productid"].ToString());
+                        cmd.Parameters.Add("@price", dr["price"].ToString());
+                        cmd.Parameters.Add("@clo_bal", closing);
+                        if (opqty != 0)
+                        {
+                            cmd.Parameters.Add("@op_bal", opqty);
+                        }
+                        else
+                        {
+                            cmd.Parameters.Add("@op_bal", "0");
+                        }
+                        cmd.Parameters.Add("@doe", closedate);
+                        cmd.Parameters.Add("@branchid", branchid);
+                        cmd.Parameters.Add("@inwardqty", inward);
+                        cmd.Parameters.Add("@saleqty", outward);
+                        vdm.insert(cmd);
+                    }
+                    string Response = GetJson("Register Details are Successfully Closed");
+                    context.Response.Write(Response);
                 }
-                string Response = GetJson("Register Details are Successfully Closed");
-                context.Response.Write(Response);
             }
         }
         catch (Exception ex)
