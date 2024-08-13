@@ -319,9 +319,72 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                 case "get_Bal_Trans":
                     get_Bal_Trans(context);
                     break;
+                case "GetHeadOfAccounts":
+                    GetHeadOfAccounts(context);
+                    break;
+                case "SaveHeadMasterClick":
+                    SaveHeadMasterClick(context);
+                    break;
+                case "GetAllSalesOffice":
+                    GetAllSalesOffice(context);
+                    break;
+                case "GetHeadNames":
+                    GetHeadNames(context);
+                    break;
+                case "GetSalesOffice":
+                    GetSalesOffice(context);
+                    break;
+                case "GetApproveEmployeeNames":
+                    GetApproveEmployeeNames(context);
+                    break;
 
+                case "BtnGetVoucherClick":
+                    BtnGetVoucherClick(context);
+                    break;
+                case "BtnPayVoucherClick":
+                    BtnPayVoucherClick(context);
+                    break;
+                case "btnViewVoucherGeneretaeClick":
+                    btnViewVoucherGeneretaeClick(context);
+                    break;
 
+                case "GetSubPaybleValues":
+                    GetSubPaybleValues(context);
+                    break;
 
+                case "Get_Voucher_Print_Details":
+                    Get_Voucher_Print_Details(context);
+                    break;
+                case "btnVoucherCancelClick":
+                    btnVoucherCancelClick(context);
+                    break;
+                case "GetHeadLimit":
+                    GetHeadLimit(context);
+                    break;
+                case "BtnClearRaiseVoucherClick":
+                    BtnClearRaiseVoucherClick(context);
+                    break;
+                case "BtnVarifyVoucherSaveClick":
+                    BtnVarifyVoucherSaveClick(context);
+                    break;
+                case "GetBtnViewVoucherclick":
+                    GetBtnViewVoucherclick(context);
+                    break;
+                case "GetAppriveSubPaybleValues":
+                    GetAppriveSubPaybleValues(context);
+                    break;
+                case "btnApproveVoucherclick":
+                    btnApproveVoucherclick(context);
+                    break;
+                case "btnRejectVoucherclick":
+                    btnRejectVoucherclick(context);
+                    break;
+                case "btnVoucherUpdateClick":
+                    btnVoucherUpdateClick(context);
+                    break;
+                case "btn_approve_voucher_grid":
+                    btn_approve_voucher_grid(context);
+                    break;
                 default:
                     var jsonString = string.Empty;
                     context.Request.InputStream.Position = 0;
@@ -395,8 +458,9 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                             case "btnOrderSaveClick":
                                 btnOrderSaveClick(context);
                                 break;
-
-
+                            case "BtnRaiseVoucherClick":
+                                BtnRaiseVoucherClick(context);
+                                break;
 
 
                         }
@@ -409,6 +473,1674 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             string response = GetJson(ex.ToString());
             context.Response.Write(response);
         }
+    }
+    private void btn_approve_voucher_grid(HttpContext context)
+    {
+        try
+        {
+            vdm = new SalesDBManager();
+            string VoucherID = context.Request["VoucherID"];
+            string Approvalamt = context.Request["Amount"];
+            double Amount = 0;
+            double.TryParse(Approvalamt, out Amount);
+            string Remarks = context.Request["remarks"];
+            string Status = "A";
+            string BranchID = "0";
+            string LevelType = context.Session["LevelType"].ToString();
+            if (LevelType == "AccountsOfficer" || LevelType == "Director")
+            {
+                BranchID = context.Request["branchID"];
+            }
+            else
+            {
+                BranchID = context.Session["branch"].ToString();
+            }
+            DateTime ServerDateCurrentdate = SalesDBManager.GetTime(vdm.conn);
+            cmd = new SqlCommand("SELECT Branchid, UserData_sno, AmountPaid, Denominations, Remarks, Sno, PaidDate FROM collections WHERE (Branchid = @BranchID) AND (PaidDate BETWEEN @d1 AND @d2)");
+            cmd.Parameters.AddWithValue("@BranchID", BranchID);
+            cmd.Parameters.AddWithValue("@d1", GetLowDate(ServerDateCurrentdate));
+            cmd.Parameters.AddWithValue("@d2", GetHighDate(ServerDateCurrentdate));
+            DataTable dtcashbookstatus = vdm.SelectQuery(cmd).Tables[0];
+            if (dtcashbookstatus.Rows.Count > 0)
+            {
+                string msg = "Cash Book Has Been Closed For This Day";
+                string response = GetJson(msg);
+                context.Response.Write(response);
+            }
+            else
+            {
+                cmd = new SqlCommand("Update cashpayables set Remarks=@Remarks,DOE=@DOE, ApprovedAmount=@ApprovedAmount ,ApprovalRemarks=@ApprovalRemarks,Status=@Status where Sno=@VocherID and BranchID=@BranchID");
+                cmd.Parameters.AddWithValue("@Status", Status);
+                cmd.Parameters.AddWithValue("@ApprovedAmount", Approvalamt);
+                cmd.Parameters.AddWithValue("@ApprovalRemarks", Remarks);
+                cmd.Parameters.AddWithValue("@Remarks", Remarks);
+                cmd.Parameters.AddWithValue("@VocherID", VoucherID);
+                cmd.Parameters.AddWithValue("@BranchID", BranchID);
+                cmd.Parameters.AddWithValue("@DOE", ServerDateCurrentdate);
+                vdm.Update(cmd);
+                string msg = "Voucher Approved successfully";
+                string response = GetJson(msg);
+                context.Response.Write(response);
+            }
+
+        }
+        catch (Exception ex)
+        {
+            string msg = ex.Message;
+            string response = GetJson(msg);
+            context.Response.Write(response);
+        }
+    }
+
+    private void btnVoucherUpdateClick(HttpContext context)
+    {
+        try
+        {
+            vdm = new SalesDBManager();
+            string VoucherID = context.Request["VoucherID"];
+            string Remarks = context.Request["Remarks"];
+            string BranchID = "0";
+            string LevelType = context.Session["LevelType"].ToString();
+            if (LevelType == "AccountsOfficer" || LevelType == "Director")
+            {
+                BranchID = context.Request["BranchID"];
+            }
+            else
+            {
+                BranchID = context.Session["branch"].ToString();
+            }
+            cmd = new SqlCommand("Update cashpayables set Ramarks=@Ramarks where BranchID=@BranchID and Sno=@VocherID");
+            cmd.Parameters.AddWithValue("@VocherID", VoucherID);
+            cmd.Parameters.AddWithValue("@Remarks", Remarks);
+            cmd.Parameters.AddWithValue("@BranchID", BranchID);
+            vdm.Update(cmd);
+            string msg = "Voucher Updated successfully";
+            string response = GetJson(msg);
+            context.Response.Write(response);
+        }
+        catch
+        {
+        }
+    }
+
+    private void GetAppriveSubPaybleValues(HttpContext context)
+    {
+
+        try
+        {
+            vdm = new SalesDBManager();
+            string VoucherID = context.Request["VoucherID"];
+            context.Session["VoucherID"] = VoucherID;
+            List<Subpayables> SubpayableList = new List<Subpayables>();
+            string BranchID = "0";
+            string LevelType = context.Session["LevelType"].ToString();
+            if (LevelType == "AccountsOfficer" || LevelType == "Director")
+            {
+                BranchID = context.Request["BranchID"];
+            }
+            else
+            {
+                BranchID = context.Session["branch"].ToString();
+            }
+            cmd = new SqlCommand("SELECT Sno FROM cashpayables WHERE (Sno = @VocherID) AND (BranchID = @BranchID)");
+            cmd.Parameters.AddWithValue("@VocherID", VoucherID);
+            cmd.Parameters.AddWithValue("@BranchID", BranchID);
+            DataTable dtCash = vdm.SelectQuery(cmd).Tables[0];
+            string RefNo = dtCash.Rows[0]["Sno"].ToString();
+            cmd = new SqlCommand("SELECT accountheads.HeadName, subpayable.Amount, accountheads.Sno FROM subpayable INNER JOIN accountheads ON subpayable.HeadSno = accountheads.Sno WHERE  (subpayable.RefNo = @RefNo)");
+            cmd.Parameters.AddWithValue("@RefNo", RefNo);
+            DataTable dtCashSubPayable = vdm.SelectQuery(cmd).Tables[0];
+            foreach (DataRow dr in dtCashSubPayable.Rows)
+            {
+                Subpayables GetSubpayable = new Subpayables();
+                GetSubpayable.HeadSno = dr["Sno"].ToString();
+                GetSubpayable.HeadOfAccount = dr["HeadName"].ToString();
+                GetSubpayable.Amount = dr["Amount"].ToString();
+                SubpayableList.Add(GetSubpayable);
+            }
+            string response = GetJson(SubpayableList);
+            context.Response.Write(response);
+        }
+        catch
+        {
+        }
+    }
+
+    private void GetBtnViewVoucherclick(HttpContext context)
+    {
+        try
+        {
+            vdm = new SalesDBManager();
+            string VoucherID = context.Request["VoucherID"];
+            string BranchID = "0";
+            string LevelType = context.Session["LevelType"].ToString();
+            if (LevelType == "AccountsOfficer" || LevelType == "Director")
+            {
+                BranchID = context.Request["BranchID"];
+            }
+            else
+            {
+                BranchID = context.Session["branch"].ToString();
+            }
+            List<VoucherClass> Voucherlist = new List<VoucherClass>();
+            cmd = new SqlCommand("SELECT  empmanage.EmpName,cashpayables.Empid, cashpayables.Approvedby, cashpayables.VoucherType, cashpayables.CashTo, cashpayables.onNameof, cashpayables.Amount, cashpayables.ApprovedAmount, empmanage_1.EmpName AS ApproveEmpName, cashpayables.Status, cashpayables.ApprovalRemarks, cashpayables.Remarks FROM empmanage empmanage_1 INNER JOIN cashpayables ON empmanage_1.Sno = cashpayables.Approvedby LEFT OUTER JOIN empmanage ON cashpayables.Empid = empmanage.Sno WHERE (cashpayables.Sno = @VoucherID) AND (cashpayables.BranchID = @BranchID)");
+            cmd.Parameters.AddWithValue("@VoucherID", VoucherID);
+            cmd.Parameters.AddWithValue("@BranchID", BranchID);
+            DataTable dtVouchers = vdm.SelectQuery(cmd).Tables[0];
+            if (dtVouchers.Rows.Count > 0)
+            {
+                foreach (DataRow dr in dtVouchers.Rows)
+                {
+                    VoucherClass getVoucher = new VoucherClass();
+                    getVoucher.EmpName = dr["EmpName"].ToString();
+                    getVoucher.VoucherType = dr["VoucherType"].ToString();
+                    getVoucher.CashTo = dr["CashTo"].ToString();
+                    getVoucher.Description = dr["onNameof"].ToString();
+                    getVoucher.Amount = dr["Amount"].ToString();
+                    getVoucher.ApprovalAmount = dr["ApprovedAmount"].ToString();
+                    getVoucher.ApproveEmpName = dr["ApproveEmpName"].ToString();
+                    getVoucher.Status = dr["Status"].ToString();
+                    getVoucher.ApprovalRemarks = dr["ApprovalRemarks"].ToString();
+                    getVoucher.Remarks = dr["Remarks"].ToString();
+                    getVoucher.Empid = dr["EmpID"].ToString();
+                    getVoucher.ApprovedBy = dr["Approvedby"].ToString();
+                    Voucherlist.Add(getVoucher);
+                }
+                string response = GetJson(Voucherlist);
+                context.Response.Write(response);
+            }
+            else
+            {
+                string msg = "No voucher found";
+                string response = GetJson(msg);
+                context.Response.Write(response);
+            }
+        }
+        catch
+        {
+        }
+    }
+
+    private void BtnVarifyVoucherSaveClick(HttpContext context)
+    {
+        vdm = new SalesDBManager();
+        string VoucherID = context.Request["VoucherID"];
+        string ReceivedAmount = context.Request["ReceivedAmount"];
+        string Due = context.Request["Due"];
+        cmd = new SqlCommand("Update cashpayables set Status=@Status,ReceivedAmount=@ReceivedAmount,DueAmount=@DueAmount where BranchID=@BranchID and VocherID=@VocherID");
+        cmd.Parameters.AddWithValue("@Status", "V");
+        cmd.Parameters.AddWithValue("@VocherID", VoucherID);
+        double RAmount = 0;
+        double.TryParse(ReceivedAmount, out RAmount);
+        cmd.Parameters.AddWithValue("@ReceivedAmount", ReceivedAmount);
+        double RDue = 0;
+        double.TryParse(Due, out RDue);
+        cmd.Parameters.AddWithValue("@DueAmount", RDue);
+        cmd.Parameters.AddWithValue("@BranchID", context.Session["branch"].ToString());
+        vdm.Update(cmd);
+        string msg = "Voucher Varified successfully";
+        string response = GetJson(msg);
+        context.Response.Write(response);
+    }
+
+    private void BtnClearRaiseVoucherClick(HttpContext context)
+    {
+
+        try
+        {
+            vdm = new SalesDBManager();
+            string Description = context.Request["Description"];
+            string Amount = context.Request["Amount"];
+            string VoucherType = context.Request["VoucherType"];
+            string CashTo = context.Request["CashTo"];
+            string EmpName = context.Request["Employee"];
+            string Remarks = context.Request["EmpName"];
+            string EmpApprove = context.Request["AprovedBy"];
+            cmd = new SqlCommand("Select IFNULL(MAX(VocherID),0)+1 as VocherID  from cashpayables where BranchID=@BranchID");
+            cmd.Parameters.AddWithValue("@BranchID", context.Session["branch"].ToString());
+            DataTable dtTripId = vdm.SelectQuery(cmd).Tables[0];
+            string VocherID = "0";
+            if (dtTripId.Rows.Count > 0)
+            {
+                VocherID = dtTripId.Rows[0]["VocherID"].ToString();
+            }
+            else
+            {
+                VocherID = "1";
+            }
+            cmd = new SqlCommand("Insert into cashpayables (BranchID,CashTo,DOE,VocherID,Remarks,Amount,EmpId,Approvedby,onNameof,Status,Created_by,VoucherType) values (@BranchID,@CashTo,@DOE,@VocherID,@Remarks,@Amount,@EmpId,@Approvedby,@onNameof,@Status,@Created_by,@VoucherType)");
+            cmd.Parameters.AddWithValue("@BranchID", context.Session["branch"].ToString());
+            cmd.Parameters.AddWithValue("@CashTo", CashTo);
+            cmd.Parameters.AddWithValue("@DOE", DateTime.Now);
+            cmd.Parameters.AddWithValue("@VocherID", VocherID);
+            cmd.Parameters.AddWithValue("@Remarks", Remarks);
+            cmd.Parameters.AddWithValue("@Amount", Amount);
+            cmd.Parameters.AddWithValue("@EmpId", EmpName);
+            cmd.Parameters.AddWithValue("@Approvedby", EmpApprove);
+            cmd.Parameters.AddWithValue("@onNameof", Description);
+            cmd.Parameters.AddWithValue("@Status", "R");
+            cmd.Parameters.AddWithValue("@Created_by", context.Session["UserSno"].ToString());
+            cmd.Parameters.AddWithValue("@VoucherType", VoucherType);
+            vdm.insert(cmd);
+            string msg = VocherID;
+            string response = GetJson(msg);
+            context.Response.Write(response);
+        }
+        catch (Exception ex)
+        {
+            string msg = ex.Message;
+            string response = GetJson(msg);
+            context.Response.Write(response);
+        }
+    }
+
+    private void GetHeadLimit(HttpContext context)
+    {
+        vdm = new SalesDBManager();
+        string HeadSno = context.Request["HeadSno"];
+        cmd = new SqlCommand("SELECT Sno, BranchId, HeadName, LimitAmount FROM accountheads WHERE (Sno = @Sno)");
+        cmd.Parameters.AddWithValue("@Sno", HeadSno);
+        DataTable dtHead = vdm.SelectQuery(cmd).Tables[0];
+        string HeadLimit = "0";
+        if (dtHead.Rows.Count > 0)
+        {
+            HeadLimit = dtHead.Rows[0]["LimitAmount"].ToString();
+        }
+        string response = GetJson(HeadLimit);
+        context.Response.Write(response);
+    }
+
+    private void btnVoucherCancelClick(HttpContext context)
+    {
+        try
+        {
+            vdm = new SalesDBManager();
+            string VoucherID = context.Request["VoucherID"];
+            string branch = context.Session["branch"].ToString();
+            cmd = new SqlCommand("Update cashpayables set Status=@Status where Sno=@VocherID");
+            cmd.Parameters.AddWithValue("@Status", "C");
+            cmd.Parameters.AddWithValue("@VocherID", VoucherID);
+            vdm.Update(cmd);
+            string msg = "Voucher Cancel successfully";
+            string response = GetJson(msg);
+            context.Response.Write(response);
+        }
+        catch (Exception ex)
+        {
+            string msg = ex.Message;
+            string response = GetJson(msg);
+            context.Response.Write(response);
+        }
+    }
+
+    class VoucherPrintdetails1
+    {
+        public string voucherid { get; set; }
+        public string approveemp { get; set; }
+        public string date { get; set; }
+        public string nameof { get; set; }
+        public string Remarks { get; set; }
+        public string vouchertype { get; set; }
+        public string amount { get; set; }
+        public string branchid { get; set; }
+        public string VoucherID { get; set; }
+        public string Title { get; set; }
+        public string lblReceived { get; set; }
+    }
+
+    private void Get_Voucher_Print_Details(HttpContext context)//akbar
+    {
+
+        try
+        {
+            vdm = new SalesDBManager();
+            string BrachSOID = "";
+            if (context.Session["BrachSOID"] == null)
+            {
+                BrachSOID = context.Session["branch"].ToString();
+            }
+            else
+            {
+                BrachSOID = context.Session["BrachSOID"].ToString();
+            }
+            string VoucherID = context.Request["VoucherID"].ToString();
+            string title = context.Session["TitleName"].ToString();
+            // cmd = new SqlCommand("SELECT cashpayables.onNameof, cashpayables.DOE, cashpayables.Sno, cashpayables.Amount, cashpayables.Remarks,cashpayables.ApprovalRemarks, cashpayables.VoucherType, empmanage.EmpName FROM cashpayables INNER JOIN empmanage ON cashpayables.Approvedby = empmanage.Sno WHERE (cashpayables.VocherID = @VocherID) AND (cashpayables.BranchID = @BranchID)");
+            cmd = new SqlCommand("SELECT cashpayables.onNameof, cashpayables.DOE,cashpayables.VocherID, cashpayables.Sno, cashpayables.Amount, cashpayables.ApprovedAmount, cashpayables.Remarks, cashpayables.ApprovalRemarks,cashpayables.VoucherType, employe_details.employename as EmpName FROM cashpayables LEFT OUTER JOIN employe_details ON cashpayables.Approvedby = employe_details.Sno WHERE (cashpayables.Sno = @VocherID) AND (cashpayables.BranchID = @BranchID)");
+            // cmd = new SqlCommand("SELECT cashpayables.onNameof, cashpayables.DOE,cashpayables.VocherID, cashpayables.Sno, cashpayables.Amount, cashpayables.ApprovedAmount, cashpayables.Remarks, cashpayables.ApprovalRemarks,cashpayables.VoucherType, empmanage.EmpName FROM cashpayables LEFT OUTER JOIN empmanage ON cashpayables.Approvedby = empmanage.Sno WHERE (cashpayables.Sno = @VocherID) "); 
+            cmd.Parameters.AddWithValue("@VocherID", VoucherID);
+            cmd.Parameters.AddWithValue("@BranchID", BrachSOID);
+            DataTable dtCash = vdm.SelectQuery(cmd).Tables[0];
+            List<VoucherPrintdetails1> VoucherPrintdetailslist = new List<VoucherPrintdetails1>();
+            cmd = new SqlCommand("SELECT branchid as sno, BranchName, BranchCode FROM branchmaster WHERE (branchid = @BranchID)");
+            cmd.Parameters.AddWithValue("@BranchID", BrachSOID);
+            DataTable dtCode = vdm.SelectQuery(cmd).Tables[0];
+
+            string voucherid = "";
+            DateTime ServerDateCurrentdate = SalesDBManager.GetTime(vdm.conn);
+            DateTime dtapril = new DateTime();
+            DateTime dtmarch = new DateTime();
+            int currentyear = ServerDateCurrentdate.Year;
+            int nextyear = ServerDateCurrentdate.Year + 1;
+            int currntyearnum = 0;
+            int nextyearnum = 0;
+            if (ServerDateCurrentdate.Month > 3)
+            {
+                string apr = "4/1/" + currentyear;
+                dtapril = DateTime.Parse(apr);
+                string march = "3/31/" + nextyear;
+                dtmarch = DateTime.Parse(march);
+                currntyearnum = currentyear;
+                nextyearnum = nextyear;
+            }
+            if (ServerDateCurrentdate.Month <= 3)
+            {
+                string apr = "4/1/" + (currentyear - 1);
+                dtapril = DateTime.Parse(apr);
+                string march = "3/31/" + (nextyear - 1);
+                dtmarch = DateTime.Parse(march);
+                currntyearnum = currentyear - 1;
+                nextyearnum = nextyear - 1;
+            }
+            if (dtCash.Rows.Count > 0)
+            {
+                VoucherPrintdetails1 obj1 = new VoucherPrintdetails1();
+                //lblVoucherno.Text = txtVoucherNo.Text;
+                voucherid = dtCode.Rows[0]["BranchCode"].ToString() + "/VOC/" + dtapril.ToString("yy") + "-" + dtmarch.ToString("yy") + "/" + dtCash.Rows[0]["VocherID"].ToString();
+                obj1.voucherid = voucherid;
+                string DOE = dtCash.Rows[0]["DOE"].ToString();
+                DateTime dtDOE = Convert.ToDateTime(DOE);
+
+                obj1.approveemp = dtCash.Rows[0]["EmpName"].ToString();
+
+                string ChangedTime = dtDOE.ToString("dd/MMM/yyyy");
+                obj1.date = ChangedTime;
+                obj1.nameof = dtCash.Rows[0]["onNameof"].ToString();
+                string AppRemarks = dtCash.Rows[0]["ApprovalRemarks"].ToString();
+                if (AppRemarks == "")
+                {
+                    obj1.Remarks = dtCash.Rows[0]["Remarks"].ToString();
+                }
+                else
+                {
+                    obj1.Remarks = dtCash.Rows[0]["ApprovalRemarks"].ToString();
+                }
+                obj1.vouchertype = dtCash.Rows[0]["VoucherType"].ToString().ToUpper() + " VOUCHER";
+                obj1.amount = dtCash.Rows[0]["Amount"].ToString();
+                obj1.VoucherID = VoucherID;
+                obj1.branchid = BrachSOID;
+
+                obj1.Title = title;
+                string Amont = "";
+                if (dtCash.Rows[0]["VoucherType"].ToString() == "Credit")
+                {
+                    Amont = dtCash.Rows[0]["ApprovedAmount"].ToString();
+                }
+                else
+                {
+                    Amont = dtCash.Rows[0]["Amount"].ToString();
+                }
+                string[] Ones = { "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Ninteen" };
+
+                string[] Tens = { "Ten", "Twenty", "Thirty", "Fourty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninty" };
+
+                int Num = int.Parse(Amont);
+
+                string letters = NumToWordBD(Num) + " Rupees Only";
+                obj1.lblReceived = letters;
+
+                VoucherPrintdetailslist.Add(obj1);
+                string response = GetJson(VoucherPrintdetailslist);
+                context.Response.Write(response);
+            }
+        }
+        catch
+        {
+        }
+    }
+
+    public static string NumToWordBD(Int64 Num)
+    {
+        string[] Below20 = { "", "One ", "Two ", "Three ", "Four ",
+      "Five ", "Six " , "Seven ", "Eight ", "Nine ", "Ten ", "Eleven ",
+    "Twelve " , "Thirteen ", "Fourteen ","Fifteen ",
+      "Sixteen " , "Seventeen ","Eighteen " , "Nineteen " };
+        string[] Below100 = { "", "", "Twenty ", "Thirty ",
+      "Forty ", "Fifty ", "Sixty ", "Seventy ", "Eighty ", "Ninety " };
+        string InWords = "";
+        if (Num >= 1 && Num < 20)
+            InWords += Below20[Num];
+        if (Num >= 20 && Num <= 99)
+            InWords += Below100[Num / 10] + Below20[Num % 10];
+        if (Num >= 100 && Num <= 999)
+            InWords += NumToWordBD(Num / 100) + " Hundred " + NumToWordBD(Num % 100);
+        if (Num >= 1000 && Num <= 99999)
+            InWords += NumToWordBD(Num / 1000) + " Thousand " + NumToWordBD(Num % 1000);
+        if (Num >= 100000 && Num <= 9999999)
+            InWords += NumToWordBD(Num / 100000) + " Lakh " + NumToWordBD(Num % 100000);
+        if (Num >= 10000000)
+            InWords += NumToWordBD(Num / 10000000) + " Crore " + NumToWordBD(Num % 10000000);
+        return InWords;
+    }
+
+    private void GetSubPaybleValues(HttpContext context)
+    {
+
+        try
+        {
+            vdm = new SalesDBManager();
+            string VoucherID = context.Request["VoucherID"];
+            string branchid = "0";
+            if (context.Session["BrachSOID"] == null)
+            {
+                branchid = context.Session["branch"].ToString();
+            }
+            else
+            {
+                branchid = context.Session["BrachSOID"].ToString();
+            }
+
+            List<Subpayables> SubpayableList = new List<Subpayables>();
+            cmd = new SqlCommand("SELECT Sno FROM cashpayables WHERE (Sno = @VocherID) AND (BranchID = @BranchID)");
+            cmd.Parameters.AddWithValue("@VocherID", VoucherID);
+            cmd.Parameters.AddWithValue("@BranchID", branchid);
+            DataTable dtCash = vdm.SelectQuery(cmd).Tables[0];
+            string RefNo = dtCash.Rows[0]["Sno"].ToString();
+            cmd = new SqlCommand("SELECT accountheads.HeadName, subpayable.Amount, accountheads.Sno FROM subpayable INNER JOIN accountheads ON subpayable.HeadSno = accountheads.Sno WHERE  (subpayable.RefNo = @RefNo)");
+            cmd.Parameters.AddWithValue("@RefNo", RefNo);
+            DataTable dtCashSubPayable = vdm.SelectQuery(cmd).Tables[0];
+            foreach (DataRow dr in dtCashSubPayable.Rows)
+            {
+                Subpayables GetSubpayable = new Subpayables();
+                GetSubpayable.HeadSno = dr["Sno"].ToString();
+                GetSubpayable.HeadOfAccount = dr["HeadName"].ToString();
+                GetSubpayable.Amount = dr["Amount"].ToString();
+                SubpayableList.Add(GetSubpayable);
+            }
+            string response = GetJson(SubpayableList);
+            context.Response.Write(response);
+        }
+        catch (Exception ex)
+        {
+            string response = GetJson(ex.Message);
+            context.Response.Write(response);
+        }
+    }
+    class Subpayables
+    {
+        public string HeadSno { get; set; }
+        public string HeadOfAccount { get; set; }
+        public string Amount { get; set; }
+    }
+    private void btnViewVoucherGeneretaeClick(HttpContext context)
+    {
+        try
+        {
+            vdm = new SalesDBManager();
+            List<VoucherClass> Voucherlist = new List<VoucherClass>();
+            string fromdate = context.Request["fromdate"];
+            string ToDate = context.Request["ToDate"];
+            string statusType = context.Request["Type"];
+            string FormType = context.Request["FormType"];
+            DateTime dtFromdate = Convert.ToDateTime(fromdate);
+            DateTime dtTodate = Convert.ToDateTime(ToDate);
+            DataTable dtVouchers = new DataTable();
+            DateTime ServerDateCurrentdate = SalesDBManager.GetTime(vdm.conn);
+            string BranchID = "0";
+            string LevelType = context.Session["LevelType"].ToString();
+            if (FormType != "VoucherPrint")
+            {
+                if (LevelType == "AccountsOfficer" || LevelType == "Director")
+                {
+                    BranchID = context.Request["BranchID"];
+                    if (statusType == "All")
+                    {
+                        cmd = new SqlCommand("SELECT cashpayables.BranchID,cashpayables.Empid, cashpayables.Approvedby, cashpayables.Status,cashpayables.Sno, cashpayables.VocherID, cashpayables.CashTo, cashpayables.AccountType, cashpayables.onNameof, cashpayables.DOE, cashpayables.Amount, cashpayables.ApprovedAmount, cashpayables.Remarks, cashpayables.ApprovalRemarks, cashpayables.CashierRemarks, cashpayables.VoucherType, empmanage.EmpName, empmanage_1.EmpName AS ApproveEmpName FROM cashpayables LEFT OUTER JOIN empmanage empmanage_1 ON cashpayables.Approvedby = empmanage_1.Sno LEFT OUTER JOIN empmanage ON cashpayables.Empid = empmanage.Sno WHERE (cashpayables.BranchID = @BranchID) AND (cashpayables.DOE BETWEEN @d1 AND @d2)");
+                        cmd.Parameters.AddWithValue("@d1", GetLowDate(ServerDateCurrentdate).AddDays(-3));
+                        cmd.Parameters.AddWithValue("@d2", GetHighDate(ServerDateCurrentdate));
+                        cmd.Parameters.AddWithValue("@BranchID", BranchID);
+                    }
+                    else
+                    {
+                        cmd = new SqlCommand("SELECT cashpayables.BranchID,cashpayables.Empid, cashpayables.Approvedby, cashpayables.Status,cashpayables.Sno, cashpayables.VocherID, cashpayables.CashTo, cashpayables.AccountType, cashpayables.onNameof, cashpayables.DOE, cashpayables.Amount, cashpayables.ApprovedAmount, cashpayables.Remarks, cashpayables.ApprovalRemarks, cashpayables.CashierRemarks, cashpayables.VoucherType, empmanage.EmpName, empmanage_1.EmpName AS ApproveEmpName FROM cashpayables LEFT OUTER JOIN empmanage empmanage_1 ON cashpayables.Approvedby = empmanage_1.Sno LEFT OUTER JOIN empmanage ON cashpayables.Empid = empmanage.Sno WHERE (cashpayables.BranchID = @BranchID) AND (cashpayables.DOE BETWEEN @d1 AND @d2) AND (cashpayables.Status = @status)");
+                        cmd.Parameters.AddWithValue("@d1", GetLowDate(ServerDateCurrentdate).AddDays(-30));
+                        cmd.Parameters.AddWithValue("@d2", GetHighDate(ServerDateCurrentdate));
+                        cmd.Parameters.AddWithValue("@BranchID", BranchID);
+                        cmd.Parameters.AddWithValue("@status", statusType);
+                    }
+                }
+                else
+                {
+                    BranchID = context.Session["branch"].ToString();
+                    if (BranchID == "3928")
+                    {
+                        cmd = new SqlCommand("SELECT cashpayables.BranchID,cashpayables.Empid, cashpayables.Approvedby,cashpayables.Status,cashpayables.Sno, cashpayables.VocherID, cashpayables.CashTo,cashpayables.AccountType, cashpayables.onNameof, cashpayables.DOE, cashpayables.Amount, cashpayables.ApprovedAmount, cashpayables.Remarks, cashpayables.ApprovalRemarks, cashpayables.CashierRemarks, cashpayables.VoucherType, empmanage.EmpName, empmanage_1.EmpName AS ApproveEmpName FROM cashpayables INNER JOIN empmanage empmanage_1 ON cashpayables.Approvedby = empmanage_1.Sno LEFT OUTER JOIN empmanage ON cashpayables.Empid = empmanage.Sno WHERE ( (cashpayables.BranchID = @BranchID) AND (cashpayables.DOE BETWEEN @d1 AND @d2) AND (cashpayables.Status = @Status)) OR ((cashpayables.BranchID = @BranchID) AND (cashpayables.DOE BETWEEN @d1 AND @d2) AND (cashpayables.Status = @Status1))");
+                        cmd.Parameters.AddWithValue("@d1", GetLowDate(ServerDateCurrentdate).AddDays(-45));
+                        cmd.Parameters.AddWithValue("@d2", GetHighDate(ServerDateCurrentdate));
+                        cmd.Parameters.AddWithValue("@Status", "A");
+                        cmd.Parameters.AddWithValue("@Status1", "R");
+                        cmd.Parameters.AddWithValue("@BranchID", BranchID);
+                    }
+                    else
+                    {
+                        cmd = new SqlCommand("SELECT cashpayables.BranchID,cashpayables.Empid, cashpayables.Approvedby, cashpayables.Status,cashpayables.Sno, cashpayables.VocherID, cashpayables.CashTo, cashpayables.AccountType, cashpayables.onNameof, cashpayables.DOE, cashpayables.Amount,cashpayables.ApprovedAmount, cashpayables.Remarks, cashpayables.ApprovalRemarks, cashpayables.CashierRemarks, cashpayables.VoucherType, employe_details.employename as EmpName, employe_details_1.employename AS ApproveEmpName FROM cashpayables LEFT OUTER JOIN employe_details employe_details_1 ON  cashpayables.Approvedby = employe_details_1.Sno  LEFT OUTER JOIN employe_details ON cashpayables.Empid = employe_details.Sno WHERE ( (cashpayables.BranchID = @BranchID) AND (cashpayables.DOE BETWEEN @d1 AND @d2) AND (cashpayables.Status = @Status)) OR ((cashpayables.BranchID = @BranchID) AND (cashpayables.DOE BETWEEN @d1 AND @d2) AND (cashpayables.Status = @Status1))");
+                       // cmd = new SqlCommand("SELECT cashpayables.BranchID,cashpayables.Empid, cashpayables.Approvedby,cashpayables.Status,cashpayables.Sno, cashpayables.VocherID, cashpayables.CashTo,cashpayables.AccountType, cashpayables.onNameof, cashpayables.DOE, cashpayables.Amount, cashpayables.ApprovedAmount, cashpayables.Remarks, cashpayables.ApprovalRemarks, cashpayables.CashierRemarks, cashpayables.VoucherType, empmanage.EmpName, empmanage_1.EmpName AS ApproveEmpName FROM cashpayables INNER JOIN empmanage empmanage_1 ON cashpayables.Approvedby = empmanage_1.Sno LEFT OUTER JOIN empmanage ON cashpayables.Empid = empmanage.Sno );
+                        cmd.Parameters.AddWithValue("@d1", GetLowDate(ServerDateCurrentdate).AddDays(-7));
+                        cmd.Parameters.AddWithValue("@d2", GetHighDate(ServerDateCurrentdate));
+                        cmd.Parameters.AddWithValue("@Status", "A");
+                        cmd.Parameters.AddWithValue("@Status1", "R");
+                        cmd.Parameters.AddWithValue("@BranchID", BranchID);
+                    }
+                }
+                dtVouchers = vdm.SelectQuery(cmd).Tables[0];
+            }
+            else
+            {
+                cmd = new SqlCommand("SELECT cashpayables.BranchID,cashpayables.Empid, cashpayables.Approvedby, cashpayables.Status,cashpayables.Sno, cashpayables.VocherID, cashpayables.CashTo, cashpayables.AccountType, cashpayables.onNameof, cashpayables.DOE, cashpayables.Amount,cashpayables.ApprovedAmount, cashpayables.Remarks, cashpayables.ApprovalRemarks, cashpayables.CashierRemarks, cashpayables.VoucherType, employe_details.employename as EmpName, employe_details_1.employename AS ApproveEmpName FROM cashpayables LEFT OUTER JOIN employe_details employe_details_1 ON  cashpayables.Approvedby = employe_details_1.Sno  LEFT OUTER JOIN employe_details ON cashpayables.Empid = employe_details.Sno WHERE  (cashpayables.BranchID = @BranchID) AND(cashpayables.DOE BETWEEN @d1 AND @d2) ");
+                cmd.Parameters.AddWithValue("@d1", GetLowDate(dtFromdate));
+                cmd.Parameters.AddWithValue("@d2", GetHighDate(dtTodate));
+                cmd.Parameters.AddWithValue("@BranchID", context.Session["branch"]);
+                dtVouchers = vdm.SelectQuery(cmd).Tables[0];
+            }
+            if (dtVouchers.Rows.Count > 0)
+            {
+                foreach (DataRow dr in dtVouchers.Rows)
+                {
+                    VoucherClass getVoucher = new VoucherClass();
+                    getVoucher.Empid = dr["Empid"].ToString();
+                    getVoucher.ApprovedBy = dr["Approvedby"].ToString();
+                    getVoucher.VoucherID = dr["Sno"].ToString();
+                    string EmpName = dr["EmpName"].ToString();
+                    string VoucherType = dr["VoucherType"].ToString();
+                    if (VoucherType == "Credit")
+                    {
+                        getVoucher.Amount = dr["ApprovedAmount"].ToString();
+                        getVoucher.Remarks = dr["ApprovalRemarks"].ToString();
+                    }
+                    else
+                    {
+                        getVoucher.Amount = dr["Amount"].ToString();
+                        getVoucher.Remarks = dr["Remarks"].ToString();
+
+                    }
+                    getVoucher.VoucherType = dr["VoucherType"].ToString();
+                    if (EmpName == "")
+                    {
+                        EmpName = "select";
+                    }
+                    getVoucher.EmpName = EmpName;
+                    getVoucher.BranchID = dr["BranchID"].ToString();
+                    getVoucher.CashTo = dr["CashTo"].ToString();
+                    getVoucher.Description = dr["onNameof"].ToString();
+                    getVoucher.AccountType = dr["AccountType"].ToString();
+                    getVoucher.ApprovalAmount = dr["ApprovedAmount"].ToString();
+                    getVoucher.ApproveEmpName = dr["ApproveEmpName"].ToString();
+                    string Status = dr["Status"].ToString();
+                    if (Status == "R")
+                    {
+                        Status = "Raised";
+                    }
+                    if (Status == "A")
+                    {
+                        Status = "Approved";
+                    }
+                    if (Status == "C")
+                    {
+                        Status = "Rejected";
+                    }
+                    if (Status == "P")
+                    {
+                        Status = "Paid";
+                    }
+                    getVoucher.Status = Status;
+                    getVoucher.ApprovalRemarks = dr["ApprovalRemarks"].ToString();
+                    getVoucher.branchvoucherid = dr["VocherID"].ToString();
+                    Voucherlist.Add(getVoucher);
+                }
+            }
+            string response = GetJson(Voucherlist);
+            context.Response.Write(response);
+        }
+        catch
+        {
+        }
+    }
+
+    private void BtnPayVoucherClick(HttpContext context)
+    {
+        try
+        {
+            vdm = new SalesDBManager();
+            string VoucherID = context.Request["VoucherID"];
+            string ApprovalAmount = context.Request["ApprovalAmount"];
+            double Amount = 0;
+            double.TryParse(ApprovalAmount, out Amount);
+            string Remarks = context.Request["Remarks"];
+            string Force = context.Request["Force"];
+            string VoucherType = context.Request["VoucherType"];
+            string DOE = context.Request["DOE"];
+            string Denominations = context.Request["DenominationString"];
+            DateTime dtpaidtime = new DateTime();
+            dtpaidtime = DateTime.Parse(DOE);
+            DateTime ServerDateCurrentdate = SalesDBManager.GetTime(vdm.conn);
+
+            cmd = new SqlCommand("SELECT Branchid, UserData_sno, AmountPaid, Denominations, Remarks, Sno, PaidDate FROM collections WHERE (Branchid = @BranchID) AND (PaidDate BETWEEN @d1 AND @d2)");
+            cmd.Parameters.AddWithValue("@BranchID", context.Session["branch"].ToString());
+            cmd.Parameters.AddWithValue("@d1", GetLowDate(ServerDateCurrentdate));
+            cmd.Parameters.AddWithValue("@d2", GetHighDate(ServerDateCurrentdate));
+            DataTable dtcashbookstatus = vdm.SelectQuery(cmd).Tables[0];
+            if (dtcashbookstatus.Rows.Count > 0)
+            {
+                string msg = "Cash Book Has Been Closed For This Day";
+                string response = GetJson(msg);
+                context.Response.Write(response);
+            }
+            else
+            {
+                cmd = new SqlCommand("Update cashpayables set ApprovedAmount=@ApprovedAmount, DOE=@DOE,CashierRemarks=@CashierRemarks,Status=@Status,ForceApproval=@ForceApproval,Denominations=@Denominations where BranchID=@BranchID and Sno=@VocherID");
+                cmd.Parameters.AddWithValue("@ApprovedAmount", Amount);
+                cmd.Parameters.AddWithValue("@CashierRemarks", Remarks);
+                cmd.Parameters.AddWithValue("@Status", "P");
+                cmd.Parameters.AddWithValue("@ForceApproval", Force);
+                cmd.Parameters.AddWithValue("@VocherID", VoucherID);
+                cmd.Parameters.AddWithValue("@Denominations", Denominations);
+                string branchid = context.Session["branch"].ToString();
+                if (branchid == "570")
+                {
+                    cmd.Parameters.AddWithValue("@DOE", dtpaidtime);
+                }
+                if (branchid != "570")
+                {
+                    cmd.Parameters.AddWithValue("@DOE", ServerDateCurrentdate);
+
+                }
+                cmd.Parameters.AddWithValue("@BranchID", context.Session["branch"].ToString());
+                vdm.Update(cmd);
+                cmd = new SqlCommand("Update BranchAccounts set Amount=Amount-@Amount where BranchID=@BranchID");
+                cmd.Parameters.AddWithValue("@Amount", Amount);
+                cmd.Parameters.AddWithValue("@BranchID", context.Session["branch"].ToString());
+                vdm.Update(cmd);
+                Denominations = Denominations.Replace("+", " ");
+                string twothousand = "0";
+                string thousand = "0";
+                string fivehundred = "0";
+                string hundred = "0";
+                string fifty = "0";
+                string twenty = "0";
+                string ten = "0";
+                string five = "0";
+                string twos = "0";
+                string ones = "0";
+                foreach (string str in Denominations.Split(' '))
+                {
+                    if (str != "")
+                    {
+                        string[] price = str.Split('x');
+                        string amountcount = price[0];
+                        string notecount = price[1];
+                        if (amountcount == "2000")
+                        {
+                            twothousand = notecount;
+                        }
+                        if (amountcount == "1000")
+                        {
+                            thousand = notecount;
+                        }
+                        if (amountcount == "500")
+                        {
+                            fivehundred = notecount;
+                        }
+                        if (amountcount == "100")
+                        {
+                            hundred = notecount;
+                        }
+                        if (amountcount == "50")
+                        {
+                            fifty = notecount;
+                        }
+                        if (amountcount == "20")
+                        {
+                            twenty = notecount;
+                        }
+                        if (amountcount == "10")
+                        {
+                            ten = notecount;
+                        }
+                        if (amountcount == "5")
+                        {
+                            five = notecount;
+                        }
+                        if (amountcount == "2")
+                        {
+                            twos = notecount;
+                        }
+                        if (amountcount == "1")
+                        {
+                            ones = notecount;
+                        }
+                    }
+                }
+                if (VoucherType == "Credit")
+                {
+                    cmd = new SqlCommand("Update branch_denomination set amount=amount+@amount,twothousand=twothousand+@twothousand,thousand=thousand+@thousand,fivehundred=fivehundred+@fivehundred,hundred=hundred+@hundred,fifty=fifty+@fifty,twenty=twenty+@twenty,ten=ten+@ten,five=five+@five,twos=twos+@twos,ones=ones+@ones where BranchID=@BranchID");
+                    cmd.Parameters.AddWithValue("@amount", Amount);
+                    cmd.Parameters.AddWithValue("@twothousand", twothousand);
+                    cmd.Parameters.AddWithValue("@thousand", thousand);
+                    cmd.Parameters.AddWithValue("@fivehundred", fivehundred);
+                    cmd.Parameters.AddWithValue("@hundred", hundred);
+                    cmd.Parameters.AddWithValue("@fifty", fifty);
+                    cmd.Parameters.AddWithValue("@twenty", twenty);
+                    cmd.Parameters.AddWithValue("@ten", ten);
+                    cmd.Parameters.AddWithValue("@five", five);
+                    cmd.Parameters.AddWithValue("@twos", twos);
+                    cmd.Parameters.AddWithValue("@ones", ones);
+                    cmd.Parameters.AddWithValue("@BranchID", context.Session["branch"].ToString());
+                    vdm.Update(cmd);
+                }
+                else
+                {
+                    cmd = new SqlCommand("Update branch_denomination set amount=amount-@amount,twothousand=twothousand-@twothousand,thousand=thousand-@thousand,fivehundred=fivehundred-@fivehundred,hundred=hundred-@hundred,fifty=fifty-@fifty,twenty=twenty-@twenty,ten=ten-@ten,five=five-@five,twos=twos-@twos,ones=ones-@ones where BranchID=@BranchID");
+                    cmd.Parameters.AddWithValue("@amount", Amount);
+                    cmd.Parameters.AddWithValue("@twothousand", twothousand);
+                    cmd.Parameters.AddWithValue("@thousand", thousand);
+                    cmd.Parameters.AddWithValue("@fivehundred", fivehundred);
+                    cmd.Parameters.AddWithValue("@hundred", hundred);
+                    cmd.Parameters.AddWithValue("@fifty", fifty);
+                    cmd.Parameters.AddWithValue("@twenty", twenty);
+                    cmd.Parameters.AddWithValue("@ten", ten);
+                    cmd.Parameters.AddWithValue("@five", five);
+                    cmd.Parameters.AddWithValue("@twos", twos);
+                    cmd.Parameters.AddWithValue("@ones", ones);
+                    cmd.Parameters.AddWithValue("@BranchID", context.Session["branch"].ToString());
+                    vdm.Update(cmd);
+                }
+                string msg = "Voucher Paid successfully";
+                string response = GetJson(msg);
+                context.Response.Write(response);
+            }
+        }
+        catch (Exception ex)
+        {
+            string msg = ex.Message;
+            string response = GetJson(msg);
+            context.Response.Write(response);
+        }
+    }
+
+    private void BtnGetVoucherClick(HttpContext context)
+    {
+        try
+        {
+            vdm = new SalesDBManager();
+            string VoucherID = context.Request["VoucherID"];
+            List<VoucherClass> Voucherlist = new List<VoucherClass>();
+            cmd = new SqlCommand("SELECT  empmanage.EmpName,cashpayables.Empid, cashpayables.Approvedby, cashpayables.VoucherType, cashpayables.CashTo, cashpayables.onNameof, cashpayables.Amount, cashpayables.ApprovedAmount, empmanage_1.EmpName AS ApproveEmpName, cashpayables.Status, cashpayables.ApprovalRemarks, cashpayables.Remarks FROM empmanage empmanage_1 INNER JOIN cashpayables ON empmanage_1.Sno = cashpayables.Approvedby LEFT OUTER JOIN empmanage ON cashpayables.Empid = empmanage.Sno WHERE (cashpayables.Sno = @VoucherID) AND (cashpayables.BranchID = @BranchID)");
+            cmd.Parameters.AddWithValue("@VoucherID", VoucherID);
+            cmd.Parameters.AddWithValue("@BranchID", context.Session["branch"].ToString());
+            DataTable dtVouchers = vdm.SelectQuery(cmd).Tables[0];
+            if (dtVouchers.Rows.Count > 0)
+            {
+                foreach (DataRow dr in dtVouchers.Rows)
+                {
+                    VoucherClass getVoucher = new VoucherClass();
+                    getVoucher.EmpName = dr["EmpName"].ToString();
+                    getVoucher.VoucherType = dr["VoucherType"].ToString();
+                    getVoucher.CashTo = dr["CashTo"].ToString();
+                    getVoucher.Description = dr["onNameof"].ToString();
+                    getVoucher.Amount = dr["Amount"].ToString();
+                    getVoucher.ApprovalAmount = dr["Amount"].ToString();
+                    getVoucher.ApproveEmpName = dr["ApproveEmpName"].ToString();
+                    getVoucher.Status = dr["Status"].ToString();
+                    getVoucher.ApprovalRemarks = dr["Remarks"].ToString();
+                    getVoucher.Remarks = dr["Remarks"].ToString();
+                    getVoucher.Empid = dr["EmpID"].ToString();
+                    getVoucher.ApprovedBy = dr["Approvedby"].ToString();
+                    Voucherlist.Add(getVoucher);
+                }
+                string response = GetJson(Voucherlist);
+                context.Response.Write(response);
+            }
+            else
+            {
+                string msg = "No voucher found";
+                string response = GetJson(msg);
+                context.Response.Write(response);
+            }
+        }
+        catch
+        {
+        }
+    }
+    private void btnRejectVoucherclick(HttpContext context)
+    {
+        try
+        {
+            vdm = new SalesDBManager();
+            string VoucherID = context.Request["VoucherID"];
+            string Approvalamt = context.Request["Approvalamt"];
+            string Remarks = context.Request["Remarks"];
+            string Status = context.Request["Status"];
+            string AppRemarks = context.Request["AppRemarks"];
+            string BranchID = "0";
+            string LevelType = context.Session["LevelType"].ToString();
+            if (LevelType == "AccountsOfficer" || LevelType == "Director")
+            {
+                BranchID = context.Request["BranchID"];
+            }
+            else
+            {
+                BranchID = context.Session["branch"].ToString();
+            }
+            cmd = new SqlCommand("Update cashpayables set  Remarks=@Remarks,ApprovedAmount=@ApprovedAmount ,ApprovalRemarks=@ApprovalRemarks,Status=@Status where  Sno=@VocherID and BranchID=@BranchID ");
+            cmd.Parameters.AddWithValue("@Status", Status);
+            cmd.Parameters.AddWithValue("@ApprovedAmount", Approvalamt);
+            cmd.Parameters.AddWithValue("@ApprovalRemarks", AppRemarks);
+            cmd.Parameters.AddWithValue("@VocherID", VoucherID);
+            cmd.Parameters.AddWithValue("@BranchID", BranchID);
+            cmd.Parameters.AddWithValue("@Remarks", Remarks);
+            vdm.Update(cmd);
+            string msg = "Voucher Reject successfully";
+            string response = GetJson(msg);
+            context.Response.Write(response);
+
+        }
+        catch (Exception ex)
+        {
+            string msg = ex.Message;
+            string response = GetJson(msg);
+            context.Response.Write(response);
+        }
+    }
+    private void btnApproveVoucherclick(HttpContext context)
+    {
+        try
+        {
+            vdm = new SalesDBManager();
+            string VoucherID = context.Request["VoucherID"];
+            string Approvalamt = context.Request["Approvalamt"];
+            double Amount = 0;
+            double.TryParse(Approvalamt, out Amount);
+            string Remarks = context.Request["Remarks"];
+            string AppRemarks = context.Request["AppRemarks"];
+            string Status = context.Request["Status"];
+            string BranchID = "0";
+            string LevelType = context.Session["LevelType"].ToString();
+            if (LevelType == "AccountsOfficer" || LevelType == "Director")
+            {
+                BranchID = context.Request["BranchID"];
+            }
+            else
+            {
+                BranchID = context.Session["branch"].ToString();
+            }
+            DateTime ServerDateCurrentdate = SalesDBManager.GetTime(vdm.conn);
+            cmd = new SqlCommand("SELECT Branchid, UserData_sno, AmountPaid, Denominations, Remarks, Sno, PaidDate FROM collections WHERE (Branchid = @BranchID) AND (PaidDate BETWEEN @d1 AND @d2)");
+            cmd.Parameters.AddWithValue("@BranchID", BranchID);
+            cmd.Parameters.AddWithValue("@d1", GetLowDate(ServerDateCurrentdate));
+            cmd.Parameters.AddWithValue("@d2", GetHighDate(ServerDateCurrentdate));
+            DataTable dtcashbookstatus = vdm.SelectQuery(cmd).Tables[0];
+            if (dtcashbookstatus.Rows.Count > 0)
+            {
+                string msg = "Cash Book Has Been Closed For This Day";
+                string response = GetJson(msg);
+                context.Response.Write(response);
+            }
+            else
+            {
+                cmd = new SqlCommand("Update cashpayables set Remarks=@Remarks,DOE=@DOE, ApprovedAmount=@ApprovedAmount ,ApprovalRemarks=@ApprovalRemarks,Status=@Status where Sno=@VocherID and BranchID=@BranchID");
+                cmd.Parameters.AddWithValue("@Status", Status);
+                cmd.Parameters.AddWithValue("@ApprovedAmount", Amount);
+                cmd.Parameters.AddWithValue("@ApprovalRemarks", AppRemarks);
+                cmd.Parameters.AddWithValue("@Remarks", Remarks);
+                cmd.Parameters.AddWithValue("@VocherID", VoucherID);
+                cmd.Parameters.AddWithValue("@BranchID", BranchID);
+                cmd.Parameters.AddWithValue("@DOE", ServerDateCurrentdate);
+                vdm.Update(cmd);
+                string msg = "Voucher Approved successfully";
+                string response = GetJson(msg);
+                context.Response.Write(response);
+            }
+
+        }
+        catch (Exception ex)
+        {
+            string msg = ex.Message;
+            string response = GetJson(msg);
+            context.Response.Write(response);
+        }
+    }
+    private void GetRaisedVouchers(HttpContext context)
+    {
+        try
+        {
+            vdm = new SalesDBManager();
+            List<VoucherClass> Voucherlist = new List<VoucherClass>();
+            string LevelType = context.Session["LevelType"].ToString();
+            string status = context.Request["Type"];
+            string fromdate = context.Request["fromdate"];
+            string ToDate = context.Request["ToDate"];
+            DateTime dtFromdate = Convert.ToDateTime(fromdate);
+            DateTime dtTodate = Convert.ToDateTime(ToDate);
+            if (LevelType == "Manager")
+            {
+                //cmd = new SqlCommand("SELECT cashpayables.Sno, cashpayables.Empid,empmanage.EmpName, cashpayables.VocherID, cashpayables.Amount FROM cashpayables INNER JOIN empmanage ON cashpayables.Empid = empmanage.Sno WHERE (cashpayables.BranchID = @BranchID) AND (cashpayables.Status = @Status)");
+                cmd = new SqlCommand("SELECT cashpayables.vocherid, cashpayables.Sno,cashpayables.onNameof, cashpayables.Empid,cashpayables.VoucherType, empmanage.EmpName, cashpayables.VocherID, cashpayables.Amount, cashpayables.Remarks,cashpayables.onNameof FROM cashpayables LEFT OUTER JOIN empmanage ON cashpayables.Empid = empmanage.Sno WHERE (cashpayables.BranchID = @BranchID) AND (cashpayables.Status = @Status) and (cashpayables.Approvedby=@ApproveEmp)");
+                cmd.Parameters.AddWithValue("@ApproveEmp", context.Session["UserSno"].ToString());
+                cmd.Parameters.AddWithValue("@BranchID", context.Session["branch"].ToString());
+                cmd.Parameters.AddWithValue("@Status", "R");
+            }
+            if (LevelType == "AccountsOfficer" || LevelType == "Director")
+            {
+                string BranchID = context.Request["BranchID"];
+                if (status == "R")
+                {
+                    cmd = new SqlCommand("SELECT cashpayables.vocherid, cashpayables.Sno,cashpayables.onNameof, cashpayables.Empid,cashpayables.VoucherType, empmanage.EmpName, cashpayables.VocherID, cashpayables.Amount, cashpayables.Remarks,cashpayables.onNameof FROM cashpayables LEFT OUTER JOIN empmanage ON cashpayables.Empid = empmanage.Sno WHERE (cashpayables.Status = @Status) AND (cashpayables.BranchID = @BranchID)");
+                }
+                else
+                {
+                    cmd = new SqlCommand("SELECT cashpayables.vocherid, cashpayables.Sno, cashpayables.onNameof, cashpayables.Empid, cashpayables.VoucherType, empmanage.EmpName, cashpayables.VocherID,cashpayables.Amount, cashpayables.Remarks FROM cashpayables LEFT OUTER JOIN empmanage ON cashpayables.Empid = empmanage.Sno WHERE (cashpayables.Status = @Status) AND (cashpayables.BranchID = @BranchID) AND (cashpayables.DOE BETWEEN @d1 AND @d2) AND (cashpayables.VoucherType <> @vtype)");
+                }
+                cmd.Parameters.AddWithValue("@BranchID", BranchID);
+                cmd.Parameters.AddWithValue("@d1", GetLowDate(dtFromdate));
+                cmd.Parameters.AddWithValue("@d2", GetHighDate(dtTodate));
+                cmd.Parameters.AddWithValue("@vtype", "Credit");
+                cmd.Parameters.AddWithValue("@Status", status);
+            }
+            DataTable dtVoucher = vdm.SelectQuery(cmd).Tables[0];
+            foreach (DataRow dr in dtVoucher.Rows)
+            {
+                VoucherClass getVoucher = new VoucherClass();
+                getVoucher.VoucherID = dr["sno"].ToString();
+                getVoucher.branchvoucherid = dr["vocherid"].ToString();
+                getVoucher.EmpName = dr["onNameof"].ToString();
+                getVoucher.VoucherType = dr["VoucherType"].ToString();
+                double amount = 0;
+                double.TryParse(dr["Amount"].ToString(), out amount);
+                getVoucher.Amount = amount.ToString("F2");
+                getVoucher.Empid = dr["Empid"].ToString();
+                getVoucher.Sno = dr["Sno"].ToString();
+                Voucherlist.Add(getVoucher);
+            }
+            string response = GetJson(Voucherlist);
+            context.Response.Write(response);
+        }
+        catch
+        {
+        }
+    }
+    class VoucherClass
+    {
+        public string VoucherID { get; set; }
+        public string EmpName { get; set; }
+        public string Amount { get; set; }
+        public string Empid { get; set; }
+        public string Sno { get; set; }
+        public string ApproveEmpName { get; set; }
+        public string VoucherType { get; set; }
+        public string CashTo { get; set; }
+        public string Description { get; set; }
+        public string ApprovalRemarks { get; set; }
+        public string ApprovalAmount { get; set; }
+        public string Status { get; set; }
+        public string Remarks { get; set; }
+        public string ApprovedBy { get; set; }
+        public string AccountType { get; set; }
+        public string BranchID { get; set; }
+        public string Title { get; set; }
+        public string auditstatus { get; set; }
+        public string branchvoucherid { get; set; }
+        public string branchVocherID { get; set; }
+    }
+
+    class CashForms
+    {
+        public string op { set; get; }
+        public List<CashDetails> CashDetails { set; get; }
+        public string Description { set; get; }
+        public string Amount { set; get; }
+        public string Remarks { set; get; }
+        public string EmpApprove { set; get; }
+        public string VoucherType { set; get; }
+        public string CashTo { set; get; }
+        public string Employee { set; get; }
+        public string btnSave { set; get; }
+        public string spnVoucherID { set; get; }
+        public string AccountType { set; get; }
+        public string CashType { set; get; }
+        public string ddlBillHead { set; get; }
+        public string BranchID { set; get; }
+        public string transactiontype { set; get; }
+        public string inserntivetype { set; get; }
+        public string SalesOfficeid { set; get; }
+        public string Routeid { set; get; }
+        public string agentid { set; get; }
+        public string structureexistornot { set; get; }
+        public string frmdate { set; get; }
+        public string todate { set; get; }
+        public string SalesOfficeName { get; set; }
+        public string Routename { get; set; }
+        public string Agentname { get; set; }
+        public string status { get; set; }
+        public string incentivesno { get; set; }
+        public string leakpercent { get; set; }
+        public string salestype { get; set; }
+        public string collectiontype { get; set; }
+        public string mobileno { get; set; }
+    }
+
+    class CashDetails
+    {
+        public string SNo { set; get; }
+        public string Account { set; get; }
+        public string amount { set; get; }
+        public string Qty { set; get; }
+    }
+    private void BtnRaiseVoucherClick(HttpContext context)
+    {
+        try
+        {
+            vdm = new SalesDBManager();
+            var js = new JavaScriptSerializer();
+            var title1 = context.Request.Params[1];
+            CashForms obj = js.Deserialize<CashForms>(title1);
+            string Description = obj.Description;
+            string Amount = obj.Amount;
+            string Remarks = obj.Remarks;
+            string EmpApprove = obj.EmpApprove;
+            string VoucherType = obj.VoucherType;
+            string CashTo = obj.CashTo;
+            string Employee = obj.Employee;
+            string btnSave = obj.btnSave;
+            string CashType = obj.CashType;
+            string transactiontype = obj.transactiontype;
+            string BranchID = "0";
+            string LevelType = context.Session["LevelType"].ToString();
+            DateTime ServerDateCurrentdate = SalesDBManager.GetTime(vdm.conn);
+            DateTime dtapril = new DateTime();
+            DateTime dtmarch = new DateTime();
+            int currentyear = ServerDateCurrentdate.Year;
+            int nextyear = ServerDateCurrentdate.Year + 1;
+            int backmonth = ServerDateCurrentdate.Month - 1;
+            if (ServerDateCurrentdate.Month > 3)
+            {
+                string apr = "4/1/" + currentyear;
+                dtapril = DateTime.Parse(apr);
+                string march = "3/31/" + nextyear;
+                dtmarch = DateTime.Parse(march);
+            }
+            if (ServerDateCurrentdate.Month <= 3)
+            {
+                string apr = "4/1/" + (currentyear - 1);
+                dtapril = DateTime.Parse(apr);
+                string march = "3/31/" + (nextyear - 1);
+                dtmarch = DateTime.Parse(march);
+            }
+            if (LevelType == "AccountsOfficer" || LevelType == "Director")
+            {
+                BranchID = obj.BranchID;
+            }
+            else
+            {
+                BranchID = context.Session["branch"].ToString();
+            }
+            string msg = "";
+            if (btnSave == "Raise") //SELECT { fn IFNULL(MAX(mrnno), 0) } + 1 AS mrnno
+            {
+                cmd = new SqlCommand("SELECT  { fn IFNULL(MAX(VocherID), 0) } + 1 AS VocherID FROM cashpayables WHERE (BranchID = @BranchID) AND (DOR BETWEEN @d1 AND @d2)");
+                cmd.Parameters.AddWithValue("@BranchID", BranchID);
+                cmd.Parameters.AddWithValue("@d1", GetLowDate(dtapril));
+                cmd.Parameters.AddWithValue("@d2", GetHighDate(dtmarch));
+                DataTable dtTripId = vdm.SelectQuery(cmd).Tables[0];
+                string VocherID = "0";
+                if (dtTripId.Rows.Count > 0)
+                {
+                    VocherID = dtTripId.Rows[0]["VocherID"].ToString();
+                }
+                else
+                {
+                    VocherID = "1";
+                }
+                if (VoucherType == "Credit")
+                {
+                    cmd = new SqlCommand("Insert into cashpayables (BranchID,CashTo,DOE,VocherID,ApprovalRemarks,ApprovedAmount,onNameof,Status,Created_by,VoucherType,DOR) values (@BranchID,@CashTo,@DOE,@VocherID,@ApprovalRemarks,@ApprovedAmount,@onNameof,@Status,@Created_by,@VoucherType,@DOR)");
+                    cmd.Parameters.AddWithValue("@BranchID", BranchID);
+                    cmd.Parameters.AddWithValue("@CashTo", CashTo);
+                    cmd.Parameters.AddWithValue("@DOE", ServerDateCurrentdate);
+                    cmd.Parameters.AddWithValue("@DOR", ServerDateCurrentdate);
+                    cmd.Parameters.AddWithValue("@VocherID", VocherID);
+                    cmd.Parameters.AddWithValue("@ApprovalRemarks", Remarks);
+                    cmd.Parameters.AddWithValue("@ApprovedAmount", Amount);
+                    cmd.Parameters.AddWithValue("@onNameof", Description);
+                    cmd.Parameters.AddWithValue("@Status", "P");
+                    cmd.Parameters.AddWithValue("@Created_by", context.Session["UserSno"].ToString());
+                    cmd.Parameters.AddWithValue("@VoucherType", VoucherType);
+                    vdm.insert(cmd);
+                    // Get Max Sno
+                    cmd = new SqlCommand("SELECT MAX(Sno) FROM cashpayables");
+                    DataTable dtCashRefno = vdm.SelectQuery(cmd).Tables[0];
+                    string CashSno = "0";
+                    if (dtCashRefno.Rows.Count > 0)
+                    {
+                        CashSno = dtCashRefno.Rows[0]["Refno"].ToString();
+                    }
+                    foreach (CashDetails o in obj.CashDetails)
+                    {
+                        cmd = new SqlCommand("Insert into Subpayable (RefNo,HeadSno,Amount) values (@RefNo,@HeadSno,@Amount)");
+                        cmd.Parameters.AddWithValue("@RefNo", CashSno);
+                        cmd.Parameters.AddWithValue("@HeadSno", o.SNo);
+                        cmd.Parameters.AddWithValue("@Amount", o.amount);
+                        vdm.insert(cmd);
+                    }
+                    if (CashType == "Cash")
+                    {
+                        cmd = new SqlCommand("Update BranchAccounts set Amount=Amount-@Amount where BranchID=@BranchID");
+                        cmd.Parameters.AddWithValue("@Amount", Amount);
+                        cmd.Parameters.AddWithValue("@BranchID", BranchID);
+                        vdm.Update(cmd);
+                    }
+                    cmd = new SqlCommand("Update branch_denomination set amount=amount+@amount,ones=ones+@ones where BranchID=@BranchID");
+                    cmd.Parameters.AddWithValue("@amount", Amount);
+                    cmd.Parameters.AddWithValue("@ones", Amount);
+                    cmd.Parameters.AddWithValue("@BranchID", context.Session["branch"].ToString());
+                    vdm.Update(cmd);
+                    if (CashType == "Bills")
+                    {
+                        cmd = new SqlCommand("Insert into cashpayables (BranchID,CashTo,DOE,VocherID,Remarks,Amount,Approvedby,onNameof,Status,Created_by,VoucherType,DOR) values (@BranchID,@CashTo,@DOE,@VocherID,@Remarks,@Amount,@Approvedby,@onNameof,@Status,@Created_by,@VoucherType,@DOR)");
+                        cmd.Parameters.AddWithValue("@BranchID", BranchID);
+                        cmd.Parameters.AddWithValue("@CashTo", obj.ddlBillHead);
+                        cmd.Parameters.AddWithValue("@DOE", ServerDateCurrentdate);
+                        cmd.Parameters.AddWithValue("@DOR", ServerDateCurrentdate);
+                        cmd.Parameters.AddWithValue("@VocherID", VocherID);
+                        cmd.Parameters.AddWithValue("@Remarks", Remarks);
+                        cmd.Parameters.AddWithValue("@Amount", Amount);
+                        cmd.Parameters.AddWithValue("@Approvedby", EmpApprove);
+                        cmd.Parameters.AddWithValue("@onNameof", Description);
+                        cmd.Parameters.AddWithValue("@Status", "R");
+                        cmd.Parameters.AddWithValue("@Created_by", context.Session["UserSno"].ToString());
+                        cmd.Parameters.AddWithValue("@VoucherType", "Debit");
+                        long CSno = vdm.insertScalar(cmd);
+                        foreach (CashDetails o in obj.CashDetails)
+                        {
+                            cmd = new SqlCommand("Insert into Subpayable (RefNo,HeadSno,Amount) values (@RefNo,@HeadSno,@Amount)");
+                            cmd.Parameters.AddWithValue("@RefNo", CSno);
+                            cmd.Parameters.AddWithValue("@HeadSno", o.SNo);
+                            cmd.Parameters.AddWithValue("@Amount", o.amount);
+                            vdm.insert(cmd);
+                        }
+                    }
+                }
+                else
+                {
+                    if (LevelType == "AccountsOfficer" || LevelType == "Director")
+                    {
+                        cmd = new SqlCommand("Insert into cashpayables (BranchID,CashTo,DOE,VocherID,Remarks,Amount,Approvedby,onNameof,Status,Created_by,VoucherType,ApprovalRemarks,ApprovedAmount,DOR) values (@BranchID,@CashTo,@DOE,@VocherID,@Remarks,@Amount,@Approvedby,@onNameof,@Status,@Created_by,@VoucherType,@ApprovalRemarks,@ApprovedAmount,@DOR)");
+                        cmd.Parameters.AddWithValue("@ApprovalRemarks", Remarks);
+                        cmd.Parameters.AddWithValue("@ApprovedAmount", Amount);
+                        cmd.Parameters.AddWithValue("@Status", "A");
+                        cmd.Parameters.AddWithValue("@Approvedby", context.Session["UserSno"].ToString());
+                    }
+                    else
+                    {
+                        cmd = new SqlCommand("Insert into cashpayables (BranchID,CashTo,DOE,VocherID,Remarks,Amount,Approvedby,onNameof,Status,Created_by,VoucherType,DOR) values (@BranchID,@CashTo,@DOE,@VocherID,@Remarks,@Amount,@Approvedby,@onNameof,@Status,@Created_by,@VoucherType,@DOR)");
+                        cmd.Parameters.AddWithValue("@Status", "R");
+                        cmd.Parameters.AddWithValue("@Approvedby", EmpApprove);
+                    }
+                    cmd.Parameters.AddWithValue("@BranchID", BranchID);
+                    cmd.Parameters.AddWithValue("@CashTo", CashTo);
+                    cmd.Parameters.AddWithValue("@DOE", ServerDateCurrentdate);
+                    cmd.Parameters.AddWithValue("@DOR", ServerDateCurrentdate);
+                    cmd.Parameters.AddWithValue("@VocherID", VocherID);
+                    cmd.Parameters.AddWithValue("@Remarks", Remarks);
+                    cmd.Parameters.AddWithValue("@Amount", Amount);
+                    cmd.Parameters.AddWithValue("@onNameof", Description);
+                    cmd.Parameters.AddWithValue("@Created_by", context.Session["UserSno"].ToString());
+                    cmd.Parameters.AddWithValue("@VoucherType", VoucherType);
+                    vdm.insert(cmd);
+                    // Need to cahange
+                    cmd = new SqlCommand("SELECT MAX(Sno) as Refno FROM cashpayables");
+                    DataTable dtCashRefno = vdm.SelectQuery(cmd).Tables[0];
+                    string CashSno = "0";
+                    if (dtCashRefno.Rows.Count>0)
+                    {
+                        CashSno = dtCashRefno.Rows[0]["Refno"].ToString();
+                    }
+                    foreach (CashDetails o in obj.CashDetails)
+                    {
+                        cmd = new SqlCommand("Insert into Subpayable (RefNo,HeadSno,Amount) values (@RefNo,@HeadSno,@Amount)");
+                        cmd.Parameters.AddWithValue("@RefNo", CashSno);
+                        cmd.Parameters.AddWithValue("@HeadSno", o.SNo);
+                        cmd.Parameters.AddWithValue("@Amount", o.amount);
+                        vdm.insert(cmd);
+                    }
+                    //if (transactiontype != "Employee" || transactiontype != "Select")
+                    //{
+                    //    cmd = new SqlCommand("SELECT sno, name, ledgercode FROM othercolletion_name where name=@name");
+                    //    cmd.Parameters.AddWithValue("@name", Description);
+                    //    DataTable dtothrescollection = vdm.SelectQuery(cmd).Tables[0];
+                    //    if (dtothrescollection.Rows.Count > 0)
+                    //    {
+                    //        string othersid = dtothrescollection.Rows[0]["sno"].ToString();
+                    //        cmd = new SqlCommand("update othercolletion_name set  name=@name where sno=@sno");
+                    //        cmd.Parameters.AddWithValue("@name", Description);
+                    //        cmd.Parameters.AddWithValue("@sno", othersid);
+                    //        if (vdm.Update(cmd) == 0)
+                    //        {
+                    //            cmd = new SqlCommand("insert into othercolletion_name (name)values(@name)");
+                    //            cmd.Parameters.AddWithValue("@name", Description);
+                    //            vdm.insert(cmd);
+                    //        }
+                    //    }
+                    //    else
+                    //    {
+                    //        cmd = new SqlCommand("insert into othercolletion_name (name)values(@name)");
+                    //        cmd.Parameters.AddWithValue("@name", Description);
+                    //        vdm.insert(cmd);
+                    //    }
+                        
+                    //}
+                   
+                }
+                msg = "Voucher raised successfully";
+            }
+            else
+            {
+                string VocherID = obj.spnVoucherID;
+                cmd = new SqlCommand("Update  cashpayables Set Amount=@Amount,EmpId=@EmpId,Remarks=@Remarks,onNameof=@onNameof,Modify_by=@Modify_by,CashTo=@CashTo,Approvedby=@Approvedby,VoucherType=@VoucherType where Sno=@VocherId and BranchID=@BranchID");
+                cmd.Parameters.AddWithValue("@Amount", Amount);
+                cmd.Parameters.AddWithValue("@EmpId", Employee);
+                cmd.Parameters.AddWithValue("@Remarks", Remarks);
+                cmd.Parameters.AddWithValue("@Modify_by", context.Session["UserSno"].ToString());
+                cmd.Parameters.AddWithValue("@CashTo", CashTo);
+                cmd.Parameters.AddWithValue("@Approvedby", EmpApprove);
+                cmd.Parameters.AddWithValue("@VocherId", VocherID);
+                cmd.Parameters.AddWithValue("@BranchID", BranchID);
+                cmd.Parameters.AddWithValue("@onNameof", Description);
+                cmd.Parameters.AddWithValue("@VoucherType", VoucherType);
+                vdm.Update(cmd);
+                cmd = new SqlCommand("SELECT Sno FROM cashpayables WHERE (BranchID = @BranchID) AND (Sno = @VocherID)");
+                cmd.Parameters.AddWithValue("@BranchID", BranchID);
+                cmd.Parameters.AddWithValue("@VocherID", VocherID);
+                DataTable dtCash = vdm.SelectQuery(cmd).Tables[0];
+                if (dtCash.Rows.Count > 0)
+                {
+                    string CashRefNo = dtCash.Rows[0]["Sno"].ToString();
+                    cmd = new SqlCommand("Delete from Subpayable where RefNo=@RefNo");
+                    cmd.Parameters.AddWithValue("@RefNo", CashRefNo);
+                    vdm.Delete(cmd);
+                    foreach (CashDetails o in obj.CashDetails)
+                    {
+                        cmd = new SqlCommand("Insert into Subpayable (RefNo,HeadSno,Amount) values (@RefNo,@HeadSno,@Amount)");
+                        cmd.Parameters.AddWithValue("@RefNo", CashRefNo);
+                        cmd.Parameters.AddWithValue("@HeadSno", o.SNo);
+                        cmd.Parameters.AddWithValue("@Amount", o.amount);
+                        vdm.insert(cmd);
+                    }
+                }
+                msg = "Voucher Updated successfully";
+            }
+            string response = GetJson(msg);
+            context.Response.Write(response);
+        }
+        catch (Exception ex)
+        {
+            string msg = ex.Message;
+            string response = GetJson(msg);
+            context.Response.Write(response);
+        }
+    }
+    class Employee
+    {
+        public string Sno { get; set; }
+        public string UserName { get; set; }
+    }
+
+    private void GetApproveEmployeeNames(HttpContext context)
+    {
+        try
+        {
+            vdm = new SalesDBManager();
+            DataTable dtEmployee = new DataTable();
+            cmd = new SqlCommand("SELECT Sno, employename FROM employe_details WHERE (BranchID = @BranchID) and (Leveltype='Manager' OR LevelType = 'AccountsOfficer')");
+            cmd.Parameters.AddWithValue("@BranchID", context.Session["branch"].ToString());
+            dtEmployee = vdm.SelectQuery(cmd).Tables[0];
+            List<Employee> Employeelist = new List<Employee>();
+            foreach (DataRow dr in dtEmployee.Rows)
+            {
+                Employee b = new Employee() { Sno = dr["Sno"].ToString(), UserName = dr["employename"].ToString() };
+                Employeelist.Add(b);
+            }
+            cmd = new SqlCommand("SELECT Sno, employename FROM employe_details WHERE (LevelType = 'AccountsOfficer') AND (BranchID = @SuperBranch)");
+            cmd.Parameters.AddWithValue("@SuperBranch", context.Session["SuperBranch"].ToString());
+            DataTable dtDirector = vdm.SelectQuery(cmd).Tables[0];
+            foreach (DataRow dr in dtDirector.Rows)
+            {
+                Employee b = new Employee() { Sno = dr["Sno"].ToString(), UserName = dr["employename"].ToString() };
+                Employeelist.Add(b);
+            }
+            string response = GetJson(Employeelist);
+            context.Response.Write(response);
+        }
+        catch
+        {
+        }
+    }
+
+
+    private void GetSalesOffice(HttpContext context)
+    {
+        try
+        {
+            vdm = new SalesDBManager();
+            string SalesType = context.Session["salestype"].ToString();
+            List<SoClass> Solist = new List<SoClass>();
+            if (SalesType == "Plant")
+            {
+                cmd = new SqlCommand("SELECT branchdata.sno, branchdata.BranchName,branchdata.Address FROM branchmappingtable INNER JOIN branchdata ON branchmappingtable.SubBranch = branchdata.sno where  (branchmappingtable.SuperBranch=@BranchID) AND (branchdata.SALESTYPE=@st) AND (branchdata.flag=@flag)");
+                cmd.Parameters.AddWithValue("@st", "4");
+                cmd.Parameters.AddWithValue("@BranchId", context.Session["branch"].ToString());
+                cmd.Parameters.AddWithValue("@flag", "1");
+
+                DataTable dtBranch = vdm.SelectQuery(cmd).Tables[0];
+                foreach (DataRow dr in dtBranch.Rows)
+                {
+                    SoClass GetSoClass = new SoClass();
+                    GetSoClass.Sno = dr["sno"].ToString();
+                    GetSoClass.BranchName = dr["BranchName"].ToString();
+                    GetSoClass.Address = dr["Address"].ToString();
+                    Solist.Add(GetSoClass);
+                }
+                cmd = new SqlCommand("SELECT BranchName,sno,Address FROM  branchdata WHERE (sno = @BranchID)");
+                cmd.Parameters.AddWithValue("@BranchID", context.Session["branch"].ToString());
+                DataTable dtPlant = vdm.SelectQuery(cmd).Tables[0];
+                foreach (DataRow dr in dtPlant.Rows)
+                {
+                    SoClass GetSoClass = new SoClass();
+                    GetSoClass.Sno = dr["sno"].ToString();
+                    GetSoClass.BranchName = dr["BranchName"].ToString();
+                    GetSoClass.Address = dr["Address"].ToString();
+                    Solist.Add(GetSoClass);
+                }
+                cmd = new SqlCommand("SELECT branchdata.BranchName, branchdata.sno,branchdata.Address FROM branchdata INNER JOIN branchmappingtable ON branchdata.sno = branchmappingtable.SubBranch WHERE (branchmappingtable.SuperBranch = @SuperBranch) and (branchdata.SalesType=@SalesType)  ");
+                cmd.Parameters.AddWithValue("@SuperBranch", context.Session["branch"].ToString());
+                cmd.Parameters.AddWithValue("@SalesType", "23");
+                DataTable dtNewPlant = vdm.SelectQuery(cmd).Tables[0];
+                foreach (DataRow dr in dtNewPlant.Rows)
+                {
+                    SoClass GetSoClass = new SoClass();
+                    GetSoClass.Sno = dr["sno"].ToString();
+                    GetSoClass.BranchName = dr["BranchName"].ToString();
+                    GetSoClass.Address = dr["Address"].ToString();
+                    Solist.Add(GetSoClass);
+                }
+
+                string errresponse = GetJson(Solist);
+                context.Response.Write(errresponse);
+            }
+
+            else
+            {
+                cmd = new SqlCommand("SELECT BranchName, sno FROM  branchdata WHERE (sno = @BranchID)");
+                cmd.Parameters.AddWithValue("@BranchID", context.Session["branch"].ToString());
+                DataTable dtPlant = vdm.SelectQuery(cmd).Tables[0];
+                foreach (DataRow dr in dtPlant.Rows)
+                {
+                    SoClass GetSoClass = new SoClass();
+                    GetSoClass.Sno = dr["sno"].ToString();
+                    GetSoClass.BranchName = dr["BranchName"].ToString();
+                    Solist.Add(GetSoClass);
+                }
+                string errresponse = GetJson(Solist);
+                context.Response.Write(errresponse);
+            }
+        }
+        catch
+        {
+        }
+    }
+
+    private void GetHeadNames(HttpContext context)
+    {
+        try
+        {
+            vdm = new SalesDBManager();
+            List<HeadClass> HeadClasslist = new List<HeadClass>();
+            string BranchID = "0";
+            string LevelType = context.Session["LevelType"].ToString();
+            if (LevelType == "AccountsOfficer" || LevelType == "Director")
+            {
+                BranchID = context.Request["BranchID"];
+            }
+            else
+            {
+                BranchID = context.Session["branch"].ToString();
+            }
+            cmd = new SqlCommand("Select Sno,HeadName,LimitAmount,AccountType,AgentID,EmpID from accountheads Where (BranchID=@BranchID) and (flag=@flag)  order by HeadName");
+            cmd.Parameters.AddWithValue("@BranchID", BranchID);
+            cmd.Parameters.AddWithValue("@flag", "1");
+            DataTable dtVehicle = vdm.SelectQuery(cmd).Tables[0];
+            foreach (DataRow dr in dtVehicle.Rows)
+            {
+                HeadClass getVehicles = new HeadClass();
+                getVehicles.Sno = dr["Sno"].ToString();
+                getVehicles.HeadName = dr["HeadName"].ToString();
+                getVehicles.Limit = dr["LimitAmount"].ToString();
+                HeadClasslist.Add(getVehicles);
+            }
+            string response = GetJson(HeadClasslist);
+            context.Response.Write(response);
+        }
+        catch
+        {
+        }
+    }
+
+
+    public class SoClass
+    {
+        public string BranchName { get; set; }
+        public string Sno { get; set; }
+        public string Salestype { get; set; }
+        public string color { get; set; }
+        public string ExpencePeriod { get; set; }
+        public string mobile { get; set; }
+        public string Address { get; set; }
+        public string routeid { get; set; }
+    }
+    private void GetAllSalesOffice(HttpContext context)
+    {
+        try
+        {
+            vdm = new SalesDBManager();
+
+            List<SoClass> Solist = new List<SoClass>();
+            //string BranchID = context.Session["branch"].ToString();
+
+            DataTable dtBranch = new DataTable();
+            dtBranch.Columns.Add("BranchName");
+            dtBranch.Columns.Add("sno");
+            //cmd = new  SqlCommand("SELECT branchdata.BranchName, branchdata.sno FROM branchdata INNER JOIN branchmappingtable ON branchdata.sno = branchmappingtable.SubBranch WHERE (branchmappingtable.SuperBranch = @SuperBranch) and (branchdata.SalesType=@SalesType)  ");
+            //cmd.Parameters.AddWithValue("@SuperBranch", BranchID);
+            //cmd.Parameters.AddWithValue("@SalesType", "4");
+            //cmd.Parameters.AddWithValue("@SalesType1", "26");
+            //DataTable dtRoutedata = vdm.SelectQuery(cmd).Tables[0];
+            //foreach (DataRow dr in dtRoutedata.Rows)
+            //{
+            //    DataRow newrow = dtBranch.NewRow();
+            //    newrow["BranchName"] = dr["BranchName"].ToString();
+            //    newrow["sno"] = dr["sno"].ToString();
+            //    dtBranch.Rows.Add(newrow);
+            //}
+            cmd = new SqlCommand("select branchid, BranchName from branchmaster");
+            DataTable dtPlant = vdm.SelectQuery(cmd).Tables[0];
+            foreach (DataRow dr in dtPlant.Rows)
+            {
+                DataRow newrow = dtBranch.NewRow();
+                newrow["BranchName"] = dr["BranchName"].ToString();
+                newrow["sno"] = dr["Branchid"].ToString();
+                dtBranch.Rows.Add(newrow);
+            }
+            foreach (DataRow dr in dtBranch.Rows)
+            {
+                SoClass GetSoClass = new SoClass();
+                GetSoClass.Sno = dr["sno"].ToString();
+                GetSoClass.BranchName = dr["BranchName"].ToString();
+                Solist.Add(GetSoClass);
+            }
+            string errresponse = GetJson(Solist);
+            context.Response.Write(errresponse);
+        }
+        catch (Exception ex)
+        {
+
+        }
+    }
+
+    private void SaveHeadMasterClick(HttpContext context)
+    {
+
+        try
+        {
+            vdm = new SalesDBManager();
+            string HeadAccount = context.Request["Decription"];
+            string serial = context.Request["serial"];
+            string AccountType = context.Request["AccountType"];
+            string btnSave = context.Request["btnSave"];
+            string Limit = context.Request["Limit"];
+            string EMPID = context.Request["EMPID"];
+            string BranchID = context.Request["BranchID"];
+            string Ledgercode = context.Request["Ledgercode"];
+            string flag = context.Request["flag"];
+            double LimitAmount = 0;
+            double.TryParse(Limit, out LimitAmount);
+            if (btnSave == "MODIFY")
+            {
+                if (AccountType == "Others")
+                {
+                    cmd = new SqlCommand("Update accountheads set flag=@flag,  HeadName=@HeadName,LimitAmount=@LimitAmount,AccountType=@AccountType,accountcode=@accountcode where Sno=@Sno");
+                    cmd.Parameters.AddWithValue("@AccountType", AccountType);
+                }
+                cmd.Parameters.AddWithValue("@HeadName", HeadAccount);
+                cmd.Parameters.AddWithValue("@LimitAmount", LimitAmount);
+                cmd.Parameters.AddWithValue("@accountcode", Ledgercode);
+                cmd.Parameters.AddWithValue("@flag", flag);
+                cmd.Parameters.AddWithValue("@Sno", serial);
+                vdm.Update(cmd);
+                string Msg = "Account Name Updated Successfully";
+                string response = GetJson(Msg);
+                context.Response.Write(response);
+            }
+            else
+            {
+                if (BranchID == "")
+                {
+                    string LevelType = context.Session["LevelType"].ToString();
+                    if (LevelType == "AccountsOfficer" || LevelType == "Director")
+                    {
+                        AccountType = "Others";
+                        cmd = new SqlCommand("Insert Into accountheads (HeadName,LimitAmount,AccountType,accountcode,flag) values(@HeadName,@LimitAmount,@AccountType,@accountcode,@flag)");
+                        cmd.Parameters.AddWithValue("@AccountType", AccountType);
+                        cmd.Parameters.AddWithValue("@HeadName", HeadAccount);
+                        cmd.Parameters.AddWithValue("@LimitAmount", LimitAmount);
+                        cmd.Parameters.AddWithValue("@accountcode", Ledgercode);
+                        cmd.Parameters.AddWithValue("@flag", flag);
+                        vdm.insert(cmd);
+                        string Msg = "Account Name saved Successfully";
+                        string response = GetJson(Msg);
+                        context.Response.Write(response);
+                    }
+                    else
+                    {
+                        string Msg = "Please Select SalesOffice";
+                        string response = GetJson(Msg);
+                        context.Response.Write(response);
+                    }
+                }
+                else
+                {
+                    if (AccountType == "Others")
+                    {
+                        cmd = new SqlCommand("Insert Into accountheads (HeadName,BranchID,LimitAmount,AccountType,accountcode,flag) values(@HeadName,@BranchID,@LimitAmount,@AccountType,@accountcode,@flag)");
+                        cmd.Parameters.AddWithValue("@AccountType", AccountType);
+                        cmd.Parameters.AddWithValue("@accountcode", Ledgercode);
+                    }
+                    cmd.Parameters.AddWithValue("@flag", flag);
+                    cmd.Parameters.AddWithValue("@HeadName", HeadAccount);
+                    cmd.Parameters.AddWithValue("@LimitAmount", LimitAmount);
+                    cmd.Parameters.AddWithValue("@BranchID", BranchID);
+                    vdm.insert(cmd);
+                    string Msg = "Account Name saved Successfully";
+                    string response = GetJson(Msg);
+                    context.Response.Write(response);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            string Msg = ex.Message;
+            string response = GetJson(Msg);
+            context.Response.Write(response);
+        }
+    }
+
+
+    private void GetHeadOfAccounts(HttpContext context)
+    {
+        try
+        {
+            vdm = new SalesDBManager();
+            string branchid = context.Request["BranchID"];
+            string LevelType = context.Session["LevelType"].ToString();
+            if (LevelType == "AccountsOfficer" || LevelType == "Director")
+            {
+                if (branchid == "")
+                {
+                    cmd = new SqlCommand("SELECT Sno, HeadName, LimitAmount, AccountType, AgentID, EmpID,accountcode,flag FROM accountheads WHERE (BranchId IS NULL) ORDER BY HeadName");
+                }
+                else
+                {
+                    cmd = new SqlCommand("Select Sno,HeadName,LimitAmount,AccountType,AgentID,EmpID,accountcode,flag from accountheads Where BranchID=@BranchID order by HeadName");
+                    cmd.Parameters.AddWithValue("@BranchID", branchid);
+                }
+            }
+            else
+            {
+                cmd = new SqlCommand("Select Sno,HeadName,LimitAmount,AccountType,AgentID,EmpID,accountcode,flag from accountheads Where BranchID=@BranchID order by HeadName");
+                cmd.Parameters.AddWithValue("@BranchID", branchid);
+            }
+            DataTable dtVehicle = vdm.SelectQuery(cmd).Tables[0];
+            List<HeadClass> HeadClasslist = new List<HeadClass>();
+            foreach (DataRow dr in dtVehicle.Rows)
+            {
+                HeadClass getVehicles = new HeadClass();
+                getVehicles.Sno = dr["Sno"].ToString();
+                getVehicles.HeadName = dr["HeadName"].ToString();
+                getVehicles.Limit = dr["LimitAmount"].ToString();
+                getVehicles.flag = dr["flag"].ToString();
+                getVehicles.accountcode = dr["accountcode"].ToString();
+                string AccountType = dr["AccountType"].ToString();
+                getVehicles.AccountType = AccountType;
+                if (AccountType == "Others")
+                {
+                    getVehicles.Code = "0";
+                }
+                HeadClasslist.Add(getVehicles);
+            }
+            string response = GetJson(HeadClasslist);
+            context.Response.Write(response);
+        }
+        catch
+        {
+        }
+    }
+    class HeadClass
+    {
+        public string Sno { get; set; }
+        public string HeadName { get; set; }
+        public string Limit { get; set; }
+        public string AccountType { get; set; }
+        public string accountcode { get; set; }
+        public string Code { get; set; }
+        public string flag { get; set; }
     }
 
 

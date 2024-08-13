@@ -5,6 +5,7 @@ using System.Text;
 
 using System.Data;
 using MySql.Data.MySqlClient;
+using System.Data.SqlClient;
 
 public class VehicleDBMgr
 {
@@ -383,5 +384,10 @@ public class VehicleDBMgr
         //dt = dt.AddMinutes(570);
         return dt;
 
+    }
+
+    internal static DateTime GetTime(SqlConnection conn)
+    {
+        throw new NotImplementedException();
     }
 }

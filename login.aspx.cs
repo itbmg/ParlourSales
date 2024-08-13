@@ -54,8 +54,12 @@ public partial class login : System.Web.UI.Page
                 string sno = dt.Rows[0]["sno"].ToString();
                 Session["Employ_Sno"] = dt.Rows[0]["sno"].ToString();
                 Session["BranchID"] = dt.Rows[0]["branchid"].ToString();
+                Session["branch"] = dt.Rows[0]["branchid"].ToString();
+                Session["SuperBranch"] = "10";
                 Session["UserName"] = dt.Rows[0]["employename"].ToString();
                 Session["posleveltype"] = dt.Rows[0]["leveltype"].ToString();
+                Session["LevelType"] = dt.Rows[0]["leveltype"].ToString();
+                Session["UserSno"] = dt.Rows[0]["sno"].ToString();
                 string leveltype = dt.Rows[0]["leveltype"].ToString();
                 Response.Cookies["UserName"].Value = HttpUtility.UrlEncode("true");
                 Response.Cookies["UserName"].Path = "/";
@@ -63,6 +67,7 @@ public partial class login : System.Web.UI.Page
                 Response.Cookies["Employ_Sno"].Value = HttpUtility.UrlEncode("true");
                 Response.Cookies["Employ_Sno"].Path = "/";
                 Response.Cookies["Employ_Sno"].Expires = DateTime.Now.AddDays(1);
+                Session["TitleName"] = "SRI VYSHNAVI DAIRY";
                 string ipaddress;
                 ipaddress = Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
                 if (ipaddress == "" || ipaddress == null)

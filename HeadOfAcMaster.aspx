@@ -3,6 +3,26 @@
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
     <script src="js/jquery-1.4.4.js" type="text/javascript"></script>
+    <style>
+
+        .input-group .input-group-addon {
+    border-color: #3c8dbc;
+    background-color: #3c8dbc;
+    border-radius: 4px;
+    color: whitesmoke;
+    padding: 6px 12px;
+}
+
+        .editcls {
+    background: #00a65a !important;
+    border-radius: 100% !important;
+    padding: 0px !important;
+    height: 30px !important;
+    width: 30px !important;
+    color: #ffffff !important;
+    border-color: #00a65a !important;
+}
+    </style>
     <script type="text/javascript">
         $(function () {
             FillSalesOffice();
@@ -16,7 +36,7 @@
             if (BranchID == "select") {
                 BranchID = "";
             }
-            var data = { 'operation': 'GetHeadOfAccpunts', 'BranchID': BranchID };
+            var data = { 'op': 'GetHeadOfAccounts', 'BranchID': BranchID };
             var s = function (msg) {
                 if (msg) {
                     BindVehicles(msg);
@@ -121,7 +141,7 @@
             var Limit = document.getElementById('txtLimit').value;
             var flag = document.getElementById('cmb_flag').value;
             var btnSave = document.getElementById('btnSave').innerHTML;
-            var data = { 'operation': 'SaveHeadMasterClick', 'Ledgercode': Ledgercode, 'flag': flag, 'Decription': Decription, 'serial': serial, 'btnSave': btnSave, 'Limit': Limit, 'AccountType': AccountType, 'BranchID': BranchID };
+            var data = { 'op': 'SaveHeadMasterClick', 'Ledgercode': Ledgercode, 'flag': flag, 'Decription': Decription, 'serial': serial, 'btnSave': btnSave, 'Limit': Limit, 'AccountType': AccountType, 'BranchID': BranchID };
             var s = function (msg) {
                 if (msg) {
                     alert(msg);
@@ -138,89 +158,9 @@
             $(document).ajaxStart($.blockUI).ajaxStop($.unblockUI);
             callHandler(data, s, e);
         }
-        //        function ddlAccountTypeChange(Account) {
-        //            var AccountType = Account.value;
-        ////            if (AccountType == "Agent") {
-        ////                FillAgents();
-        ////                $('.divPayTo').css('display', 'table-row');
-        ////                $('.divPayTodesc').css('display', 'none');
-        ////            }
-        ////            if (AccountType == "Employee") {
-        ////                FillEmploye();
-        ////                $('.divPayTo').css('display', 'table-row');
-        ////                $('.divPayTodesc').css('display', 'none');
-        ////            }
-        ////            if (AccountType == "Others") {
-        ////                $('.divPayTo').css('display', 'none');
-        ////                $('.divPayTodesc').css('display', 'table-row');
 
-        ////            }
-        //        }
-        function FillAgents() {
-            var data = { 'operation': 'GetAgentNames' };
-            var s = function (msg) {
-                if (msg) {
-                    if (msg == "Session Expired") {
-                        alert(msg);
-                        window.location = "Login.aspx";
-                    }
-                    BindAgentNames(msg);
-                }
-                else {
-                }
-            };
-            var e = function (x, h, e) {
-            };
-            $(document).ajaxStart($.blockUI).ajaxStop($.unblockUI);
-            callHandler(data, s, e);
-        }
-        function BindAgentNames(msg) {
-            var ddlAgent = document.getElementById('ddlCashTo');
-            var length = ddlAgent.options.length;
-            ddlAgent.options.length = null;
-            for (var i = 0; i < msg.length; i++) {
-                if (msg[i].BranchName != null) {
-                    var opt = document.createElement('option');
-                    opt.innerHTML = msg[i].BranchName;
-                    opt.value = msg[i].Sno;
-                    ddlAgent.appendChild(opt);
-                }
-            }
-        }
-        function FillEmploye() {
-            var data = { 'operation': 'GetEmployeeNames' };
-            var s = function (msg) {
-                if (msg) {
-                    if (msg == "Session Expired") {
-                        alert(msg);
-                        window.location = "Login.aspx";
-                    }
-                    BindEmployeeName(msg);
-
-                }
-                else {
-                }
-            };
-            var e = function (x, h, e) {
-            };
-            $(document).ajaxStart($.blockUI).ajaxStop($.unblockUI);
-            callHandler(data, s, e);
-        }
-        function BindEmployeeName(msg) {
-            var ddlCashTo = document.getElementById('ddlCashTo');
-            var length = ddlCashTo.options.length;
-            ddlCashTo.options.length = null;
-            for (var i = 0; i < msg.length; i++) {
-                if (msg[i].UserName != null) {
-                    var opt = document.createElement('option');
-                    opt.innerHTML = msg[i].UserName;
-                    opt.value = msg[i].Sno;
-                    ddlCashTo.appendChild(opt);
-                }
-            }
-        }
         function FillSalesOffice() {
-            var data = { 'operation': 'GetAllSalesOffice' };
+            var data = { 'op': 'GetAllSalesOffice' };
             var s = function (msg) {
                 if (msg) {
                     if (msg == "Session Expired") {
@@ -289,7 +229,7 @@
                 <table align="center">
                     <tr>
                         <td>
-                            <label>Sales Office</label><span style="color: red; font-weight: bold">*</span>
+                            <label>Parlour Name</label><span style="color: red; font-weight: bold">*</span>
                        
                             <select id="ddlSalesOffice" class="form-control" onchange="ddlSalesOfficeChange(this);">
                             </select>
@@ -354,6 +294,7 @@
                                                 <div class="input-group-addon">
                                                     <span class="glyphicon glyphicon-ok" id="btnSave1" onclick="Headvalidation()">
                                                     </span><span id="btnSave" onclick="Headvalidation()">SAVE</span>
+                                                    <%--<input  id="btnSave"  type="button" name="update" value="Save" class="btn btn-primary"  onclick="Headvalidation();" />--%>
                                                 </div>
                                             </div>
                                                         </td>
