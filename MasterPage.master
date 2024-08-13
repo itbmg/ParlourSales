@@ -294,7 +294,8 @@
                         <i class="fa fa-angle-left pull-right"></i>
                     </a>
                     <ul class="treeview-menu">
-                        <li id="LiVoucher"><a href="CashForm.aspx"><i class="fa fa-circle-o"></i> Voucher Form</a></li>
+                        <li id="LiVoucher"><a href="vocherform.aspx"><i class="fa fa-circle-o"></i> Voucher Form</a></li>
+                        <li id="LiCashBook"><a href="CashBook.aspx"><i class="fa fa-circle-o"></i> CashBook</a></li>
                       <%--  <li id="LiVoucherApproval"><a href="inwardapproval.aspx"><i class="fa fa-circle-o"></i> Voucher Aprroval</a></li>--%>
                     </ul>
                      </li>

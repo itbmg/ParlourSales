@@ -331,9 +331,9 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                 case "GetHeadNames":
                     GetHeadNames(context);
                     break;
-                case "GetSalesOffice":
-                    GetSalesOffice(context);
-                    break;
+                //case "GetSalesOffice":
+                //    GetSalesOffice(context);
+                //    break;
                 case "GetApproveEmployeeNames":
                     GetApproveEmployeeNames(context);
                     break;
@@ -496,10 +496,10 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                 BranchID = context.Session["branch"].ToString();
             }
             DateTime ServerDateCurrentdate = SalesDBManager.GetTime(vdm.conn);
-            cmd = new SqlCommand("SELECT Branchid, UserData_sno, AmountPaid, Denominations, Remarks, Sno, PaidDate FROM collections WHERE (Branchid = @BranchID) AND (PaidDate BETWEEN @d1 AND @d2)");
-            cmd.Parameters.AddWithValue("@BranchID", BranchID);
-            cmd.Parameters.AddWithValue("@d1", GetLowDate(ServerDateCurrentdate));
-            cmd.Parameters.AddWithValue("@d2", GetHighDate(ServerDateCurrentdate));
+            cmd = new SqlCommand("select * from registorclosingdetails where doe between @d1 and @d2 and parlorid=@parlorid");
+            cmd.Parameters.Add("@d1", GetLowDate(ServerDateCurrentdate));
+            cmd.Parameters.Add("@d2", GetHighDate(ServerDateCurrentdate));
+            cmd.Parameters.AddWithValue("@parlorid", context.Session["BranchID"].ToString());
             DataTable dtcashbookstatus = vdm.SelectQuery(cmd).Tables[0];
             if (dtcashbookstatus.Rows.Count > 0)
             {
@@ -522,7 +522,6 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                 string response = GetJson(msg);
                 context.Response.Write(response);
             }
-
         }
         catch (Exception ex)
         {
@@ -549,7 +548,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             {
                 BranchID = context.Session["branch"].ToString();
             }
-            cmd = new SqlCommand("Update cashpayables set Ramarks=@Ramarks where BranchID=@BranchID and Sno=@VocherID");
+            cmd = new SqlCommand("Update cashpayables set Remarks=@Remarks where BranchID=@BranchID and Sno=@VocherID");
             cmd.Parameters.AddWithValue("@VocherID", VoucherID);
             cmd.Parameters.AddWithValue("@Remarks", Remarks);
             cmd.Parameters.AddWithValue("@BranchID", BranchID);
@@ -623,7 +622,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                 BranchID = context.Session["branch"].ToString();
             }
             List<VoucherClass> Voucherlist = new List<VoucherClass>();
-            cmd = new SqlCommand("SELECT  empmanage.EmpName,cashpayables.Empid, cashpayables.Approvedby, cashpayables.VoucherType, cashpayables.CashTo, cashpayables.onNameof, cashpayables.Amount, cashpayables.ApprovedAmount, empmanage_1.EmpName AS ApproveEmpName, cashpayables.Status, cashpayables.ApprovalRemarks, cashpayables.Remarks FROM empmanage empmanage_1 INNER JOIN cashpayables ON empmanage_1.Sno = cashpayables.Approvedby LEFT OUTER JOIN empmanage ON cashpayables.Empid = empmanage.Sno WHERE (cashpayables.Sno = @VoucherID) AND (cashpayables.BranchID = @BranchID)");
+            cmd = new SqlCommand("SELECT  employe_details.employename,cashpayables.Empid, cashpayables.Approvedby,cashpayables.VocherID, cashpayables.VoucherType, cashpayables.CashTo, cashpayables.onNameof, cashpayables.Amount, cashpayables.ApprovedAmount, empmanage_1.employename AS ApproveEmpName, cashpayables.Status, cashpayables.ApprovalRemarks, cashpayables.Remarks FROM employe_details empmanage_1 INNER JOIN cashpayables ON empmanage_1.Sno = cashpayables.Approvedby LEFT OUTER JOIN employe_details ON cashpayables.Empid = employe_details.Sno WHERE (cashpayables.Sno = @VoucherID) AND (cashpayables.BranchID = @BranchID)");
             cmd.Parameters.AddWithValue("@VoucherID", VoucherID);
             cmd.Parameters.AddWithValue("@BranchID", BranchID);
             DataTable dtVouchers = vdm.SelectQuery(cmd).Tables[0];
@@ -632,7 +631,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                 foreach (DataRow dr in dtVouchers.Rows)
                 {
                     VoucherClass getVoucher = new VoucherClass();
-                    getVoucher.EmpName = dr["EmpName"].ToString();
+                    getVoucher.EmpName = dr["employename"].ToString();
                     getVoucher.VoucherType = dr["VoucherType"].ToString();
                     getVoucher.CashTo = dr["CashTo"].ToString();
                     getVoucher.Description = dr["onNameof"].ToString();
@@ -644,6 +643,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                     getVoucher.Remarks = dr["Remarks"].ToString();
                     getVoucher.Empid = dr["EmpID"].ToString();
                     getVoucher.ApprovedBy = dr["Approvedby"].ToString();
+                    getVoucher.branchvoucherid = dr["VocherID"].ToString();
                     Voucherlist.Add(getVoucher);
                 }
                 string response = GetJson(Voucherlist);
@@ -995,14 +995,14 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                     BranchID = context.Request["BranchID"];
                     if (statusType == "All")
                     {
-                        cmd = new SqlCommand("SELECT cashpayables.BranchID,cashpayables.Empid, cashpayables.Approvedby, cashpayables.Status,cashpayables.Sno, cashpayables.VocherID, cashpayables.CashTo, cashpayables.AccountType, cashpayables.onNameof, cashpayables.DOE, cashpayables.Amount, cashpayables.ApprovedAmount, cashpayables.Remarks, cashpayables.ApprovalRemarks, cashpayables.CashierRemarks, cashpayables.VoucherType, empmanage.EmpName, empmanage_1.EmpName AS ApproveEmpName FROM cashpayables LEFT OUTER JOIN empmanage empmanage_1 ON cashpayables.Approvedby = empmanage_1.Sno LEFT OUTER JOIN empmanage ON cashpayables.Empid = empmanage.Sno WHERE (cashpayables.BranchID = @BranchID) AND (cashpayables.DOE BETWEEN @d1 AND @d2)");
+                        cmd = new SqlCommand("SELECT cashpayables.BranchID,cashpayables.Empid, cashpayables.Approvedby, cashpayables.Status,cashpayables.Sno, cashpayables.VocherID, cashpayables.CashTo, cashpayables.AccountType, cashpayables.onNameof, cashpayables.DOE, cashpayables.Amount, cashpayables.ApprovedAmount, cashpayables.Remarks, cashpayables.ApprovalRemarks, cashpayables.CashierRemarks, cashpayables.VoucherType,  employe_details.employename, empmanage_1.employename AS ApproveEmpName FROM cashpayables LEFT OUTER JOIN employe_details empmanage_1 ON cashpayables.Approvedby = empmanage_1.Sno LEFT OUTER JOIN employe_details ON cashpayables.Empid = employe_details.Sno WHERE (cashpayables.BranchID = @BranchID) AND (cashpayables.DOE BETWEEN @d1 AND @d2)");
                         cmd.Parameters.AddWithValue("@d1", GetLowDate(ServerDateCurrentdate).AddDays(-3));
                         cmd.Parameters.AddWithValue("@d2", GetHighDate(ServerDateCurrentdate));
                         cmd.Parameters.AddWithValue("@BranchID", BranchID);
                     }
                     else
                     {
-                        cmd = new SqlCommand("SELECT cashpayables.BranchID,cashpayables.Empid, cashpayables.Approvedby, cashpayables.Status,cashpayables.Sno, cashpayables.VocherID, cashpayables.CashTo, cashpayables.AccountType, cashpayables.onNameof, cashpayables.DOE, cashpayables.Amount, cashpayables.ApprovedAmount, cashpayables.Remarks, cashpayables.ApprovalRemarks, cashpayables.CashierRemarks, cashpayables.VoucherType, empmanage.EmpName, empmanage_1.EmpName AS ApproveEmpName FROM cashpayables LEFT OUTER JOIN empmanage empmanage_1 ON cashpayables.Approvedby = empmanage_1.Sno LEFT OUTER JOIN empmanage ON cashpayables.Empid = empmanage.Sno WHERE (cashpayables.BranchID = @BranchID) AND (cashpayables.DOE BETWEEN @d1 AND @d2) AND (cashpayables.Status = @status)");
+                        cmd = new SqlCommand("SELECT cashpayables.BranchID,cashpayables.Empid, cashpayables.Approvedby, cashpayables.Status,cashpayables.Sno, cashpayables.VocherID, cashpayables.CashTo, cashpayables.AccountType, cashpayables.onNameof, cashpayables.DOE, cashpayables.Amount, cashpayables.ApprovedAmount, cashpayables.Remarks, cashpayables.ApprovalRemarks, cashpayables.CashierRemarks, cashpayables.VoucherType, employe_details.employename, empmanage_1.employename AS ApproveEmpName FROM cashpayables LEFT OUTER JOIN employe_details empmanage_1 ON cashpayables.Approvedby = empmanage_1.Sno LEFT OUTER JOIN employe_details ON cashpayables.Empid = employe_details.Sno WHERE (cashpayables.BranchID = @BranchID) AND (cashpayables.DOE BETWEEN @d1 AND @d2) AND (cashpayables.Status = @status)");
                         cmd.Parameters.AddWithValue("@d1", GetLowDate(ServerDateCurrentdate).AddDays(-30));
                         cmd.Parameters.AddWithValue("@d2", GetHighDate(ServerDateCurrentdate));
                         cmd.Parameters.AddWithValue("@BranchID", BranchID);
@@ -1011,26 +1011,25 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                 }
                 else
                 {
-                    BranchID = context.Session["branch"].ToString();
-                    if (BranchID == "3928")
-                    {
-                        cmd = new SqlCommand("SELECT cashpayables.BranchID,cashpayables.Empid, cashpayables.Approvedby,cashpayables.Status,cashpayables.Sno, cashpayables.VocherID, cashpayables.CashTo,cashpayables.AccountType, cashpayables.onNameof, cashpayables.DOE, cashpayables.Amount, cashpayables.ApprovedAmount, cashpayables.Remarks, cashpayables.ApprovalRemarks, cashpayables.CashierRemarks, cashpayables.VoucherType, empmanage.EmpName, empmanage_1.EmpName AS ApproveEmpName FROM cashpayables INNER JOIN empmanage empmanage_1 ON cashpayables.Approvedby = empmanage_1.Sno LEFT OUTER JOIN empmanage ON cashpayables.Empid = empmanage.Sno WHERE ( (cashpayables.BranchID = @BranchID) AND (cashpayables.DOE BETWEEN @d1 AND @d2) AND (cashpayables.Status = @Status)) OR ((cashpayables.BranchID = @BranchID) AND (cashpayables.DOE BETWEEN @d1 AND @d2) AND (cashpayables.Status = @Status1))");
-                        cmd.Parameters.AddWithValue("@d1", GetLowDate(ServerDateCurrentdate).AddDays(-45));
-                        cmd.Parameters.AddWithValue("@d2", GetHighDate(ServerDateCurrentdate));
-                        cmd.Parameters.AddWithValue("@Status", "A");
-                        cmd.Parameters.AddWithValue("@Status1", "R");
-                        cmd.Parameters.AddWithValue("@BranchID", BranchID);
-                    }
-                    else
-                    {
-                        cmd = new SqlCommand("SELECT cashpayables.BranchID,cashpayables.Empid, cashpayables.Approvedby, cashpayables.Status,cashpayables.Sno, cashpayables.VocherID, cashpayables.CashTo, cashpayables.AccountType, cashpayables.onNameof, cashpayables.DOE, cashpayables.Amount,cashpayables.ApprovedAmount, cashpayables.Remarks, cashpayables.ApprovalRemarks, cashpayables.CashierRemarks, cashpayables.VoucherType, employe_details.employename as EmpName, employe_details_1.employename AS ApproveEmpName FROM cashpayables LEFT OUTER JOIN employe_details employe_details_1 ON  cashpayables.Approvedby = employe_details_1.Sno  LEFT OUTER JOIN employe_details ON cashpayables.Empid = employe_details.Sno WHERE ( (cashpayables.BranchID = @BranchID) AND (cashpayables.DOE BETWEEN @d1 AND @d2) AND (cashpayables.Status = @Status)) OR ((cashpayables.BranchID = @BranchID) AND (cashpayables.DOE BETWEEN @d1 AND @d2) AND (cashpayables.Status = @Status1))");
-                       // cmd = new SqlCommand("SELECT cashpayables.BranchID,cashpayables.Empid, cashpayables.Approvedby,cashpayables.Status,cashpayables.Sno, cashpayables.VocherID, cashpayables.CashTo,cashpayables.AccountType, cashpayables.onNameof, cashpayables.DOE, cashpayables.Amount, cashpayables.ApprovedAmount, cashpayables.Remarks, cashpayables.ApprovalRemarks, cashpayables.CashierRemarks, cashpayables.VoucherType, empmanage.EmpName, empmanage_1.EmpName AS ApproveEmpName FROM cashpayables INNER JOIN empmanage empmanage_1 ON cashpayables.Approvedby = empmanage_1.Sno LEFT OUTER JOIN empmanage ON cashpayables.Empid = empmanage.Sno );
-                        cmd.Parameters.AddWithValue("@d1", GetLowDate(ServerDateCurrentdate).AddDays(-7));
-                        cmd.Parameters.AddWithValue("@d2", GetHighDate(ServerDateCurrentdate));
-                        cmd.Parameters.AddWithValue("@Status", "A");
-                        cmd.Parameters.AddWithValue("@Status1", "R");
-                        cmd.Parameters.AddWithValue("@BranchID", BranchID);
-                    }
+                    BranchID = context.Session["BranchID"].ToString();
+                    //if (BranchID == "3928")
+                    //{
+                    //    cmd = new SqlCommand("SELECT cashpayables.BranchID,cashpayables.Empid, cashpayables.Approvedby,cashpayables.Status,cashpayables.Sno, cashpayables.VocherID, cashpayables.CashTo,cashpayables.AccountType, cashpayables.onNameof, cashpayables.DOE, cashpayables.Amount, cashpayables.ApprovedAmount, cashpayables.Remarks, cashpayables.ApprovalRemarks, cashpayables.CashierRemarks, cashpayables.VoucherType, empmanage.EmpName, empmanage_1.EmpName AS ApproveEmpName FROM cashpayables INNER JOIN empmanage empmanage_1 ON cashpayables.Approvedby = empmanage_1.Sno LEFT OUTER JOIN empmanage ON cashpayables.Empid = empmanage.Sno WHERE ( (cashpayables.BranchID = @BranchID) AND (cashpayables.DOE BETWEEN @d1 AND @d2) AND (cashpayables.Status = @Status)) OR ((cashpayables.BranchID = @BranchID) AND (cashpayables.DOE BETWEEN @d1 AND @d2) AND (cashpayables.Status = @Status1))");
+                    //    cmd.Parameters.AddWithValue("@d1", GetLowDate(ServerDateCurrentdate).AddDays(-45));
+                    //    cmd.Parameters.AddWithValue("@d2", GetHighDate(ServerDateCurrentdate));
+                    //    cmd.Parameters.AddWithValue("@Status", "A");
+                    //    cmd.Parameters.AddWithValue("@Status1", "R");
+                    //    cmd.Parameters.AddWithValue("@BranchID", BranchID);
+                    //}
+                    //else
+                    //{
+                    cmd = new SqlCommand("SELECT cashpayables.BranchID,cashpayables.Empid, cashpayables.Approvedby,cashpayables.Status,cashpayables.Sno, cashpayables.VocherID, cashpayables.CashTo,cashpayables.AccountType, cashpayables.onNameof, cashpayables.DOE, cashpayables.Amount, cashpayables.ApprovedAmount, cashpayables.Remarks, cashpayables.ApprovalRemarks, cashpayables.CashierRemarks, cashpayables.VoucherType, employe_details.employename, empmanage_1.employename AS ApproveEmpName FROM cashpayables INNER JOIN employe_details empmanage_1 ON cashpayables.Approvedby = empmanage_1.Sno LEFT OUTER JOIN employe_details ON cashpayables.Empid = employe_details.Sno WHERE ( (cashpayables.BranchID = @BranchID) AND (cashpayables.DOE BETWEEN @d1 AND @d2) AND (cashpayables.Status = @Status)) OR ((cashpayables.BranchID = @BranchID) AND (cashpayables.DOE BETWEEN @d1 AND @d2) AND (cashpayables.Status = @Status1))");
+                    cmd.Parameters.AddWithValue("@d1", GetLowDate(ServerDateCurrentdate).AddDays(-7));
+                    cmd.Parameters.AddWithValue("@d2", GetHighDate(ServerDateCurrentdate));
+                    cmd.Parameters.AddWithValue("@Status", "A");
+                    cmd.Parameters.AddWithValue("@Status1", "R");
+                    cmd.Parameters.AddWithValue("@BranchID", BranchID);
+                    //}
                 }
                 dtVouchers = vdm.SelectQuery(cmd).Tables[0];
             }
@@ -1050,7 +1049,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                     getVoucher.Empid = dr["Empid"].ToString();
                     getVoucher.ApprovedBy = dr["Approvedby"].ToString();
                     getVoucher.VoucherID = dr["Sno"].ToString();
-                    string EmpName = dr["EmpName"].ToString();
+                    string EmpName = dr["employename"].ToString();
                     string VoucherType = dr["VoucherType"].ToString();
                     if (VoucherType == "Credit")
                     {
@@ -1124,11 +1123,13 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             dtpaidtime = DateTime.Parse(DOE);
             DateTime ServerDateCurrentdate = SalesDBManager.GetTime(vdm.conn);
 
-            cmd = new SqlCommand("SELECT Branchid, UserData_sno, AmountPaid, Denominations, Remarks, Sno, PaidDate FROM collections WHERE (Branchid = @BranchID) AND (PaidDate BETWEEN @d1 AND @d2)");
-            cmd.Parameters.AddWithValue("@BranchID", context.Session["branch"].ToString());
-            cmd.Parameters.AddWithValue("@d1", GetLowDate(ServerDateCurrentdate));
-            cmd.Parameters.AddWithValue("@d2", GetHighDate(ServerDateCurrentdate));
+            cmd = new SqlCommand("select * from registorclosingdetails where doe between @d1 and @d2 and parlorid=@parlorid");
+            cmd.Parameters.Add("@d1", GetLowDate(ServerDateCurrentdate));
+            cmd.Parameters.Add("@d2", GetHighDate(ServerDateCurrentdate));
+            cmd.Parameters.AddWithValue("@parlorid", context.Session["BranchID"].ToString());
             DataTable dtcashbookstatus = vdm.SelectQuery(cmd).Tables[0];
+
+            
             if (dtcashbookstatus.Rows.Count > 0)
             {
                 string msg = "Cash Book Has Been Closed For This Day";
@@ -1152,108 +1153,9 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                 if (branchid != "570")
                 {
                     cmd.Parameters.AddWithValue("@DOE", ServerDateCurrentdate);
-
                 }
-                cmd.Parameters.AddWithValue("@BranchID", context.Session["branch"].ToString());
+                cmd.Parameters.AddWithValue("@BranchID", context.Session["BranchID"].ToString());
                 vdm.Update(cmd);
-                cmd = new SqlCommand("Update BranchAccounts set Amount=Amount-@Amount where BranchID=@BranchID");
-                cmd.Parameters.AddWithValue("@Amount", Amount);
-                cmd.Parameters.AddWithValue("@BranchID", context.Session["branch"].ToString());
-                vdm.Update(cmd);
-                Denominations = Denominations.Replace("+", " ");
-                string twothousand = "0";
-                string thousand = "0";
-                string fivehundred = "0";
-                string hundred = "0";
-                string fifty = "0";
-                string twenty = "0";
-                string ten = "0";
-                string five = "0";
-                string twos = "0";
-                string ones = "0";
-                foreach (string str in Denominations.Split(' '))
-                {
-                    if (str != "")
-                    {
-                        string[] price = str.Split('x');
-                        string amountcount = price[0];
-                        string notecount = price[1];
-                        if (amountcount == "2000")
-                        {
-                            twothousand = notecount;
-                        }
-                        if (amountcount == "1000")
-                        {
-                            thousand = notecount;
-                        }
-                        if (amountcount == "500")
-                        {
-                            fivehundred = notecount;
-                        }
-                        if (amountcount == "100")
-                        {
-                            hundred = notecount;
-                        }
-                        if (amountcount == "50")
-                        {
-                            fifty = notecount;
-                        }
-                        if (amountcount == "20")
-                        {
-                            twenty = notecount;
-                        }
-                        if (amountcount == "10")
-                        {
-                            ten = notecount;
-                        }
-                        if (amountcount == "5")
-                        {
-                            five = notecount;
-                        }
-                        if (amountcount == "2")
-                        {
-                            twos = notecount;
-                        }
-                        if (amountcount == "1")
-                        {
-                            ones = notecount;
-                        }
-                    }
-                }
-                if (VoucherType == "Credit")
-                {
-                    cmd = new SqlCommand("Update branch_denomination set amount=amount+@amount,twothousand=twothousand+@twothousand,thousand=thousand+@thousand,fivehundred=fivehundred+@fivehundred,hundred=hundred+@hundred,fifty=fifty+@fifty,twenty=twenty+@twenty,ten=ten+@ten,five=five+@five,twos=twos+@twos,ones=ones+@ones where BranchID=@BranchID");
-                    cmd.Parameters.AddWithValue("@amount", Amount);
-                    cmd.Parameters.AddWithValue("@twothousand", twothousand);
-                    cmd.Parameters.AddWithValue("@thousand", thousand);
-                    cmd.Parameters.AddWithValue("@fivehundred", fivehundred);
-                    cmd.Parameters.AddWithValue("@hundred", hundred);
-                    cmd.Parameters.AddWithValue("@fifty", fifty);
-                    cmd.Parameters.AddWithValue("@twenty", twenty);
-                    cmd.Parameters.AddWithValue("@ten", ten);
-                    cmd.Parameters.AddWithValue("@five", five);
-                    cmd.Parameters.AddWithValue("@twos", twos);
-                    cmd.Parameters.AddWithValue("@ones", ones);
-                    cmd.Parameters.AddWithValue("@BranchID", context.Session["branch"].ToString());
-                    vdm.Update(cmd);
-                }
-                else
-                {
-                    cmd = new SqlCommand("Update branch_denomination set amount=amount-@amount,twothousand=twothousand-@twothousand,thousand=thousand-@thousand,fivehundred=fivehundred-@fivehundred,hundred=hundred-@hundred,fifty=fifty-@fifty,twenty=twenty-@twenty,ten=ten-@ten,five=five-@five,twos=twos-@twos,ones=ones-@ones where BranchID=@BranchID");
-                    cmd.Parameters.AddWithValue("@amount", Amount);
-                    cmd.Parameters.AddWithValue("@twothousand", twothousand);
-                    cmd.Parameters.AddWithValue("@thousand", thousand);
-                    cmd.Parameters.AddWithValue("@fivehundred", fivehundred);
-                    cmd.Parameters.AddWithValue("@hundred", hundred);
-                    cmd.Parameters.AddWithValue("@fifty", fifty);
-                    cmd.Parameters.AddWithValue("@twenty", twenty);
-                    cmd.Parameters.AddWithValue("@ten", ten);
-                    cmd.Parameters.AddWithValue("@five", five);
-                    cmd.Parameters.AddWithValue("@twos", twos);
-                    cmd.Parameters.AddWithValue("@ones", ones);
-                    cmd.Parameters.AddWithValue("@BranchID", context.Session["branch"].ToString());
-                    vdm.Update(cmd);
-                }
                 string msg = "Voucher Paid successfully";
                 string response = GetJson(msg);
                 context.Response.Write(response);
@@ -1373,13 +1275,20 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             {
                 BranchID = context.Session["branch"].ToString();
             }
+
             DateTime ServerDateCurrentdate = SalesDBManager.GetTime(vdm.conn);
-            cmd = new SqlCommand("SELECT Branchid, UserData_sno, AmountPaid, Denominations, Remarks, Sno, PaidDate FROM collections WHERE (Branchid = @BranchID) AND (PaidDate BETWEEN @d1 AND @d2)");
-            cmd.Parameters.AddWithValue("@BranchID", BranchID);
-            cmd.Parameters.AddWithValue("@d1", GetLowDate(ServerDateCurrentdate));
-            cmd.Parameters.AddWithValue("@d2", GetHighDate(ServerDateCurrentdate));
-            DataTable dtcashbookstatus = vdm.SelectQuery(cmd).Tables[0];
-            if (dtcashbookstatus.Rows.Count > 0)
+            cmd = new SqlCommand("select * from registorclosingdetails where doe between @d1 and @d2 and parlorid=@parlorid");
+            cmd.Parameters.Add("@d1", GetLowDate(ServerDateCurrentdate));
+            cmd.Parameters.Add("@d2", GetHighDate(ServerDateCurrentdate));
+            cmd.Parameters.AddWithValue("@parlorid", BranchID);
+            DataTable dtexisting = vdm.SelectQuery(cmd).Tables[0];
+
+            //cmd = new SqlCommand("SELECT Branchid, UserData_sno, AmountPaid, Denominations, Remarks, Sno, PaidDate FROM collections WHERE (Branchid = @BranchID) AND (PaidDate BETWEEN @d1 AND @d2)");
+            //cmd.Parameters.AddWithValue("@BranchID", BranchID);
+            //cmd.Parameters.AddWithValue("@d1", GetLowDate(ServerDateCurrentdate));
+            //cmd.Parameters.AddWithValue("@d2", GetHighDate(ServerDateCurrentdate));
+            //DataTable dtexisting = vdm.SelectQuery(cmd).Tables[0];
+            if (dtexisting.Rows.Count > 0)
             {
                 string msg = "Cash Book Has Been Closed For This Day";
                 string response = GetJson(msg);
@@ -1826,77 +1735,77 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
     }
 
 
-    private void GetSalesOffice(HttpContext context)
-    {
-        try
-        {
-            vdm = new SalesDBManager();
-            string SalesType = context.Session["salestype"].ToString();
-            List<SoClass> Solist = new List<SoClass>();
-            if (SalesType == "Plant")
-            {
-                cmd = new SqlCommand("SELECT branchdata.sno, branchdata.BranchName,branchdata.Address FROM branchmappingtable INNER JOIN branchdata ON branchmappingtable.SubBranch = branchdata.sno where  (branchmappingtable.SuperBranch=@BranchID) AND (branchdata.SALESTYPE=@st) AND (branchdata.flag=@flag)");
-                cmd.Parameters.AddWithValue("@st", "4");
-                cmd.Parameters.AddWithValue("@BranchId", context.Session["branch"].ToString());
-                cmd.Parameters.AddWithValue("@flag", "1");
+    //private void get_company_details(HttpContext context)
+    //{
+    //    try
+    //    {
+    //        vdm = new SalesDBManager();
+    //        string SalesType = context.Session["salestype"].ToString();
+    //        List<SoClass> Solist = new List<SoClass>();
+    //        if (SalesType == "Plant")
+    //        {
+    //            cmd = new SqlCommand("SELECT branchdata.sno, branchdata.BranchName,branchdata.Address FROM branchmappingtable INNER JOIN branchdata ON branchmappingtable.SubBranch = branchdata.sno where  (branchmappingtable.SuperBranch=@BranchID) AND (branchdata.SALESTYPE=@st) AND (branchdata.flag=@flag)");
+    //            cmd.Parameters.AddWithValue("@st", "4");
+    //            cmd.Parameters.AddWithValue("@BranchId", context.Session["branch"].ToString());
+    //            cmd.Parameters.AddWithValue("@flag", "1");
 
-                DataTable dtBranch = vdm.SelectQuery(cmd).Tables[0];
-                foreach (DataRow dr in dtBranch.Rows)
-                {
-                    SoClass GetSoClass = new SoClass();
-                    GetSoClass.Sno = dr["sno"].ToString();
-                    GetSoClass.BranchName = dr["BranchName"].ToString();
-                    GetSoClass.Address = dr["Address"].ToString();
-                    Solist.Add(GetSoClass);
-                }
-                cmd = new SqlCommand("SELECT BranchName,sno,Address FROM  branchdata WHERE (sno = @BranchID)");
-                cmd.Parameters.AddWithValue("@BranchID", context.Session["branch"].ToString());
-                DataTable dtPlant = vdm.SelectQuery(cmd).Tables[0];
-                foreach (DataRow dr in dtPlant.Rows)
-                {
-                    SoClass GetSoClass = new SoClass();
-                    GetSoClass.Sno = dr["sno"].ToString();
-                    GetSoClass.BranchName = dr["BranchName"].ToString();
-                    GetSoClass.Address = dr["Address"].ToString();
-                    Solist.Add(GetSoClass);
-                }
-                cmd = new SqlCommand("SELECT branchdata.BranchName, branchdata.sno,branchdata.Address FROM branchdata INNER JOIN branchmappingtable ON branchdata.sno = branchmappingtable.SubBranch WHERE (branchmappingtable.SuperBranch = @SuperBranch) and (branchdata.SalesType=@SalesType)  ");
-                cmd.Parameters.AddWithValue("@SuperBranch", context.Session["branch"].ToString());
-                cmd.Parameters.AddWithValue("@SalesType", "23");
-                DataTable dtNewPlant = vdm.SelectQuery(cmd).Tables[0];
-                foreach (DataRow dr in dtNewPlant.Rows)
-                {
-                    SoClass GetSoClass = new SoClass();
-                    GetSoClass.Sno = dr["sno"].ToString();
-                    GetSoClass.BranchName = dr["BranchName"].ToString();
-                    GetSoClass.Address = dr["Address"].ToString();
-                    Solist.Add(GetSoClass);
-                }
+    //            DataTable dtBranch = vdm.SelectQuery(cmd).Tables[0];
+    //            foreach (DataRow dr in dtBranch.Rows)
+    //            {
+    //                SoClass GetSoClass = new SoClass();
+    //                GetSoClass.Sno = dr["sno"].ToString();
+    //                GetSoClass.BranchName = dr["BranchName"].ToString();
+    //                GetSoClass.Address = dr["Address"].ToString();
+    //                Solist.Add(GetSoClass);
+    //            }
+    //            cmd = new SqlCommand("SELECT BranchName,sno,Address FROM  branchdata WHERE (sno = @BranchID)");
+    //            cmd.Parameters.AddWithValue("@BranchID", context.Session["branch"].ToString());
+    //            DataTable dtPlant = vdm.SelectQuery(cmd).Tables[0];
+    //            foreach (DataRow dr in dtPlant.Rows)
+    //            {
+    //                SoClass GetSoClass = new SoClass();
+    //                GetSoClass.Sno = dr["sno"].ToString();
+    //                GetSoClass.BranchName = dr["BranchName"].ToString();
+    //                GetSoClass.Address = dr["Address"].ToString();
+    //                Solist.Add(GetSoClass);
+    //            }
+    //            cmd = new SqlCommand("SELECT branchdata.BranchName, branchdata.sno,branchdata.Address FROM branchdata INNER JOIN branchmappingtable ON branchdata.sno = branchmappingtable.SubBranch WHERE (branchmappingtable.SuperBranch = @SuperBranch) and (branchdata.SalesType=@SalesType)  ");
+    //            cmd.Parameters.AddWithValue("@SuperBranch", context.Session["branch"].ToString());
+    //            cmd.Parameters.AddWithValue("@SalesType", "23");
+    //            DataTable dtNewPlant = vdm.SelectQuery(cmd).Tables[0];
+    //            foreach (DataRow dr in dtNewPlant.Rows)
+    //            {
+    //                SoClass GetSoClass = new SoClass();
+    //                GetSoClass.Sno = dr["sno"].ToString();
+    //                GetSoClass.BranchName = dr["BranchName"].ToString();
+    //                GetSoClass.Address = dr["Address"].ToString();
+    //                Solist.Add(GetSoClass);
+    //            }
 
-                string errresponse = GetJson(Solist);
-                context.Response.Write(errresponse);
-            }
+    //            string errresponse = GetJson(Solist);
+    //            context.Response.Write(errresponse);
+    //        }
 
-            else
-            {
-                cmd = new SqlCommand("SELECT BranchName, sno FROM  branchdata WHERE (sno = @BranchID)");
-                cmd.Parameters.AddWithValue("@BranchID", context.Session["branch"].ToString());
-                DataTable dtPlant = vdm.SelectQuery(cmd).Tables[0];
-                foreach (DataRow dr in dtPlant.Rows)
-                {
-                    SoClass GetSoClass = new SoClass();
-                    GetSoClass.Sno = dr["sno"].ToString();
-                    GetSoClass.BranchName = dr["BranchName"].ToString();
-                    Solist.Add(GetSoClass);
-                }
-                string errresponse = GetJson(Solist);
-                context.Response.Write(errresponse);
-            }
-        }
-        catch
-        {
-        }
-    }
+    //        else
+    //        {
+    //            cmd = new SqlCommand("SELECT BranchName, sno FROM  branchdata WHERE (sno = @BranchID)");
+    //            cmd.Parameters.AddWithValue("@BranchID", context.Session["branch"].ToString());
+    //            DataTable dtPlant = vdm.SelectQuery(cmd).Tables[0];
+    //            foreach (DataRow dr in dtPlant.Rows)
+    //            {
+    //                SoClass GetSoClass = new SoClass();
+    //                GetSoClass.Sno = dr["sno"].ToString();
+    //                GetSoClass.BranchName = dr["BranchName"].ToString();
+    //                Solist.Add(GetSoClass);
+    //            }
+    //            string errresponse = GetJson(Solist);
+    //            context.Response.Write(errresponse);
+    //        }
+    //    }
+    //    catch
+    //    {
+    //    }
+    //}
 
     private void GetHeadNames(HttpContext context)
     {
@@ -4928,8 +4837,8 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             DateTime ServerDateCurrentdate = SalesDBManager.GetTime(vdm.conn);
             DateTime closedate = ServerDateCurrentdate.AddDays(-1);
             cmd = new SqlCommand("select * from registorclosingdetails where doe between @d1 and @d2");
-            cmd.Parameters.Add("@d1", GetLowDate(closedate).AddDays(-1));
-            cmd.Parameters.Add("@d2", GetHighDate(closedate).AddDays(-1));
+            cmd.Parameters.Add("@d1", GetLowDate(closedate));
+            cmd.Parameters.Add("@d2", GetHighDate(closedate));
             DataTable dtexisting = vdm.SelectQuery(cmd).Tables[0];
             if (dtexisting.Rows.Count == 0)
             {
@@ -5018,7 +4927,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                         {
                             double.TryParse(drout["outwardqty"].ToString(), out outward);
                             double.TryParse(drout["ordertax"].ToString(), out ordertax);
-                            totaloutward = outward + ordertax;
+                            totaloutward = outward;// + ordertax;
                             totaloutward = Math.Round(totaloutward, 2);
                         }
                         double total = opqty + inward;
@@ -5178,7 +5087,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                         {
                             double.TryParse(drout["outwardqty"].ToString(), out outward);
                             double.TryParse(drout["ordertax"].ToString(), out ordertax);
-                            totaloutward = outward + ordertax;
+                            totaloutward = outward; //+ ordertax;
                             totaloutward = Math.Round(totaloutward, 2);
                         }
                         double total = opqty + inward;

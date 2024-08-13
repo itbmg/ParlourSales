@@ -137,6 +137,12 @@ public partial class login : System.Web.UI.Page
                         ValidateLogin();
                         Response.Redirect("Distibuterindent.aspx", false);
                     }
+                    if (leveltype == "AccountsOfficer")
+                    {
+                        ValidateLogin();
+                        Response.Redirect("vocherform.aspx", false);
+                    }
+                    
                 }
             }
             else

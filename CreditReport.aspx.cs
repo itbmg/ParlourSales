@@ -39,11 +39,11 @@ public partial class CreditReport : System.Web.UI.Page
     {
 
         SalesDBManager SalesDB = new SalesDBManager();
-        cmd = new SqlCommand("select sno, name from customermaster");
+        cmd = new SqlCommand("SELECT  branchid, branchname FROM  branchmaster");
         DataTable dtcmp = vdm.SelectQuery(cmd).Tables[0];
         ddlcompany.DataSource = dtcmp;
-        ddlcompany.DataTextField = "name";
-        ddlcompany.DataValueField = "sno";
+        ddlcompany.DataTextField = "branchname";
+        ddlcompany.DataValueField = "branchid";
         ddlcompany.DataBind();
         ddlcompany.ClearSelection();
         ddlcompany.Items.Insert(0, new ListItem { Value = "0", Text = "--Select Customer--", Selected = true });

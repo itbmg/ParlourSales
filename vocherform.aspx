@@ -2,9 +2,9 @@
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
     <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
-    <script src="bootstrap/js/JTemplate.js"></script>
-    <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
-    <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+
+    <script src="http://code.jquery.com/jquery-1.9.1.js" type="text/javascript"></script>
+    <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js" type="text/javascript"></script>
     <script src="js/jquery-1.4.4.js?v=3004" type="text/javascript"></script>
     <script src="js/newjs/jquery.js?v=3004" type="text/javascript"></script>
     <script src="Js/JTemplate.js?v=3004" type="text/javascript"></script>
@@ -16,6 +16,7 @@
     <link rel="stylesheet" type="text/css" href="Css/VyshnaviStyles.css" />
     <script src="js/jquery.json-2.4.js?v=3004" type="text/javascript"></script>
     <script src="js/newjs/jquery-ui.js?v=3004" type="text/javascript"></script>
+    <script src="bootstrap/js/JTemplate.js" type="text/javascript"></script>
    <link href="autocomplete/jquery-ui.css" rel="stylesheet" type="text/css" />
     <style type="text/css">
         .ui-autocomplete
@@ -163,7 +164,7 @@
             callHandler(data, s, e);
         }
         function FillSalesOffice() {
-            var data = { 'op': 'GetSalesOffice' };
+            var data = { 'op': 'get_parlor_details' };
             var s = function (msg) {
                 if (msg) {
                     if (msg == "Session Expired") {
@@ -216,10 +217,10 @@
             opt.innerHTML = "select";
             ddlsalesOffice.appendChild(opt);
             for (var i = 0; i < msg.length; i++) {
-                if (msg[i].BranchName != null) {
+                if (msg[i].parlorname != null) {
                     var opt = document.createElement('option');
-                    opt.innerHTML = msg[i].BranchName;
-                    opt.value = msg[i].Sno;
+                    opt.innerHTML = msg[i].parlorname;
+                    opt.value = msg[i].parlorid;
                     ddlsalesOffice.appendChild(opt);
                 }
             }
@@ -563,7 +564,7 @@
             }
         }
         function Fillso() {
-            var data = { 'op': 'GetSalesOffice' };
+            var data = { 'op': 'get_parlor_details' };
             var s = function (msg) {
                 if (msg) {
                     if (msg == "Session Expired") {
@@ -586,10 +587,10 @@
             ddlsalesOffice.options.length = null;
             var opt = document.createElement('option');
             for (var i = 0; i < msg.length; i++) {
-                if (msg[i].BranchName != null) {
+                if (msg[i].parlorname != null) {
                     var opt = document.createElement('option');
-                    opt.innerHTML = msg[i].BranchName;
-                    opt.value = msg[i].Sno;
+                    opt.innerHTML = msg[i].parlorname;
+                    opt.value = msg[i].parlorid;
                     ddlsalesOffice.appendChild(opt);
                 }
             }
@@ -809,7 +810,7 @@
                 return false;
             }
             var DOE = document.getElementById('datepicker').value;
-            var Remarks = document.getElementById("txtCashierRemarks").innerHTML;
+            var Remarks = document.getElementById("txtCashierRemarks").value;
             var VoucherType = document.getElementById("spnVoucherType").innerHTML;
             var Force = 0;
             var chkforce = document.getElementById("chkforce").checked;
@@ -1068,19 +1069,18 @@
             var data = { 'op': 'GetSubPaybleValues', 'VoucherID': VoucherId, 'BranchID': branchid };
             var s = function (msg) {
                 if (msg) {
-                    $('#divHead').remove();
                     $('#divHead').setTemplateURL('SubPayable.htm');
                     $('#divHead').processTemplate(msg);
-                    var TotRate = 0.0;
-                    $('.AmountClass').each(function (i, obj) {
-                        if ($(this).text() == "") {
-                        }
-                        else {
-                            TotRate += parseFloat($(this).text());
-                        }
-                    });
-                    TotRate = parseFloat(TotRate).toFixed(2);
-                    document.getElementById("txt_total").innerHTML = TotRate;
+                    //var TotRate = 0.0;
+                    //$('.AmountClass').each(function (i, obj) {
+                    //    if ($(this).text() == "") {
+                    //    }
+                    //    else {
+                    //        TotRate += parseFloat($(this).text());
+                    //    }
+                    //});
+                    //TotRate = parseFloat(TotRate).toFixed(2);
+                    //document.getElementById("txt_total").innerHTML = TotRate;
                 }
                 else {
                     alert(msg);
@@ -1767,7 +1767,7 @@
             document.getElementById("spnAmounts").innerHTML = msg[0].Amount;
             document.getElementById("spnApprovalEmps").innerHTML = msg[0].ApproveEmpName;
             document.getElementById("txtCashierRemarkss").value = msg[0].Remarks;
-            document.getElementById("spnVoucherIDs").innerHTML = msg[0].branchVocherID;
+            document.getElementById("spnVoucherIDs").innerHTML = msg[0].branchvoucherid;
             document.getElementById("txtApprovalamts").value = msg[0].ApprovalAmount;
             document.getElementById("txtRemarkss").value = msg[0].ApprovalRemarks;
             document.getElementById("txtApprovalamts").value = msg[0].Amount;
@@ -1916,6 +1916,10 @@
                 branchID = document.getElementById("ddlSo").value;
             }
             else {
+            }
+            if (Status == "Approved") {
+                alert("Voucher Already Approved");
+                return false;
             }
             var data = { 'op': 'btn_approve_voucher_grid', 'VoucherID': VoucherID, 'Amount': Amount, 'remarks': remarks, 'branchID': branchID };
             var s = function (msg) {
