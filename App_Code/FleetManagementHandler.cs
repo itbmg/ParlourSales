@@ -385,6 +385,13 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                 case "btn_approve_voucher_grid":
                     btn_approve_voucher_grid(context);
                     break;
+
+                case "BtnGetCashBookClosing":
+                    BtnGetCashBookClosing(context);
+                    break;
+
+
+                    
                 default:
                     var jsonString = string.Empty;
                     context.Request.InputStream.Position = 0;
@@ -473,6 +480,14 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             string response = GetJson(ex.ToString());
             context.Response.Write(response);
         }
+    }
+
+    private void BtnGetCashBookClosing(HttpContext context)
+    {
+        context.Session["DenominationString"] = context.Request["DenominationString"];
+        string msg = "success";
+        string response = GetJson(msg);
+        context.Response.Write(response);
     }
     private void btn_approve_voucher_grid(HttpContext context)
     {
@@ -4927,7 +4942,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                         {
                             double.TryParse(drout["outwardqty"].ToString(), out outward);
                             double.TryParse(drout["ordertax"].ToString(), out ordertax);
-                            totaloutward = outward;// + ordertax;
+                            totaloutward = outward + ordertax;
                             totaloutward = Math.Round(totaloutward, 2);
                         }
                         double total = opqty + inward;

@@ -14,6 +14,8 @@ public partial class CashBook : System.Web.UI.Page
     SqlCommand cmd;
     string BranchID = "";
     SalesDBManager vdm;
+    double submittedcash = 0;
+    double totalsale = 0;
     protected void Page_Load(object sender, EventArgs e)
     {
         if (Session["branch"] == null)
@@ -83,6 +85,7 @@ public partial class CashBook : System.Web.UI.Page
     DataTable RouteReport = new DataTable();
     DataTable CashPayReport = new DataTable();
     DataTable IOUReport = new DataTable();
+    
     void GetReport()
     {
         try
@@ -219,6 +222,7 @@ public partial class CashBook : System.Web.UI.Page
                     val = 0.0;
                     double.TryParse(sortedDT.Compute("sum([" + dc.ToString() + "])", "[" + dc.ToString() + "]<>'0'").ToString(), out val);
                     newvartical[dc.ToString()] = val;
+                    Session["totalsale"] = val;
                 }
             }
             sortedDT.Rows.Add(newvartical);
@@ -278,87 +282,87 @@ public partial class CashBook : System.Web.UI.Page
             newDebitBal["Amount"] = TotalAmount - valnewCash;
             DebitCash = TotalAmount - valnewCash;
             CashPayReport.Rows.Add(newDebitBal);
+            lblhidden.Text = DebitCash.ToString();
             grdCashPayable.DataSource = CashPayReport;
             grdCashPayable.DataBind();
 
+            double TotNetAmount = 0;
 
-            //cmd = new SqlCommand("SELECT BranchID FROM  Collections WHERE (BranchId = @BranchId) AND (PaidDate BETWEEN @d1 AND @d2)");
-            //cmd.Parameters.AddWithValue("@BranchID", ddlcompany.SelectedValue);
-            //cmd.Parameters.AddWithValue("@d1", GetLowDate(fromdate));
-            //cmd.Parameters.AddWithValue("@d2", GetHighDate(fromdate));
-            //DataTable dtCol = vdm.SelectQuery(cmd).Tables[0];
+            cmd = new SqlCommand("select * from registorclosingdetails where doe between @d1 and @d2 and parlorid=@parlorid");
+            cmd.Parameters.Add("@d1", GetLowDate(fromdate));
+            cmd.Parameters.Add("@d2", GetHighDate(fromdate));
+            cmd.Parameters.AddWithValue("@parlorid", ddlcompany.SelectedValue);
+            DataTable dtClo = vdm.SelectQuery(cmd).Tables[0];
+            if (dtClo.Rows.Count > 0)
+            {
 
-            //double TotNetAmount = 0;
-            //cmd = new SqlCommand("SELECT collections.Branchid, collections.AmountPaid, collections.Denominations, collections.VEmpID, collections.EmpID, empmanage.EmpName FROM collections INNER JOIN empmanage ON collections.EmpID = empmanage.Sno WHERE (collections.Branchid = @BranchID) AND (collections.PaidDate BETWEEN @d1 AND @d2)");
-            //cmd.Parameters.AddWithValue("@BranchID", ddlcompany.SelectedValue);
-            //cmd.Parameters.AddWithValue("@d1", GetLowDate(fromdate));
-            //cmd.Parameters.AddWithValue("@d2", GetHighDate(fromdate));
-            //DataTable dtClo = vdm.SelectQuery(cmd).Tables[0];
-            //if (dtClo.Rows.Count > 0)
-            //{
+                hidePanel.Visible = false;
+                DiffPanel.Visible = true;
+                //string llCash = denominationtotal.ToString();
 
-            //    hidePanel.Visible = false;
-            //    DiffPanel.Visible = true;
-            //    //string llCash = denominationtotal.ToString();
-
-            //    panelGrid.Visible = true;
-            //    PanelDen.Visible = false;
-            //    DataTable dtDenom = new DataTable();
-            //    dtDenom.Columns.Add("Cash");
-            //    dtDenom.Columns.Add("Count");
-            //    dtDenom.Columns.Add("Amount");
-            //    string strDenomin = dtClo.Rows[0]["Denominations"].ToString();
-            //    double denominationtotal = 0;
-            //    foreach (string str in strDenomin.Split('+'))
-            //    {
-            //        if (str != "")
-            //        {
-            //            DataRow newDeno = dtDenom.NewRow();
-            //            string[] price = str.Split('x');
-            //            if (price.Length > 1)
-            //            {
-            //                newDeno["Cash"] = price[0];
-            //                newDeno["Count"] = price[1];
-            //                float denamount = 0;
-            //                float.TryParse(price[0], out denamount);
-            //                float DencAmount = 0;
-            //                float.TryParse(price[1], out DencAmount);
-            //                newDeno["Amount"] = Convert.ToDecimal(denamount * DencAmount).ToString("#,##0.00");
-            //                denominationtotal += denamount * DencAmount;
-            //                dtDenom.Rows.Add(newDeno);
-            //            }
-            //        }
-            //    }
-            //    DataRow newDenoTotal = dtDenom.NewRow();
-            //    newDenoTotal["Cash"] = "Total";
-            //    newDenoTotal["Amount"] = denominationtotal;
-            //    dtDenom.Rows.Add(newDenoTotal);
-                
-            //    double TotalCash = 0;
-            //    TotalCash = denominationtotal;
-            //    lblTotalAmout.Text = TotalCash.ToString();
-            //    double Differnce = 0;
-            //    //Differnce = DebitCash - TotalCash;
-            //    Differnce = TotalCash - DebitCash;
-            //    lblDiffernce.Text = Differnce.ToString();
-            //    //lblpreparedby.Text = dtClo.Rows[0]["EmpName"].ToString();
-            //    //OppBal
+                panelGrid.Visible = true;
+                PanelDen.Visible = false;
+                DataTable dtDenom = new DataTable();
+                dtDenom.Columns.Add("Cash");
+                dtDenom.Columns.Add("Count");
+                dtDenom.Columns.Add("Amount");
+                string strDenomin = dtClo.Rows[0]["Denominations"].ToString();
+                double denominationtotal = 0;
+                foreach (string str in strDenomin.Split('+'))
+                {
+                    if (str != "")
+                    {
+                        DataRow newDeno = dtDenom.NewRow();
+                        string[] price = str.Split('x');
+                        if (price.Length > 1)
+                        {
+                            newDeno["Cash"] = price[0];
+                            newDeno["Count"] = price[1];
+                            float denamount = 0;
+                            float.TryParse(price[0], out denamount);
+                            float DencAmount = 0;
+                            float.TryParse(price[1], out DencAmount);
+                            newDeno["Amount"] = Convert.ToDecimal(denamount * DencAmount).ToString("#,##0.00");
+                            denominationtotal += denamount * DencAmount;
+                            dtDenom.Rows.Add(newDeno);
+                        }
+                    }
+                }
+                DataRow newDenoTotal = dtDenom.NewRow();
+                newDenoTotal["Cash"] = "Total";
+                newDenoTotal["Amount"] = denominationtotal;
+                dtDenom.Rows.Add(newDenoTotal);
+               
+                double TotalCash = 0;
+                TotalCash = denominationtotal;
+                lblTotalAmout.Text = TotalCash.ToString();
+                double Differnce = 0;
+                //Differnce = DebitCash - TotalCash;
+                Differnce = TotalCash - DebitCash;
+                lblDiffernce.Text = Differnce.ToString();
+                //OppBal
 
 
-            //    double Zerodiff = 0;
-            //    Zerodiff = TotNetAmount - denominationtotal;
-            //    Zerodiff = Math.Round(Zerodiff, 0);
-            //    lblZeroDiffence.Text = Zerodiff.ToString();
-            //    grdDenomination.DataSource = dtDenom;
-            //    grdDenomination.DataBind();
-            //    lblCash.Text = denominationtotal.ToString();
-            //}
-            //else
-            //{
-            //    PanelDen.Visible = true;
-            //    panelGrid.Visible = false;
-            //    DiffPanel.Visible = true;
-            //}
+                double Zerodiff = 0;
+                Zerodiff = TotNetAmount - denominationtotal;
+                Zerodiff = Math.Round(Zerodiff, 0);
+                lblZeroDiffence.Text = Zerodiff.ToString();
+                grdDenomination.DataSource = dtDenom;
+                grdDenomination.DataBind();
+                lblCash.Text = denominationtotal.ToString();
+            }
+            else
+            {
+                PanelDen.Visible = true;
+                panelGrid.Visible = false;
+                DiffPanel.Visible = true;
+                double dif = 0;
+                double totdif = 0;
+                totdif =dif;
+                lblDiffernce.Text = totdif.ToString();
+
+            }
+
         }
         catch (Exception ex)
         {
@@ -371,15 +375,16 @@ public partial class CashBook : System.Web.UI.Page
         {
             vdm = new SalesDBManager();
             //string DenCash = Session["Cash"].ToString();
-            
-            //double Cash = 0;
-            //double.TryParse(DenCash, out Cash);
-            // double TotalAmount = 0;
+            double op = 0;
+            double.TryParse(lblOppBal.Text, out op);
+
+           
+
             double Totalclosing = 0;
             //TotalAmount = Cash + IOU;
             //double diffamount = 0;
-            //double.TryParse(lblDiffernce.Text, out diffamount);
-
+            double.TryParse(lblhidden.Text, out Totalclosing);
+          
             DataTable dt = (DataTable)Session["IOUReport"];
             lblmsg.Text = "";
             DateTime fromdate = new DateTime();
@@ -396,11 +401,13 @@ public partial class CashBook : System.Web.UI.Page
             fromdate = fromdate;
             DateTime ServerDateCurrentdate = SalesDBManager.GetTime(vdm.conn);
             string DenominationString = Session["DenominationString"].ToString();
+            string tsale = Session["totalsale"].ToString();
+            
             DenominationString = DenominationString.Trim();
-            cmd = new SqlCommand("SELECT BranchID FROM  Collections WHERE (BranchId = @BranchId) AND (PaidDate BETWEEN @d1 AND @d2)");
-            cmd.Parameters.AddWithValue("@BranchID", ddlcompany.SelectedValue);
-            cmd.Parameters.AddWithValue("@d1", GetLowDate(fromdate));
-            cmd.Parameters.AddWithValue("@d2", GetHighDate(fromdate));
+            cmd = new SqlCommand("select * from registorclosingdetails where doe between @d1 and @d2 and parlorid=@parlorid");
+            cmd.Parameters.Add("@d1", GetLowDate(fromdate));
+            cmd.Parameters.Add("@d2", GetHighDate(fromdate));
+            cmd.Parameters.AddWithValue("@parlorid", ddlcompany.SelectedValue);
             DataTable dtCol = vdm.SelectQuery(cmd).Tables[0];
             if (dtCol.Rows.Count > 0)
             {
@@ -410,115 +417,89 @@ public partial class CashBook : System.Web.UI.Page
             else
             {
 
-                cmd = new SqlCommand("SELECT cashpayables.Sno, cashpayables.BranchID, cashpayables.CashTo,subpayable.HeadSno, cashpayables.DOE, cashpayables.VocherID, cashpayables.Remarks, SUM(cashpayables.ApprovedAmount) AS Amount, accountheads.HeadName FROM cashpayables INNER JOIN subpayable ON cashpayables.Sno = subpayable.RefNo INNER JOIN accountheads ON subpayable.HeadSno = accountheads.Sno WHERE (cashpayables.BranchID = @BranchID) AND (cashpayables.Status='P') AND (cashpayables.VoucherType = 'Credit') GROUP BY accountheads.Sno ORDER BY accountheads.HeadName");
-                cmd.Parameters.AddWithValue("@BranchID", ddlcompany.SelectedValue);
-                DataTable dtCredit = vdm.SelectQuery(cmd).Tables[0];
-                cmd = new SqlCommand("SELECT cashpayables.onNameof,cashpayables.CashTo, SUM(cashpayables.ApprovedAmount) AS Amount, subpayable.HeadSno, accountheads.HeadName FROM cashpayables INNER JOIN subpayable ON cashpayables.Sno = subpayable.RefNo INNER JOIN accountheads ON subpayable.HeadSno = accountheads.Sno WHERE (cashpayables.BranchID = @BranchID) AND (cashpayables.VoucherType = 'Due') AND (cashpayables.Status<> 'C') AND (cashpayables.Status='P') GROUP BY  accountheads.HeadName ORDER BY accountheads.HeadName");
-                cmd.Parameters.AddWithValue("@BranchID", ddlcompany.SelectedValue);
-                DataTable dtDebit = vdm.SelectQuery(cmd).Tables[0];
-                foreach (DataRow dr in dtDebit.Rows)
+                cmd = new SqlCommand("insert into registorclosingdetails( totalsale, totalcash, submittedcash, denominations,parlorid, createdon, closedby, doe) values (@totalsale, @totalcash, @submittedcash, @denominations,@parlorid, @createdon, @closedby, @doe)");//,color,@color
+                cmd.Parameters.Add("@totalsale", tsale);
+                cmd.Parameters.Add("@totalcash", Totalclosing);//@submittedcash, @submittedslips, @submittedchecks, @description, @parlorid, @createdon, @closedby
+                cmd.Parameters.Add("@submittedcash", Totalclosing);
+                cmd.Parameters.Add("@parlorid", ddlcompany.SelectedValue);
+                cmd.Parameters.Add("@createdon", fromdate);
+                cmd.Parameters.Add("@doe", ServerDateCurrentdate);
+                cmd.Parameters.Add("@closedby", Session["Employ_Sno"].ToString());
+                cmd.Parameters.Add("@denominations", DenominationString);
+                vdm.insert(cmd);
+                cmd = new SqlCommand("select MAX(sno) as refno from registorclosingdetails");
+                DataTable dtoutward = vdm.SelectQuery(cmd).Tables[0];
+                string refno = dtoutward.Rows[0]["refno"].ToString();
+
+                cmd = new SqlCommand("select * from productmoniter");
+                DataTable dtitem = vdm.SelectQuery(cmd).Tables[0];
+                cmd = new SqlCommand("select op_bal,refno, productid, price, clo_bal,doe,branchid from sub_registorclosingdetails where branchid=@branchid and doe between @d1 and @d2");
+                cmd.Parameters.Add("@d1", GetLowDate(fromdate).AddDays(-1));
+                cmd.Parameters.Add("@d2", GetHighDate(fromdate).AddDays(-1));
+                cmd.Parameters.Add("@branchid", ddlcompany.SelectedValue);
+                DataTable dtop = vdm.SelectQuery(cmd).Tables[0];
+
+                DateTime dt_fromdate = Convert.ToDateTime(fromdate);
+                cmd = new SqlCommand("SELECT SUM(inward_subdetails.qty) AS inwardqty,productmaster.productname, productmaster.productid,(CONVERT(NVARCHAR(10), inward_maindetails.doe, 120)) AS doe  FROM   inward_maindetails INNER JOIN  inward_subdetails ON inward_maindetails.sno = inward_subdetails.refno INNER JOIN productmaster ON productmaster.productid = inward_subdetails.productid  WHERE (inward_maindetails.doe BETWEEN @d11 AND @d22) AND (inward_maindetails.branchid = @bidd) AND (inward_maindetails.status = 'A') group by productmaster.productname, (CONVERT(NVARCHAR(10), inward_maindetails.doe, 120)),productmaster.productid");
+                cmd.Parameters.Add("@d11", GetLowDate(dt_fromdate));
+                cmd.Parameters.Add("@d22", GetHighDate(dt_fromdate));
+                cmd.Parameters.Add("@bidd", ddlcompany.SelectedValue);
+                DataTable dtinward = vdm.SelectQuery(cmd).Tables[0];
+
+                cmd = new SqlCommand("SELECT   Sum(possale_subdetails.qty) AS outwardqty, productmaster.productid, Sum(possale_subdetails.totvalue) AS totvalue, Sum(possale_subdetails.ordertax) AS ordertax,CAST(possale_maindetails.doe AS date) FROM possale_maindetails INNER JOIN possale_subdetails on possale_subdetails.refno = possale_maindetails.sno INNER JOIN productmaster ON productmaster.productid = possale_subdetails.productid  WHERE possale_maindetails.doe BETWEEN @d1 AND @d2 AND possale_maindetails.branchid=@bid  GROUP BY  productmaster.productid,CAST(possale_maindetails.doe AS date)");
+                cmd.Parameters.Add("@d1", GetLowDate(fromdate));
+                cmd.Parameters.Add("@d2", GetHighDate(fromdate));
+                cmd.Parameters.Add("@bid", ddlcompany.SelectedValue);
+                DataTable dtouward = vdm.SelectQuery(cmd).Tables[0];
+
+
+                foreach (DataRow dr in dtitem.Rows)
                 {
-                    string IouName = dr["HeadName"].ToString();
-                    double iouamtdebit = 0;
-                    double iouamtcredit = 0;
-                    double TotIouBal = 0;
-                    double.TryParse(dr["Amount"].ToString(), out iouamtdebit);
-                    foreach (DataRow drcredit in dtCredit.Select("HeadSno='" + dr["HeadSno"].ToString() + "'"))
+                    double opqty = 0;
+                    double inward = 0;
+                    double outward = 0;
+                    double closing = 0;
+                    double ordertax = 0;
+                    double totaloutward = 0;
+                    foreach (DataRow drop in dtop.Select("productid='" + dr["productid"].ToString() + "'"))
                     {
-                        double.TryParse(drcredit["Amount"].ToString(), out iouamtcredit);
+                        double.TryParse(drop["clo_bal"].ToString(), out opqty);
                     }
-                    TotIouBal = iouamtdebit - iouamtcredit;
-                    if (TotIouBal == 0)
+                    //string date = "";
+                    // DateTime dt = Convert.ToDateTime(dr["doe"].ToString());
+                    // string date = dt.AddDays(1).ToString("yyyy-MM-dd");
+                    //   double.TryParse(dr["clo_bal"].ToString(), out opqty);
+                    foreach (DataRow drin in dtinward.Select("productid='" + dr["productid"].ToString() + "'"))
                     {
+                        double.TryParse(drin["inwardqty"].ToString(), out inward);
+                    }
+                    foreach (DataRow drout in dtouward.Select("productid='" + dr["productid"].ToString() + "'"))
+                    {
+                        double.TryParse(drout["outwardqty"].ToString(), out outward);
+                        double.TryParse(drout["ordertax"].ToString(), out ordertax);
+                        totaloutward = outward;// + ordertax;
+                        totaloutward = Math.Round(totaloutward, 2);
+                    }
+                    double total = opqty + inward;
+                    closing = total - outward;
+                    cmd = new SqlCommand("insert into sub_registorclosingdetails(refno, productid, price, clo_bal,op_bal,doe,branchid,inwardqty,saleqty) values(@refno, @productid, @price, @clo_bal,@op_bal,@doe,@branchid,@inwardqty,@saleqty)");
+                    cmd.Parameters.Add("@refno", refno);
+                    cmd.Parameters.Add("@productid", dr["productid"].ToString());
+                    cmd.Parameters.Add("@price", dr["price"].ToString());
+                    cmd.Parameters.Add("@clo_bal", closing);
+                    if (opqty != 0)
+                    {
+                        cmd.Parameters.Add("@op_bal", opqty);
                     }
                     else
                     {
-                        cmd = new SqlCommand("Insert into ioutable (BranchID,IOU,Amount,DOE) values(@BranchID,@IOU,@Amount,@DOE)");
-                        cmd.Parameters.AddWithValue("@BranchID", ddlcompany.SelectedValue);
-                        cmd.Parameters.AddWithValue("@Amount", TotIouBal);
-                        cmd.Parameters.AddWithValue("@IOU", IouName);
-                        cmd.Parameters.AddWithValue("@DOE", fromdate);
-                        vdm.insert(cmd);
+                        cmd.Parameters.Add("@op_bal", "0");
                     }
-                }
-                cmd = new SqlCommand("Insert into Collections (BranchID,AmountPaid,UserData_sno,PaidDate,PaymentType,Denominations,EmpID,VarifyDate) values(@BranchID,@AmountPaid,@UserData_sno,@PaidDate,@PaymentType,@Denominations,@EmpID,@VarifyDate)");
-                cmd.Parameters.AddWithValue("@BranchID", ddlcompany.SelectedValue);
-                cmd.Parameters.AddWithValue("@AmountPaid", Math.Round(Totalclosing, 2));
-                cmd.Parameters.AddWithValue("@Denominations", DenominationString);
-                cmd.Parameters.AddWithValue("@UserData_sno", "1");
-                cmd.Parameters.AddWithValue("@PaidDate", fromdate);
-                cmd.Parameters.AddWithValue("@VarifyDate", ServerDateCurrentdate);
-                cmd.Parameters.AddWithValue("@PaymentType", "Cash");
-                cmd.Parameters.AddWithValue("@EmpID", Session["UserSno"].ToString());
-                vdm.insert(cmd);
-                if (ddlcompany.SelectedValue == "172")
-                {
-
-                    string strDenomin = DenominationString;
-                    double denominationtotal = 0;
-                    foreach (string str in strDenomin.Split('+'))
-                    {
-                        if (str != "")
-                        {
-                            string[] price = str.Split('x');
-                            if (price.Length > 1)
-                            {
-                                float denamount = 0;
-                                float.TryParse(price[0], out denamount);
-                                float DencAmount = 0;
-                                float.TryParse(price[1], out DencAmount);
-                                denominationtotal += denamount * DencAmount;
-                            }
-                        }
-                    }
-                    cmd = new SqlCommand("SELECT  DispNo, PhoneNumber, Sno, EmpID, EmailID, MsgType, name FROM mobilenotable where MsgType=@MsgType");
-                    cmd.Parameters.AddWithValue("@MsgType", "3");
-                    DataTable dtmobileno = vdm.SelectQuery(cmd).Tables[0];
-                    if (dtmobileno.Rows.Count > 0)
-                    {
-                        foreach (DataRow drmobile in dtmobileno.Rows)
-                        {
-                            // string Date = fromdate;
-                            phonenumber = drmobile["PhoneNumber"].ToString();
-                            WebClient client = new WebClient();
-                            string strdate = fromdate.ToString("dd/MMM");
-                            string message = "";
-                            if (Session["TitleName"].ToString() == "Sri Vyshnavi Foods Pvt Ltd")
-                            {
-                                string baseurl = "http://roundsms.com/api/sendhttp.php?authkey=Y2U3NGE2MGFkM2V&mobiles=" + phonenumber + "&message=%20" + ddlcompany.SelectedItem.Text + "%20CashBook%20Cash In Hand%20Amount%20for%20The%20Date%20Of%20%20" + strdate + "%20Amount%20is =" + denominationtotal + "&sender=VYSNVI&type=1&route=2";
-                                // string baseurl = "http://www.smsstriker.com/API/sms.php?username=vaishnavidairy&password=vyshnavi@123&from=VSALES&to=" + phonenumber + "&msg=%20" + ddlcompany.SelectedItem.Text + "%20CashBook%20Cash In Hand%20Amount%20for%20The%20Date%20Of%20%20" + strdate + "%20Amount%20is =" + denominationtotal + "&type=1";
-                                message = "" + ddlcompany.SelectedItem.Text + " Closing Amount for The Date Of" + strdate + "ClosingAmoount is =" + denominationtotal + "";
-                                Stream data = client.OpenRead(baseurl);
-                                StreamReader reader = new StreamReader(data);
-                                string ResponseID = reader.ReadToEnd();
-                                data.Close();
-                                reader.Close();
-                            }
-                            else
-                            {
-                                string baseurl = "http://roundsms.com/api/sendhttp.php?authkey=Y2U3NGE2MGFkM2V&mobiles=" + phonenumber + "&message=Dear%20" + ddlcompany.SelectedItem.Text + "%20CashBook%20Closing%20Amount%20for%20The%20Date%20Of%20%20" + strdate + "%20Amount%20is =" + Math.Round(Totalclosing, 2) + "&sender=VYSNVI&type=1&route=2";
-                                // string baseurl = "http://www.smsstriker.com/API/sms.php?username=vaishnavidairy&password=vyshnavi@123&from=VFWYRA&to=" + phonenumber + "&msg=Dear%20" + ddlcompany.SelectedItem.Text + "%20CashBook%20Closing%20Amount%20for%20The%20Date%20Of%20%20" + strdate + "%20Amount%20is =" + Math.Round(Totalclosing, 2) + "&type=1";
-                                message = "" + ddlcompany.SelectedItem.Text + "Your Incentive Amount Credeted for The Month Of" + strdate + "Amount is =" + Math.Round(Totalclosing, 2) + "";
-                                Stream data = client.OpenRead(baseurl);
-                                StreamReader reader = new StreamReader(data);
-                                string ResponseID = reader.ReadToEnd();
-                                data.Close();
-                                reader.Close();
-                            }
-                            //cmd = new SqlCommand("insert into smsinfo (agentid,branchid,mainbranch,msg,mobileno,msgtype,agentname,doe) values (@agentid,@branchid,@mainbranch,@msg,@mobileno,@msgtype,@agentname,@doe)");
-                            //cmd.Parameters.AddWithValue("@agentid", BranchID);
-                            //cmd.Parameters.AddWithValue("@branchid", soid);
-                            //cmd.Parameters.AddWithValue("@mainbranch", Session["SuperBranch"].ToString());
-                            //cmd.Parameters.AddWithValue("@msg", message);
-                            //cmd.Parameters.AddWithValue("@mobileno", phonenumber);
-                            //cmd.Parameters.AddWithValue("@msgtype", "CashBook");
-                            //cmd.Parameters.AddWithValue("@agentname", BranchName);
-                            //cmd.Parameters.AddWithValue("@doe", ServerDateCurrentdate);
-                            //vdm.insert(cmd);
-
-                        }
-                    }
-
+                    cmd.Parameters.Add("@doe", fromdate);
+                    cmd.Parameters.Add("@branchid", ddlcompany.SelectedValue);
+                    cmd.Parameters.Add("@inwardqty", inward);
+                    cmd.Parameters.Add("@saleqty", outward);
+                    vdm.insert(cmd);
                 }
 
                 lblmsg.Text = "Cash Book saved successfully";

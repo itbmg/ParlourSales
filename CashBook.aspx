@@ -42,9 +42,10 @@
             });
             document.getElementById('txt_Total').innerHTML = TotalCash;
             document.getElementById('<%=lblCash.ClientID %>').innerHTML = TotalCash;
-            var totdif = parseFloat(lbliou) + parseFloat(TotalCash); 
+            var totdif = parseFloat(TotalCash); 
             var labelObj = document.getElementById("<%= lblDiffernce.ClientID %>");
             var label = document.getElementById("<%= lblTotalAmout.ClientID %>");
+            var labelhidden = document.getElementById("<%= lblhidden.ClientID %>").innerHTML;
             labelObj.value = "";
             label.value = "";
             document.getElementById('<%=lblTotalAmout.ClientID %>').innerHTML = totdif;
@@ -73,7 +74,7 @@
                 alert("Please check denominations,differnce amount should be zero");
                 return false;
             }
-            var data = { 'operation': 'BtnGetCashBookClosing', 'DenominationString': DenominationString };
+            var data = { 'op': 'BtnGetCashBookClosing', 'DenominationString': DenominationString };
             var s = function (msg) {
                 if (msg) {
                     Status = "Success";
@@ -91,7 +92,7 @@
         }
         function callHandler(d, s, e) {
             $.ajax({
-                url: 'DairyFleet.axd',
+                url: 'FleetManagementHandler.axd',
                 data: d,
                 type: 'GET',
                 dataType: "json",
@@ -99,7 +100,7 @@
                 async: true,
                 cache: true,
                 success: s,
-                error: e
+                Error: e
             });
         }
         function ExportToExcel() {
@@ -510,6 +511,11 @@
                 <asp:Panel ID="DiffPanel" runat="server" Visible="true">
                     <div style="width: 30%;">
                         <table>
+                            <tr>
+                                <td style="width: 25%; display: none;">
+                                    <asp:Label ID="lblhidden" runat="server" ForeColor="Red" Text=""></asp:Label>
+                                </td>
+                            </tr>
                             <tr>
                                 <td style="width: 25%;">
                                     <span style="font-size: 14px;">Cash</span>
