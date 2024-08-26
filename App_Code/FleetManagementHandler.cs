@@ -10725,6 +10725,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
         public string salesdate { set; get; }
         public string inwardqty { set; get; }
         public string saleqty { set; get; }
+        public string returnqty { set; get; }
         public string clo_balance { set; get; }
         public string sno { set; get; }
         public string doe { set; get; }
@@ -10746,7 +10747,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             string todate = context.Request["todate"];
             DateTime dt_fromdate = Convert.ToDateTime(fromdate);
             DateTime dt_todate = Convert.ToDateTime(todate);
-            cmd = new SqlCommand("Select aa.inwardqty,aa.saleqty,aa.op_bal,aa.refno, aa.productid,aa.sno, aa.price, aa.clo_bal,aa.doe,aa.branchid,bb.productname from sub_registorclosingdetails as aa INNER JOIN productmaster bb ON aa.productid=bb.productid WHERE (aa.productid = @productid) AND (aa.doe BETWEEN @d1 AND @d2) order by aa.doe");
+            cmd = new SqlCommand("Select aa.return_qty,aa.inwardqty,aa.saleqty,aa.op_bal,aa.refno, aa.productid,aa.sno, aa.price, aa.clo_bal,aa.doe,aa.branchid,bb.productname from sub_registorclosingdetails as aa INNER JOIN productmaster bb ON aa.productid=bb.productid WHERE (aa.productid = @productid) AND (aa.doe BETWEEN @d1 AND @d2) order by aa.doe");
             cmd.Parameters.AddWithValue("@productid", productid);
             cmd.Parameters.AddWithValue("@d1", GetLowDate(dt_fromdate));
             cmd.Parameters.AddWithValue("@d2", GetHighDate(dt_todate));
@@ -10776,10 +10777,11 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                 double opqty = 0;
                 double inward = 0;
                 double outward = 0;
-                double ordertax = 0;
+                double return_qty = 0;
                 double cloqty = 0;
                 double totaloutward = 0;
 
+                double.TryParse(dr["return_qty"].ToString(), out return_qty);
                 double.TryParse(dr["op_bal"].ToString(), out opqty);
                 double.TryParse(dr["clo_bal"].ToString(), out cloqty);
                 double.TryParse(dr["inwardqty"].ToString(), out inward);
@@ -10806,6 +10808,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                 getBalanceItem.clo_balance = cloqty.ToString();
                 getBalanceItem.inwardqty = inward.ToString();
                 getBalanceItem.saleqty = outward.ToString();
+                getBalanceItem.returnqty = return_qty.ToString();
                 ItemBalList.Add(getBalanceItem);
             }
             string response = GetJson(ItemBalList);
@@ -10828,19 +10831,20 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             foreach (Item_Bal_Trans o in obj.filldetails)
             {
                 DateTime dtIndent = Convert.ToDateTime(o.doe);
-                cmd = new SqlCommand("UPDATE sub_registorclosingdetails set op_bal=@opp_balance,inwardqty=@inwardqty,saleqty=@saleqty,clo_bal=@clo_balance,doe=@doe  where sno=@sno and productid=@productid AND doe between @d1 and @d2");
+                cmd = new SqlCommand("UPDATE sub_registorclosingdetails set op_bal=@opp_balance,return_qty=@return_qty,inwardqty=@inwardqty,saleqty=@saleqty,clo_bal=@clo_balance,doe=@doe  where sno=@sno and productid=@productid AND doe between @d1 and @d2");
                 cmd.Parameters.AddWithValue("@d1", GetLowDate(dtIndent));
                 cmd.Parameters.AddWithValue("@d2", GetHighDate(dtIndent));
                 cmd.Parameters.AddWithValue("@opp_balance", o.opp_balance);
                 cmd.Parameters.AddWithValue("@inwardqty", o.inwardqty);
                 cmd.Parameters.AddWithValue("@saleqty", o.saleqty);
+                cmd.Parameters.AddWithValue("@return_qty", o.returnqty);
                 cmd.Parameters.AddWithValue("@clo_balance", o.clo_balance);
                 cmd.Parameters.AddWithValue("@productid", o.productid);
                 cmd.Parameters.AddWithValue("@sno", o.sno);
                 cmd.Parameters.AddWithValue("@doe", dtIndent);
                 vdm.Update(cmd);
             }
-            string msg = "ITem Balance Successfully Updated";
+            string msg = "Balances Successfully Updated";
             string Response = GetJson(msg);
             context.Response.Write(Response);
         }

@@ -321,6 +321,7 @@
                         <li class="divider"></li>
                         <li id="Li2"><a href="#"><i class="fa fa-circle-o"></i> Products Report</a></li>
                         <li id="reports_products"><a href="#"><i class="fa fa-circle-o"></i> Pening Orders Report</a></li>--%>
+                        <li id="StoresReturnReport"><a href="StoresReturnReport.aspx"><i class="fa fa-circle-o"></i> Stores Return Report</a></li>
                     </ul>
                 </li>
                             </ul>

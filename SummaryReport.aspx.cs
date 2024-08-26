@@ -104,6 +104,9 @@ public partial class SummaryReport : System.Web.UI.Page
         double grand_totalClosingbal = 0;
         double grand_totalOppValbal = 0;
         double grand_totalClosValbal = 0;
+        double grandtotal_returnqty = 0;
+        double grandtotal_returnvalue = 0;
+
         DataTable DailyReport = new DataTable();
         DailyReport.Columns.Add("Sno");
         DailyReport.Columns.Add("Itemcode");
@@ -115,6 +118,8 @@ public partial class SummaryReport : System.Web.UI.Page
         DailyReport.Columns.Add("Rec Value");
         DailyReport.Columns.Add("Issue(Qty)");
         DailyReport.Columns.Add("Issue Value");
+        DailyReport.Columns.Add("Return(Qty)");
+        DailyReport.Columns.Add("Return Value");
         DailyReport.Columns.Add("Clos(Qty)");
         DailyReport.Columns.Add("Clos Value");
 
@@ -123,7 +128,7 @@ public partial class SummaryReport : System.Web.UI.Page
         cmd.Parameters.Add("@d2", GetHighDate(todate));
         cmd.Parameters.Add("@bid", BranchID);
         DataTable dtsales = SalesDB.SelectQuery(cmd).Tables[0];
-        cmd = new SqlCommand("SELECT   Pmaster.productname,Pmaster.price,Pmaster.productid,subreg.op_bal,subreg.clo_bal,subreg.inwardqty,subreg.saleqty from sub_registorclosingdetails as subreg INNER JOIN  productmaster as Pmaster ON subreg.productid=Pmaster.productid  where (subreg.branchid=@branchid) and (subreg.doe between @d1 and @d2) order by Pmaster.productid");
+        cmd = new SqlCommand("SELECT   Pmaster.productname,Pmaster.price,Pmaster.productid,subreg.return_qty ,subreg.op_bal,subreg.clo_bal,subreg.inwardqty,subreg.saleqty from sub_registorclosingdetails as subreg INNER JOIN  productmaster as Pmaster ON subreg.productid=Pmaster.productid  where (subreg.branchid=@branchid) and (subreg.doe between @d1 and @d2) order by Pmaster.productid");
         cmd.Parameters.Add("@branchid", BranchID);
         cmd.Parameters.Add("@d1", GetLowDate(fromdate));
         cmd.Parameters.Add("@d2", GetHighDate(todate));
@@ -134,8 +139,8 @@ public partial class SummaryReport : System.Web.UI.Page
             sumsalevalue = 0;
             gsttaxvalue = 0;
             grandtotalsumvalue = 0;
-            suminwardqty =0;
-            grandtotalsuminwardqty =0;
+            suminwardqty = 0;
+            grandtotalsuminwardqty = 0;
             int i = 1;
             foreach (DataRow drtrans in dtclosing.Rows)
             {
@@ -166,8 +171,6 @@ public partial class SummaryReport : System.Web.UI.Page
                 grand_totalOppValbal += oppvalue;
                 grand_totalClosValbal += closvalue;
 
-
-
                 double inwardqty = 0;
                 double.TryParse(drtrans["inwardqty"].ToString(), out inwardqty);
                 suminwardqty += inwardqty;
@@ -178,12 +181,7 @@ public partial class SummaryReport : System.Web.UI.Page
                 totvalue = price * inwardqty;
                 sumsalevalue += totvalue;
                 grandtotalsuminwardvalue += totvalue;
-
                 newrow["Rec Value"] = totvalue;
-
-
-
-
 
 
                 double saleqty = 0;
@@ -199,13 +197,22 @@ public partial class SummaryReport : System.Web.UI.Page
                 sumsalevalue += totsalevalue;
                 grandtotalsumsalevalue += totsalevalue;
                 newrow["Issue Value"] = totsalevalue;
-               
+
                 gsttaxvalue += ordertax;
                 grandtotalgsttaxvalue += ordertax;
                 double ot = Math.Round(ordertax, 2);
                 double grandtotalvalue = totvalue + ordertax;
                 grandtotalsumvalue += grandtotalvalue;
                 grandtotalgrandtotalsumvalue += grandtotalvalue;
+
+                double totreturnvalue = 0;
+                double returnqty = 0;
+                double.TryParse(drtrans["return_qty"].ToString(), out returnqty);
+                totreturnvalue = price * returnqty;
+                newrow["Return(Qty)"] = returnqty;
+                grandtotal_returnqty += returnqty;
+                grandtotal_returnvalue += grandtotalvalue;
+                newrow["Return Value"] = totreturnvalue;
                 DailyReport.Rows.Add(newrow);
 
             }
@@ -219,6 +226,8 @@ public partial class SummaryReport : System.Web.UI.Page
         newvartical3["Issue Value"] = Math.Round(grandtotalsumsalevalue, 2);
         newvartical3["Opp(Qty)"] = Math.Round(grand_totaloppbal, 2);
         newvartical3["OppValue"] = Math.Round(grand_totalOppValbal, 2);
+        newvartical3["Return(Qty)"] = Math.Round(grandtotal_returnqty, 2);
+        newvartical3["Return Value"] = Math.Round(grandtotal_returnvalue, 2);
         newvartical3["Clos(Qty)"] = Math.Round(grand_totalClosingbal, 2);
         newvartical3["Clos Value"] = Math.Round(grand_totalClosValbal, 2);
         //newvartical3["GST Tax Value"] = Math.Round(grandtotalgsttaxvalue, 2);

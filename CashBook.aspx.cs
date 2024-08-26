@@ -452,11 +452,18 @@ public partial class CashBook : System.Web.UI.Page
                 cmd.Parameters.Add("@bid", ddlcompany.SelectedValue);
                 DataTable dtouward = vdm.SelectQuery(cmd).Tables[0];
 
+                cmd = new SqlCommand("select productmaster.productname, SR.sno, SR.returntype, SR.doe, SR.branchid, SR.remarks, SR.invoiceno, SR.refno, SR.billtotalvalue, SR.entryby, SR.createdon, SR.status, SSR.productid, SSR.quantity, SSR.price, SSR.storesreturn_sno, SSR.totalvalue, SSR.ordertax  from stores_return AS SR INNER JOIN sub_stores_return AS SSR ON SR.sno=SSR.storesreturn_sno INNER JOIN productmaster ON productmaster.productid = SSR.productid WHERE SR.doe between @d1 and @d2 AND SR.branchid=@branchid ");//, inwarddetails.indentno
+                cmd.Parameters.Add("@d1", GetLowDate(fromdate));
+                cmd.Parameters.Add("@d2", GetHighDate(fromdate));
+                cmd.Parameters.Add("@bid", ddlcompany.SelectedValue);
+                DataTable dtRetrun = vdm.SelectQuery(cmd).Tables[0];
+
 
                 foreach (DataRow dr in dtitem.Rows)
                 {
                     double opqty = 0;
                     double inward = 0;
+                    double return_qty = 0;
                     double outward = 0;
                     double closing = 0;
                     double ordertax = 0;
@@ -473,6 +480,10 @@ public partial class CashBook : System.Web.UI.Page
                     {
                         double.TryParse(drin["inwardqty"].ToString(), out inward);
                     }
+                    foreach (DataRow drreturn in dtRetrun.Select("productid='" + dr["productid"].ToString() + "'"))
+                    {
+                        double.TryParse(drreturn["quantity"].ToString(), out return_qty);
+                    }
                     foreach (DataRow drout in dtouward.Select("productid='" + dr["productid"].ToString() + "'"))
                     {
                         double.TryParse(drout["outwardqty"].ToString(), out outward);
@@ -482,7 +493,7 @@ public partial class CashBook : System.Web.UI.Page
                     }
                     double total = opqty + inward;
                     closing = total - outward;
-                    cmd = new SqlCommand("insert into sub_registorclosingdetails(refno, productid, price, clo_bal,op_bal,doe,branchid,inwardqty,saleqty) values(@refno, @productid, @price, @clo_bal,@op_bal,@doe,@branchid,@inwardqty,@saleqty)");
+                    cmd = new SqlCommand("insert into sub_registorclosingdetails(refno, productid, price, clo_bal,op_bal,doe,branchid,inwardqty,saleqty,return_qty) values(@refno, @productid, @price, @clo_bal,@op_bal,@doe,@branchid,@inwardqty,@saleqty,@return_qty)");
                     cmd.Parameters.Add("@refno", refno);
                     cmd.Parameters.Add("@productid", dr["productid"].ToString());
                     cmd.Parameters.Add("@price", dr["price"].ToString());
@@ -499,6 +510,7 @@ public partial class CashBook : System.Web.UI.Page
                     cmd.Parameters.Add("@branchid", ddlcompany.SelectedValue);
                     cmd.Parameters.Add("@inwardqty", inward);
                     cmd.Parameters.Add("@saleqty", outward);
+                    cmd.Parameters.Add("@return_qty", return_qty);
                     vdm.insert(cmd);
                 }
 

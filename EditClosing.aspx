@@ -218,8 +218,6 @@
                 }
             }
         }
-        
-
 
         function btn_Get_Bal_Details() {
             var Branchid = document.getElementById('ddlBranchName').value;
@@ -255,7 +253,7 @@
 
         function fill_details(msg) {
             var results = '<div  style="overflow:auto;"><table id="myTable" class="table table-bordered table-hover dataTable no-footer">';
-            results += '<thead><tr><th scope="col" >Sno</th><th scope="col">Date</th><th scope="col">AgentName</th><th scope="col">Opening</th><th scope="col">InwardQty</th><th scope="col">SaleQty</th><th scope="col">Closing</th><th></th></tr></thead></tbody>';
+            results += '<thead><tr><th scope="col" >Sno</th><th scope="col">Date</th><th scope="col">AgentName</th><th scope="col">Opening</th><th scope="col">InwardQty</th><th scope="col">SaleQty</th><th scope="col">ReturnQty</th><th scope="col">Closing</th><th></th></tr></thead></tbody>';
             var k = 1;
             for (var i = 0; i < msg.length; i++) {
                 results += '<tr>';
@@ -271,6 +269,10 @@
                 results += '<td id="txt_PrevInwardqty" class="clsPrevInwardqty" style="width:65px;display:none;">' + msg[i].inwardqty + '</td>';
                 results += '<td><input id="txt_Saleqty" class="clsSaleqty" style="width:65px;" value="' + msg[i].saleqty + '"/></td>';
                 results += '<td id="txt_PrevSaleqty" class="clsPrevSaleqty" style="width:65px;display:none;">' + msg[i].saleqty + '</td>';
+
+                results += '<td><input id="txt_Returnqty" class="clsReturnqty" style="width:65px;" value="' + msg[i].returnqty + '"/></td>';
+                results += '<td id="txt_PrevReturnqty" class="clsPrevReturnqty" style="width:65px;display:none;">' + msg[i].returnqty + '</td>';
+
                 results += '<td id="txt_PrevCloBal" class="clsPrevCloBal" style="width:65px;display:none;">' + msg[i].clo_balance + '</td>';
                 results += '<td><input  id="txt_CloBal" class="clsCloBal" style="width:65px;" value="' + msg[i].clo_balance + '"/></td>';
                 results += '<td><input  id="txt_Sno" class="8" style="width:65px;display:none;"  value="' + msg[i].sno + '"/></td></tr >';
@@ -280,18 +282,13 @@
             $("#div_BrandData").html(results);
         }
 
-
-
         var salevalue = 0; var paidamount = 0; var closingamt = 0;
         $(document).click(function () {
             increment = 0;
             $('#myTable').on('change', '.clsInwardqty', calTotal_gst)
                 .on('change', '.clsSaleqty', calTotal_gst)
                 .on('change', '.clsCloBal', calClosing);
-
         });
-
-
 
 
         var DataTable;
@@ -305,6 +302,7 @@
             var PrevOp_Bal = 0;
             var Inwardqty = 0;
             var Saleqty = 0;
+            var Returnqty = 0;
             var Clo_Bal = 0;
             var PrevClo_Bal = 0;
             var sno = 0;
@@ -322,6 +320,8 @@
                 PrevInwardqty = parseFloat($(this).find('#txt_PrevInwardqty').text());
                 Saleqty = parseFloat($(this).find('#txt_Saleqty').val());
                 PrevSaleqty = parseFloat($(this).find('#txt_PrevSaleqty').text());
+                Returnqty = parseFloat($(this).find('#txt_Returnqty').val());
+                PrevReturnqty = parseFloat($(this).find('#txt_PrevReturnqty').text());
                 if (count == 0) {
                     Clo_Bal = parseFloat($(this).find('#txt_CloBal').val());
                     Op_Bal = parseFloat($(this).find('#spn_OpBal').text());
@@ -338,10 +338,10 @@
                     if (PrevClo_Bal != Clo_Bal) {
                         if (count == 0) {
                             Op_Bal = PrevOp_Bal;
-                            Clo_Bal = PrevOp_Bal + Inwardqty - Saleqty;
+                            Clo_Bal = PrevOp_Bal + Inwardqty - (Saleqty + Returnqty);
                         }
                         else {
-                            Clo_Bal = Op_Bal + Inwardqty - Saleqty;
+                            Clo_Bal = Op_Bal + Inwardqty - (Saleqty + Returnqty);
                         }
 
                         presentClosing = Clo_Bal;
@@ -349,7 +349,7 @@
                         count++;
                     }
                     else {
-                        Clo_Bal = Op_Bal + Inwardqty - Saleqty;
+                        Clo_Bal = Op_Bal + Inwardqty - (Saleqty + Returnqty);
                         //Op_Bal = Clo_Bal;
                     }
                 }
@@ -361,7 +361,7 @@
                             Clo_Bal = Clo_Bal;
                         }
                         else {
-                            Clo_Bal = Op_Bal + Inwardqty - Saleqty;
+                            Clo_Bal = Op_Bal + Inwardqty - (Saleqty + Returnqty);
                         }
 
                         presentClosing = Clo_Bal;
@@ -374,11 +374,11 @@
                     }
                 }
                 sno = $(this).find('#txt_Sno').val();
-                DataTable1.push({ 'Op_Bal': Op_Bal, 'productname': Productname, 'productid': Productid, 'inwardqty': Inwardqty, 'saleqty': Saleqty, 'Clo_Bal': Clo_Bal, 'sno': sno, 'IndDate': IndDate });//, freigtamt: freigtamt
+                DataTable1.push({ 'Op_Bal': Op_Bal, 'productname': Productname, 'productid': Productid, 'inwardqty': Inwardqty, 'saleqty': Saleqty, 'returnqty': Returnqty, 'Clo_Bal': Clo_Bal, 'sno': sno, 'IndDate': IndDate });//, freigtamt: freigtamt
                 rowsno++;
             });
             var results = '<div  style="overflow:auto;"><table id="myTable" class="table table-bordered table-hover dataTable no-footer">';
-            results += '<thead><tr><th scope="col" >Sno</th><th scope="col">Date</th><th scope="col">ProductName</th><th scope="col">Opening</th><th scope="col">InwardQty</th><th scope="col">SaleQty</th><th scope="col">Closing</th><th scope="col"></th></tr></thead></tbody>';
+            results += '<thead><tr><th scope="col" >Sno</th><th scope="col">Date</th><th scope="col">ProductName</th><th scope="col">Opening</th><th scope="col">InwardQty</th><th scope="col">SaleQty</th><th scope="col">Returnqty</th><th scope="col">Closing</th><th scope="col"></th></tr></thead></tbody>';
             for (var i = 0; i < DataTable1.length; i++) {
                 results += '<tr><td scope="row" class="1" style="text-align:center;" id="txtsno">' + i + '</td>';
                 results += '<th scope="row" id="spnProductid" class="clsProductid" style="width:65px;display:none;">' + DataTable1[i].productid + '</th>';
@@ -390,6 +390,9 @@
                 results += '<td id="txt_PrevInwardqty" class="clsPrevInwardqty" style="width:65px;display:none;">' + parseFloat(DataTable1[i].inwardqty).toFixed(2) + '</td>';
                 results += '<td><input id="txt_Saleqty" class="clsSaleqty" style="width:65px;" value="' + parseFloat(DataTable1[i].saleqty).toFixed(2) + '"/></td>';
                 results += '<td id="txt_PrevSaleqty" class="clsPrevSaleqty" style="width:65px;display:none;">' + parseFloat(DataTable1[i].saleqty).toFixed(2) + '</td>';
+                results += '<td><input id="txt_Returnqty" class="clsReturnqty" style="width:65px;" value="' + parseFloat(DataTable1[i].returnqty).toFixed(2) + '"/></td>';
+                results += '<td id="txt_PrevReturnqty" class="clsPrevReturnqty" style="width:65px;display:none;">' + parseFloat(DataTable1[i].returnqty).toFixed(2) + '</td>';
+
                 results += '<td><input  id="txt_CloBal" class="clsCloBal" style="width:65px;" value="' + parseFloat(DataTable1[i].Clo_Bal).toFixed(2) + '"/></td>';
                 results += '<td id="txt_PrevCloBal" class="clsPrevCloBal" style="width:65px;display:none;">' + parseFloat(DataTable1[i].Clo_Bal).toFixed(2) + '</td>';
                 results += '<td><input  id="txt_Sno" class="8" style="width:65px;display:none;"  value="' + DataTable1[i].sno + '"/></td>';
@@ -399,7 +402,7 @@
             $("#div_BrandData").html(results);
         }
 
-        var inwardqty = 0; var saleqty = 0; var closingamt = 0;
+        var inwardqty = 0; var saleqty = 0; var closingamt = 0; var returnqty = 0;
         let increment = 0; var op = 0;
         function calTotal_gst() {
 
@@ -410,6 +413,7 @@
             Presentamt = parseFloat($row.find('.clsCloBal').val(),) || 0
 
             saleqty = parseFloat($row.find('.clsSaleqty').val(),) || 0
+            returnqty = parseFloat($row.find('.clsReturnqty').val(),) || 0
 
             closingamt = op + inwardqty - saleqty;
             $row.find('.clsCloBal').val(parseFloat(closingamt).toFixed(2));
@@ -418,13 +422,14 @@
             insertrow();
             //}
         }
-        var inwardqty1 = 0; var op = 0; var saleqty1 = 0; var closingamt1 = 0;
+        var inwardqty1 = 0; var op = 0; var saleqty1 = 0; var returnqty1 = 0; var closingamt1 = 0;
         function calClosing() {
 
             var $row = $(this).closest('tr'),
                 inwardqty1 = parseFloat($row.find('.clsSaleValue').val(),) || 0
             op1 = parseFloat($row.find('.clsOp').text(),) || 0
             saleqty1 = parseFloat($row.find('.clsSaleqty').val(),) || 0
+            returnqty1 = parseFloat($row.find('.clsReturnqty').val(),) || 0
             var ClosingAmount = parseFloat($row.find('.clsCloBal').val(),) || 0
 
             closingamt1 = ClosingAmount;
@@ -435,48 +440,19 @@
             //}
         }
 
-        //var filldetails = [];
-        //function btnUpdate_Click() {
-        //    $('#myTable> tbody > tr').each(function () {
-        //        var Op_Bal = $(this).find('#spn_OpBal').text();
-        //        var Inwardqty = $(this).find('#txt_Inwardqty').val();
-        //        var Saleqty = $(this).find('#txt_Saleqty').val();
-        //        var Clo_Bal = $(this).find('#txt_CloBal').val();
-        //        var sno = $(this).find('#txt_Sno').val();
-        //        var Date = $(this).find('#spnDate').text();
-        //        var productid = $(this).find('#spnProductid').text();
-        //        filldetails.push({ 'opp_balance': Op_Bal, 'inwardqty': Inwardqty, 'saleqty': Saleqty, 'clo_balance': Clo_Bal, 'sno': sno, 'doe': Date, 'productid': productid });//, 'freigtamt': freigtamt
-        //    });
-        //    var Data = { 'op': 'Edit_Item_Bal_Trans', 'filldetails': filldetails };
-        //    var s = function (msg) {
-        //        if (msg) {
-        //            filldetails = [];
-        //            alert(msg);
-        //            btn_Get_Bal_Details();
-        //            if (msg == "Session Expired") {
-        //                window.location = "Login.aspx";
-        //            }
-        //        }
-        //        else {
-        //        }
-        //    };
-        //    var e = function (x, h, e) {
-        //    };
-        //    CallHandlerUsingJson(Data, s, e);
-        //}
-
-
         var filldetails = [];
         function btnUpdate_Click() {
             $('#myTable> tbody > tr').each(function () {
                 var Op_Bal = $(this).find('#spn_OpBal').text();
                 var Inwardqty = $(this).find('#txt_Inwardqty').val();
                 var Saleqty = $(this).find('#txt_Saleqty').val();
+                var Returnqty = $(this).find('#txt_Returnqty').val();
                 var Clo_Bal = $(this).find('#txt_CloBal').val();
                 var sno = $(this).find('#txt_Sno').val();
                 var Date = $(this).find('#spnDate').text();
                 var productid = $(this).find('#spnProductid').text();
-                filldetails.push({ 'opp_balance': Op_Bal, 'inwardqty': Inwardqty, 'saleqty': Saleqty, 'clo_balance': Clo_Bal, 'sno': sno, 'doe': Date, 'productid': productid });//, 'freigtamt': freigtamt
+                filldetails.push({
+                    'opp_balance': Op_Bal, 'inwardqty': Inwardqty, 'saleqty': Saleqty, 'returnqty': Returnqty, 'clo_balance': Clo_Bal, 'sno': sno, 'doe': Date, 'productid': productid });//, 'freigtamt': freigtamt
             });
             var Data = { 'op': 'Edit_Item_Bal_Trans', 'filldetails': filldetails };
             var s = function (msg) {
