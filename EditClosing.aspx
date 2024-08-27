@@ -287,6 +287,7 @@
             increment = 0;
             $('#myTable').on('change', '.clsInwardqty', calTotal_gst)
                 .on('change', '.clsSaleqty', calTotal_gst)
+                .on('change', '.clsReturnqty', calTotal_gst)
                 .on('change', '.clsCloBal', calClosing);
         });
 
@@ -415,7 +416,7 @@
             saleqty = parseFloat($row.find('.clsSaleqty').val(),) || 0
             returnqty = parseFloat($row.find('.clsReturnqty').val(),) || 0
 
-            closingamt = op + inwardqty - saleqty;
+            closingamt = op + inwardqty - (saleqty + returnqty);
             $row.find('.clsCloBal').val(parseFloat(closingamt).toFixed(2));
             //if (Presentamt != Prevamt) {
             //    closingamt = Presentamt;
