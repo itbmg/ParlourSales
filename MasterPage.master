@@ -227,7 +227,7 @@
                         <li id="HeadOfAcMaster"><a href="HeadOfAcMaster.aspx"><i class="fa fa-circle-o"></i>Head Of Accounts</a></li>
                     </ul>
                 </li>
-                <li class="treeview mm_sales" id="lidistibutor"> 
+                <%--<li class="treeview mm_sales" id="lidistibutor"> 
                     <a href="#">
                         <i class="fa fa-shopping-cart"></i>
                         <span>Distibutor</span>
@@ -240,8 +240,8 @@
                         <li id="Li12"><a href="distibutorsale.aspx"><i class="fa fa-circle-o"></i>Sale</a></li>
                         <li id="Li13"><a href="invoicereport.aspx"><i class="fa fa-circle-o"></i> Invoice Report</a></li>
                     </ul>
-                </li>
-                  <li class="treeview mm_sales" id="lisales"> 
+                </li>--%>
+                  <%--<li class="treeview mm_sales" id="lisales"> 
                     <a href="#">
                         <i class="fa fa-shopping-cart"></i>
                         <span>Sales</span>
@@ -251,7 +251,7 @@
                         <li id="sales_index"><a href="sales.aspx"><i class="fa fa-circle-o"></i> List Of Sales</a></li>
                         <li id="sales_opened"><a href="opendbills.aspx"><i class="fa fa-circle-o"></i> List Of Opened Bills</a></li>
                     </ul>
-                </li>
+                </li>--%>
                 <li class="treeview mm_purchases" id="litransactions"> 
                     <a href="#">
                         <i class="fa fa-plus"></i>
@@ -260,15 +260,15 @@
                     </a>
                     <ul class="treeview-menu">
                         <li id="Li8"><a href="inward.aspx"><i class="fa fa-circle-o"></i> Inward</a></li>
-                        <%--<li id="Li1"><a href="inwardapproval.aspx"><i class="fa fa-circle-o"></i> Inward Aprroval</a></li>--%>
-                        <li id="Li6"><a href="stocktransfer.aspx"><i class="fa fa-circle-o"></i> Stock Transfor</a></li>
+                        <%--<li id="Li1"><a href="inwardapproval.aspx"><i class="fa fa-circle-o"></i> Inward Aprroval</a></li>
+                        <li id="Li6"><a href="stocktransfer.aspx"><i class="fa fa-circle-o"></i> Stock Transfor</a></li>--%>
                         <%--<li id="Li4"><a href="stocktransferapproval.aspx"><i class="fa fa-circle-o"></i> Stock Transfor Approval</a></li>--%>
                         <li id="storereturn"><a href="storereturn.aspx"><i class="fa fa-circle-o"></i> Store Return</a></li>
-                        <%--<li id="Li5"><a href="storereturnapproval.aspx"><i class="fa fa-circle-o"></i>Store Return Approval</a></li>--%>
-                        <li id="purchases_add_expense"><a href="expences.aspx"><i class="fa fa-circle-o"></i>Add Expenses</a></li>
-                        <li id="Li3"><a href="itemmonitor.aspx"><i class="fa fa-circle-o"></i>Item Monitor</a></li>
-                        <li id="Li7"><a href="stockclosing.aspx"><i class="fa fa-circle-o"></i>Stock Details</a></li>
-                        <li id="Li7"><a href="SalesEdit.aspx"><i class="fa fa-circle-o"></i>SalesEdit</a></li>
+                        <%--<li id="Li5"><a href="storereturnapproval.aspx"><i class="fa fa-circle-o"></i>Store Return Approval</a></li>
+                        <li id="purchases_add_expense"><a href="expences.aspx"><i class="fa fa-circle-o"></i>Add Expenses</a></li>--%>
+                       <%-- <li id="Li3"><a href="itemmonitor.aspx"><i class="fa fa-circle-o"></i>Item Monitor</a></li>--%>
+                       <%-- <li id="Li7"><a href="stockclosing.aspx"><i class="fa fa-circle-o"></i>Stock Details</a></li>--%>
+                        <li id="LiSalesEdit"><a href="SalesEdit.aspx"><i class="fa fa-circle-o"></i>SalesEdit</a></li>
                         <li id="Li7"><a href="EditClosing.aspx"><i class="fa fa-circle-o"></i>EditClosing</a></li>
                     </ul>
                 </li>
@@ -313,9 +313,9 @@
                         <li id="Li14"><a href="TotalInwardReport.aspx"><i class="fa fa-circle-o"></i> Total Inward Report</a></li>
                         <li id="reports_index"><a href="sellingitemrpt.aspx"><i class="fa fa-circle-o"></i> Item Wise Sales Report</a></li>
                         <li class="divider"></li>
-                        <li id="reports_payments"><a href="Cashclosingdetails.aspx"><i class="fa fa-circle-o"></i> Parlor Wise Register Closing Details</a></li>
+                       <%-- <li id="reports_payments"><a href="Cashclosingdetails.aspx"><i class="fa fa-circle-o"></i> Parlor Wise Register Closing Details</a></li>
                         <li class="divider"></li>
-                        <li id="reports_monthly_sales"><a href="branchwisesalerpt.aspx"><i class="fa fa-circle-o"></i> Branch Wise Sales</a></li>
+                        <li id="reports_monthly_sales"><a href="branchwisesalerpt.aspx"><i class="fa fa-circle-o"></i> Branch Wise Sales</a></li>--%>
                         <li id="CreditReport"><a href="CreditReport.aspx"><i class="fa fa-circle-o"></i> CreditReport</a></li>
                         <%--<li id="reports_registers"><a href="#"><i class="fa fa-circle-o"></i> Supplier Wise Purchase Report</a></li>
                         <li class="divider"></li>

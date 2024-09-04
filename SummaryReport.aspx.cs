@@ -211,8 +211,8 @@ public partial class SummaryReport : System.Web.UI.Page
                 totreturnvalue = price * returnqty;
                 newrow["Return(Qty)"] = returnqty;
                 grandtotal_returnqty += returnqty;
-                grandtotal_returnvalue += grandtotalvalue;
                 newrow["Return Value"] = totreturnvalue;
+                grandtotal_returnvalue += totreturnvalue;
                 DailyReport.Rows.Add(newrow);
 
             }
