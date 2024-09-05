@@ -4945,7 +4945,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                             double.TryParse(drin["inwardqty"].ToString(), out inward);
                         }
 
-                        foreach (DataRow drreturn in dtRetrun.Select("productid='" + dr["productid"].ToString() + "'AND doe='" + date + "'"))
+                        foreach (DataRow drreturn in dtRetrun.Select("productid='" + dr["productid"].ToString() + "'"))
                         {
                             double.TryParse(drreturn["quantity"].ToString(), out return_qty);
                         }
