@@ -4917,6 +4917,11 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                     cmd.Parameters.Add("@bid", branchid);
                     DataTable dtouward = vdm.SelectQuery(cmd).Tables[0];
 
+                    cmd = new SqlCommand("select  SSR.productid, Sum(SSR.quantity) as quantity,(CONVERT(NVARCHAR(10), SR.doe, 120)) AS doe   from stores_return AS SR INNER JOIN sub_stores_return AS SSR ON SR.sno=SSR.storesreturn_sno INNER JOIN productmaster ON productmaster.productid = SSR.productid WHERE SR.doe between @d1 and @d2 AND SR.branchid=@branchid GROUP BY SSR.productid,(CONVERT(NVARCHAR(10), SR.doe, 120))");//, inwarddetails.indentno
+                    cmd.Parameters.Add("@d1", GetLowDate(dt_fromdate).AddDays(-1));
+                    cmd.Parameters.Add("@d2", GetHighDate(dt_fromdate));
+                    cmd.Parameters.Add("@branchid", branchid);
+                    DataTable dtRetrun = vdm.SelectQuery(cmd).Tables[0];
 
                     foreach (DataRow dr in dtitem.Rows)
                     {
@@ -4926,6 +4931,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                         double closing = 0;
                         double ordertax = 0;
                         double totaloutward = 0;
+                        double return_qty = 0;
                         foreach (DataRow drop in dtop.Select("productid='" + dr["productid"].ToString() + "'"))
                         {
                             double.TryParse(drop["clo_bal"].ToString(), out opqty);
@@ -4938,6 +4944,12 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                         {
                             double.TryParse(drin["inwardqty"].ToString(), out inward);
                         }
+
+                        foreach (DataRow drreturn in dtRetrun.Select("productid='" + dr["productid"].ToString() + "'AND doe='" + date + "'"))
+                        {
+                            double.TryParse(drreturn["quantity"].ToString(), out return_qty);
+                        }
+
                         foreach (DataRow drout in dtouward.Select("productid='" + dr["productid"].ToString() + "'"))
                         {
                             double.TryParse(drout["outwardqty"].ToString(), out outward);
@@ -4945,9 +4957,9 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                             totaloutward = outward + ordertax;
                             totaloutward = Math.Round(totaloutward, 2);
                         }
-                        double total = opqty + inward;
+                        double total = opqty + inward + return_qty;
                         closing = total - outward;
-                        cmd = new SqlCommand("insert into sub_registorclosingdetails(refno, productid, price, clo_bal,op_bal,doe,branchid,inwardqty,saleqty) values(@refno, @productid, @price, @clo_bal,@op_bal,@doe,@branchid,@inwardqty,@saleqty)");
+                        cmd = new SqlCommand("insert into sub_registorclosingdetails(refno, productid, price, clo_bal,op_bal,doe,branchid,inwardqty,saleqty,return_qty) values(@refno, @productid, @price, @clo_bal,@op_bal,@doe,@branchid,@inwardqty,@saleqty,@return_qty)");
                         cmd.Parameters.Add("@refno", refno);
                         cmd.Parameters.Add("@productid", dr["productid"].ToString());
                         cmd.Parameters.Add("@price", dr["price"].ToString());
@@ -4964,6 +4976,8 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                         cmd.Parameters.Add("@branchid", branchid);
                         cmd.Parameters.Add("@inwardqty", inward);
                         cmd.Parameters.Add("@saleqty", outward);
+                        cmd.Parameters.Add("@saleqty", outward);
+                        cmd.Parameters.Add("@return_qty", return_qty);
                         vdm.insert(cmd);
                     }
                     string Response = GetJson("Register Details are Successfully Closed");
@@ -5011,6 +5025,8 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             cmd.Parameters.Add("@d1", GetLowDate(closedate).AddDays(-1));
             cmd.Parameters.Add("@d2", GetHighDate(closedate).AddDays(-1));
             DataTable dtexisting = vdm.SelectQuery(cmd).Tables[0];
+
+            
             if (dtexisting.Rows.Count == 0)
             {
                 if (btnreg == "closereg")
@@ -5077,6 +5093,11 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                     cmd.Parameters.Add("@bid", branchid);
                     DataTable dtouward = vdm.SelectQuery(cmd).Tables[0];
 
+                    cmd = new SqlCommand("select  SSR.productid, Sum(SSR.quantity) as quantity,(CONVERT(NVARCHAR(10), SR.doe, 120)) AS doe   from stores_return AS SR INNER JOIN sub_stores_return AS SSR ON SR.sno=SSR.storesreturn_sno INNER JOIN productmaster ON productmaster.productid = SSR.productid WHERE SR.doe between @d1 and @d2 AND SR.branchid=@branchid GROUP BY SSR.productid,(CONVERT(NVARCHAR(10), SR.doe, 120))");//, inwarddetails.indentno
+                    cmd.Parameters.Add("@d1", GetLowDate(dt_fromdate).AddDays(-1));
+                    cmd.Parameters.Add("@d2", GetHighDate(dt_fromdate));
+                    cmd.Parameters.Add("@branchid", branchid);
+                    DataTable dtRetrun = vdm.SelectQuery(cmd).Tables[0];
 
                     foreach (DataRow dr in dtop.Rows)
                     {
@@ -5086,6 +5107,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                         double closing = 0;
                         double ordertax = 0;
                         double totaloutward = 0;
+                        double return_qty = 0;
                         //foreach (DataRow drop in dtop.Select("productid='" + dr["productid"].ToString() + "'"))
                         //{
                         //    double.TryParse(drop["qty"].ToString(), out opqty);
@@ -5098,6 +5120,11 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                         {
                             double.TryParse(drin["inwardqty"].ToString(), out inward);
                         }
+
+                        foreach (DataRow drreturn in dtRetrun.Select("productid='" + dr["productid"].ToString() + "'AND doe='" + date + "'"))
+                        {
+                            double.TryParse(drreturn["quantity"].ToString(), out return_qty);
+                        }
                         foreach (DataRow drout in dtouward.Select("productid='" + dr["productid"].ToString() + "'"))
                         {
                             double.TryParse(drout["outwardqty"].ToString(), out outward);
@@ -5105,9 +5132,9 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                             totaloutward = outward; //+ ordertax;
                             totaloutward = Math.Round(totaloutward, 2);
                         }
-                        double total = opqty + inward;
+                        double total = opqty + inward + return_qty;
                         closing = total - outward;
-                        cmd = new SqlCommand("insert into sub_registorclosingdetails(refno, productid, price, clo_bal,op_bal,doe,branchid,inwardqty,saleqty) values(@refno, @productid, @price, @clo_bal,@op_bal,@doe,@branchid,@inwardqty,@saleqty)");
+                        cmd = new SqlCommand("insert into sub_registorclosingdetails(refno, productid, price, clo_bal,op_bal,doe,branchid,inwardqty,saleqty,return_qty) values(@refno, @productid, @price, @clo_bal,@op_bal,@doe,@branchid,@inwardqty,@saleqty,@return_qty)");
                         cmd.Parameters.Add("@refno", refno);
                         cmd.Parameters.Add("@productid", dr["productid"].ToString());
                         cmd.Parameters.Add("@price", dr["price"].ToString());
@@ -5124,6 +5151,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                         cmd.Parameters.Add("@branchid", branchid);
                         cmd.Parameters.Add("@inwardqty", inward);
                         cmd.Parameters.Add("@saleqty", outward);
+                        cmd.Parameters.Add("@return_qty", return_qty);
                         vdm.insert(cmd);
                     }
                     string Response = GetJson("Register Details are Successfully Closed");

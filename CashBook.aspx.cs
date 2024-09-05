@@ -452,12 +452,17 @@ public partial class CashBook : System.Web.UI.Page
                 cmd.Parameters.Add("@bid", ddlcompany.SelectedValue);
                 DataTable dtouward = vdm.SelectQuery(cmd).Tables[0];
 
-                cmd = new SqlCommand("select productmaster.productname, SR.sno, SR.returntype, SR.doe, SR.branchid, SR.remarks, SR.invoiceno, SR.refno, SR.billtotalvalue, SR.entryby, SR.createdon, SR.status, SSR.productid, SSR.quantity, SSR.price, SSR.storesreturn_sno, SSR.totalvalue, SSR.ordertax  from stores_return AS SR INNER JOIN sub_stores_return AS SSR ON SR.sno=SSR.storesreturn_sno INNER JOIN productmaster ON productmaster.productid = SSR.productid WHERE SR.doe between @d1 and @d2 AND SR.branchid=@branchid ");//, inwarddetails.indentno
+                //cmd = new SqlCommand("select productmaster.productname, SR.sno, SR.returntype, SR.doe, SR.branchid, SR.remarks, SR.invoiceno, SR.refno, SR.billtotalvalue, SR.entryby, SR.createdon, SR.status, SSR.productid, SSR.quantity, SSR.price, SSR.storesreturn_sno, SSR.totalvalue, SSR.ordertax  from stores_return AS SR INNER JOIN sub_stores_return AS SSR ON SR.sno=SSR.storesreturn_sno INNER JOIN productmaster ON productmaster.productid = SSR.productid WHERE SR.doe between @d1 and @d2 AND SR.branchid=@branchid ");//, inwarddetails.indentno
+                //cmd.Parameters.Add("@d1", GetLowDate(fromdate));
+                //cmd.Parameters.Add("@d2", GetHighDate(fromdate));
+                //cmd.Parameters.Add("@bid", ddlcompany.SelectedValue);
+                //DataTable dtRetrun = vdm.SelectQuery(cmd).Tables[0];
+
+                cmd = new SqlCommand("select  SSR.productid, Sum(SSR.quantity) as quantity,(CONVERT(NVARCHAR(10), SR.doe, 120)) AS doe   from stores_return AS SR INNER JOIN sub_stores_return AS SSR ON SR.sno=SSR.storesreturn_sno INNER JOIN productmaster ON productmaster.productid = SSR.productid WHERE SR.doe between @d1 and @d2 AND SR.branchid=@branchid GROUP BY SSR.productid,(CONVERT(NVARCHAR(10), SR.doe, 120))");//, inwarddetails.indentno
                 cmd.Parameters.Add("@d1", GetLowDate(fromdate));
                 cmd.Parameters.Add("@d2", GetHighDate(fromdate));
-                cmd.Parameters.Add("@bid", ddlcompany.SelectedValue);
+                cmd.Parameters.Add("@branchid", ddlcompany.SelectedValue);
                 DataTable dtRetrun = vdm.SelectQuery(cmd).Tables[0];
-
 
                 foreach (DataRow dr in dtitem.Rows)
                 {
@@ -491,7 +496,7 @@ public partial class CashBook : System.Web.UI.Page
                         totaloutward = outward;// + ordertax;
                         totaloutward = Math.Round(totaloutward, 2);
                     }
-                    double total = opqty + inward;
+                    double total = opqty + inward + return_qty;
                     closing = total - outward;
                     cmd = new SqlCommand("insert into sub_registorclosingdetails(refno, productid, price, clo_bal,op_bal,doe,branchid,inwardqty,saleqty,return_qty) values(@refno, @productid, @price, @clo_bal,@op_bal,@doe,@branchid,@inwardqty,@saleqty,@return_qty)");
                     cmd.Parameters.Add("@refno", refno);
