@@ -4976,7 +4976,6 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                         cmd.Parameters.Add("@branchid", branchid);
                         cmd.Parameters.Add("@inwardqty", inward);
                         cmd.Parameters.Add("@saleqty", outward);
-                        cmd.Parameters.Add("@saleqty", outward);
                         cmd.Parameters.Add("@return_qty", return_qty);
                         vdm.insert(cmd);
                     }
