@@ -6031,38 +6031,36 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             }
             else
             {
-                cmd = new SqlCommand("UPDATE stores_return SET returntype=@returntype, refno=@refnote, doe=@doe, billtotalvalue=@billtotalvalue, remarks=@description, vendorid=@vendor WHERE sno=@sno AND branchid=@branchid");
+                cmd = new SqlCommand("UPDATE stores_return SET   billtotalvalue=@billtotalvalue,  modified_by=@modified_by,  modifiedon=@modifiedon WHERE sno=@sno AND branchid=@branchid");
                 cmd.Parameters.Add("@sno", sno);
                 cmd.Parameters.Add("@branchid", branchid);
-                cmd.Parameters.Add("@doe", date);
-                cmd.Parameters.Add("@returntype", returntype);
-                cmd.Parameters.Add("@refno", refnote);
-                cmd.Parameters.Add("@description", description);
                 cmd.Parameters.Add("@billtotalvalue", billtotalvalue);
-                cmd.Parameters.Add("@vendor", vendor);
+                cmd.Parameters.Add("@modified_by", createdby);
+                cmd.Parameters.Add("@modifiedon", ServerDateCurrentdate);
                 vdm.Update(cmd);
                 foreach (Subinward si in obj.fillitems)
                 {
                     if (si.hdnproductsno != "0")
                     {
-                        cmd = new SqlCommand("update sub_stores_return set  quantity=@quantity, price=@perunit,totvalue=@totalcost, ordertax=@ordertax Where storesreturn_sno=@refno and productid=@productid");
+                        cmd = new SqlCommand("update sub_stores_return set  quantity=@quantity, price=@perunit,totalvalue=@totalcost, ordertax=@ordertax Where storesreturn_sno=@refno and productid=@productid");
                         cmd.Parameters.Add("@productid", si.hdnproductsno);
                         cmd.Parameters.Add("@quantity", si.Quantity);
                         cmd.Parameters.Add("@perunit", si.PerUnitRs);
                         cmd.Parameters.Add("@totalcost", si.TotalCost);
                         cmd.Parameters.Add("@ordertax", si.ordertax);
                         cmd.Parameters.Add("@refno", sno);
-                        if (vdm.Update(cmd) == 0)
-                        {
-                            cmd = new SqlCommand("insert into sub_stores_return(productid, quantity, price,  totalvalue, storesreturn_sno, ordertax) values (@productid,@quantity,@perunit,@totalcost,@in_refno,@ordertax)");
-                            cmd.Parameters.Add("@productid", si.hdnproductsno);
-                            cmd.Parameters.Add("@quantity", si.Quantity);
-                            cmd.Parameters.Add("@perunit", si.PerUnitRs);
-                            cmd.Parameters.Add("@totalcost", si.TotalCost);
-                            cmd.Parameters.Add("@in_refno", sno);
-                            cmd.Parameters.Add("@ordertax", si.ordertax);
-                            vdm.insert(cmd);
-                        }
+                        vdm.Update(cmd);
+                        //if (vdm.Update(cmd) == 0)
+                        //{
+                        //    cmd = new SqlCommand("insert into sub_stores_return(productid, quantity, price,  totalvalue, storesreturn_sno, ordertax) values (@productid,@quantity,@perunit,@totalcost,@in_refno,@ordertax)");
+                        //    cmd.Parameters.Add("@productid", si.hdnproductsno);
+                        //    cmd.Parameters.Add("@quantity", si.Quantity);
+                        //    cmd.Parameters.Add("@perunit", si.PerUnitRs);
+                        //    cmd.Parameters.Add("@totalcost", si.TotalCost);
+                        //    cmd.Parameters.Add("@in_refno", sno);
+                        //    cmd.Parameters.Add("@ordertax", si.ordertax);
+                        //    vdm.insert(cmd);
+                        //}
                     }
                 }
             }
@@ -6082,12 +6080,13 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             string julydt = "07/01/2017";
             DateTime gst_dt = Convert.ToDateTime(julydt);
             DateTime ServerDateCurrentdate = SalesDBManager.GetTime(vdm.conn);
-            string branchid = context.Session["BranchID"].ToString();
-            cmd = new SqlCommand("select productmaster.productname, SR.sno, SR.returntype, SR.doe, SR.branchid, SR.remarks, SR.invoiceno, SR.refno, SR.billtotalvalue, SR.entryby, SR.createdon, SR.status, SSR.productid, SSR.quantity, SSR.price, SSR.storesreturn_sno, SSR.totalvalue, SSR.ordertax  from stores_return AS SR INNER JOIN sub_stores_return AS SSR ON SR.sno=SSR.storesreturn_sno INNER JOIN productmaster ON productmaster.productid = SSR.productid WHERE SR.doe between @d1 and @d2 AND SR.branchid=@branchid AND SR.status=@status");//, inwarddetails.indentno
+            string InvoicNo = context.Request["InvoicNo"];
+            string branchid = context.Request["ddlBranchName"];
+            cmd = new SqlCommand("select productmaster.productname, SR.sno, SR.returntype, SR.doe, SR.branchid, SR.remarks, SR.invoiceno, SR.refno, SR.billtotalvalue, SR.entryby, SR.createdon, SR.status, SSR.productid, SSR.quantity, SSR.price, SSR.storesreturn_sno, SSR.totalvalue, SSR.ordertax  from stores_return AS SR INNER JOIN sub_stores_return AS SSR ON SR.sno=SSR.storesreturn_sno INNER JOIN productmaster ON productmaster.productid = SSR.productid WHERE SR.doe between @d1 and @d2 AND SR.branchid=@branchid AND SR.sno=@sno");//, inwarddetails.indentno
             cmd.Parameters.Add("@d1", GetLowDate(ServerDateCurrentdate).AddDays(-25));
             cmd.Parameters.Add("@d2", GetHighDate(ServerDateCurrentdate));
             cmd.Parameters.Add("@branchid", branchid);
-            cmd.Parameters.Add("@status", "P");
+            cmd.Parameters.Add("@sno", InvoicNo);
             DataTable routes = vdm.SelectQuery(cmd).Tables[0];
             DataView view = new DataView(routes);
             DataTable dtinward = view.ToTable(true, "sno", "returntype", "doe", "branchid", "refno", "status", "remarks", "billtotalvalue", "invoiceno");//, "indentno"
@@ -6095,19 +6094,19 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             List<getInwardData> getInwarddetails = new List<getInwardData>();
             List<inwardDetails> inwardlist = new List<inwardDetails>();
             List<Subinward> subinwardlist = new List<Subinward>();
-            foreach (DataRow dr in dtinward.Rows)
-            {
-                inwardDetails getInward = new inwardDetails();
-                getInward.date = ((DateTime)dr["doe"]).ToString("dd-MM-yyyy");//dr["inwarddate"].ToString();
-                getInward.totalvalue = dr["billtotalvalue"].ToString();
-                getInward.frombranch = dr["returntype"].ToString();
-                getInward.tobranch = dr["refno"].ToString();
-                getInward.status = dr["status"].ToString();
-                getInward.sno = dr["sno"].ToString();
-                getInward.mrnno = dr["invoiceno"].ToString();
-                getInward.description = dr["remarks"].ToString();
-                inwardlist.Add(getInward);
-            }
+            //foreach (DataRow dr in dtinward.Rows)
+            //{
+            //    inwardDetails getInward = new inwardDetails();
+            //    getInward.date = ((DateTime)dr["doe"]).ToString("dd-MM-yyyy");//dr["inwarddate"].ToString();
+            //    getInward.totalvalue = dr["billtotalvalue"].ToString();
+            //    getInward.frombranch = dr["returntype"].ToString();
+            //    getInward.tobranch = dr["refno"].ToString();
+            //    getInward.status = dr["status"].ToString();
+            //    getInward.sno = dr["sno"].ToString();
+            //    getInward.mrnno = dr["invoiceno"].ToString();
+            //    getInward.description = dr["remarks"].ToString();
+            //    inwardlist.Add(getInward);
+            //}
             foreach (DataRow dr in dtsubinward.Rows)
             {
                 Subinward getsubinward = new Subinward();
@@ -6118,14 +6117,15 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                 quantity = Math.Round(quantity, 2);
                 getsubinward.PerUnitRs = dr["price"].ToString();
                 getsubinward.TotalCost = dr["totalvalue"].ToString();
+                getsubinward.ordertax = dr["ordertax"].ToString();
                 getsubinward.inword_refno = dr["storesreturn_sno"].ToString();
                 subinwardlist.Add(getsubinward);
             }
             getInwardData getInwadDatas = new getInwardData();
-            getInwadDatas.InwardDetails = inwardlist;
+            //getInwadDatas.InwardDetails = inwardlist;
             getInwadDatas.SubInward = subinwardlist;
             getInwarddetails.Add(getInwadDatas);
-            string response = GetJson(getInwarddetails);
+            string response = GetJson(subinwardlist);
             context.Response.Write(response);
         }
         catch (Exception ex)
@@ -10716,7 +10716,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             cmd = new SqlCommand("update possale_maindetails set totalpaying=totalpaying where sno=@sno)");
             cmd.Parameters.Add("@totalpaying", totalpaying);
             cmd.Parameters.Add("@sno", InvoiceNo);
-            //vdm.Update(cmd);
+            vdm.Update(cmd);
             string refno = "";
             foreach (SubOutward si in obj.fillitems)
             {
@@ -10730,7 +10730,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                     cmd.Parameters.Add("@totvalue", si.TotalCost);
                     cmd.Parameters.Add("@ordertax", si.ordertax);
                     cmd.Parameters.Add("@refno", InvoiceNo);
-                    //vdm.Update(cmd);
+                    vdm.Update(cmd);
                 }
             }
             string msg = "Sale successfully Updated";

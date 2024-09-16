@@ -61,7 +61,7 @@ public partial class exporttoxl : System.Web.UI.Page
                   "style='font-size:10.0pt; background:white;'> <TR>");
                 int columnscount = dt.Columns.Count;
                 //For Header
-                if (filename == "Total Deduction" || filename == "Employeedetails" || filename == "Employeebankdetails" || filename == "Organisetionflowdetails")
+                if (filename == "TotalInwardReport" || filename == "Employeedetails" || filename == "Employeebankdetails" || filename == "Organisetionflowdetails")
                 {
                 }
                 else

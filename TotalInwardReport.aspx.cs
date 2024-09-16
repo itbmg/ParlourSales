@@ -28,6 +28,8 @@ public partial class TotalInwardReport : System.Web.UI.Page
                     dtp_Todate.Text = DateTime.Now.ToString("dd-MM-yyyy HH:mm");// Convert.ToString(lbltodate.Text);/// //// 
                     //lblAddress.Text = Session["Address"].ToString();
                     //lblTitle.Text = Session["TitleName"].ToString();
+                    bindcompanydetails();
+                    bindcategory();
                 }
             }
         }
@@ -59,6 +61,70 @@ public partial class TotalInwardReport : System.Web.UI.Page
         return DT;
     }
     DataTable Report = new DataTable();
+    private void bindcompanydetails()
+    {
+
+        SalesDBManager SalesDB = new SalesDBManager();
+        cmd = new SqlCommand("SELECT cmpid, locationid, branchid, branchname, address, phone, tino, stno, cstno, emailid, gstin, regtype, stateid, titlename, branchcode, pramoterid, lat, long, flag,  panno, branchtype, status, pramotername, tallyledger, sapledger, sapledgercode FROM  branchmaster");
+        DataTable dtcmp = vdm.SelectQuery(cmd).Tables[0];
+        ddlcompany.DataSource = dtcmp;
+        ddlcompany.DataTextField = "branchname";
+        ddlcompany.DataValueField = "branchid";
+        ddlcompany.DataBind();
+        ddlcompany.ClearSelection();
+        ddlcompany.Items.Insert(0, new ListItem { Value = "0", Text = "--Select Company--", Selected = true });
+        ddlcompany.SelectedValue = "0";
+    }
+    private void bindcategory()
+    {
+
+        SalesDBManager SalesDB = new SalesDBManager();
+        string mainbranch = ddlcompany.SelectedItem.Value;
+        cmd = new SqlCommand("SELECT category, cat_code, status, categoryid FROM categorymaster");
+        cmd.Parameters.Add("@m", mainbranch);
+        DataTable dttrips = vdm.SelectQuery(cmd).Tables[0];
+        ddlcategory.DataSource = dttrips;
+        ddlcategory.DataTextField = "category";
+        ddlcategory.DataValueField = "categoryid";
+        ddlcategory.DataBind();
+        ddlcategory.ClearSelection();
+        ddlcategory.Items.Insert(0, new ListItem { Value = "0", Text = "--Select Category--", Selected = true });
+        ddlcategory.SelectedValue = "0";
+    }
+    protected void ddlcategory_CategoryIndexChanged(object sender, EventArgs e)
+    {
+        SalesDBManager SalesDB = new SalesDBManager();
+        string catsno = ddlcategory.SelectedItem.Value;
+        cmd = new SqlCommand("SELECT categorymaster.category, subcategorymaster.subcategoryid,  subcategorymaster.categoryid, subcategorymaster.subcategoryname, subcategorymaster.sub_cat_code, subcategorymaster.status  FROM  categorymaster INNER JOIN subcategorymaster ON categorymaster.categoryid = subcategorymaster.categoryid where subcategorymaster.categoryid=@categoryid  order by subcategorymaster.rank");
+        cmd.Parameters.Add("@categoryid", catsno);
+        DataTable dttrips = vdm.SelectQuery(cmd).Tables[0];
+        ddlsubcategory.DataSource = dttrips;
+        ddlsubcategory.DataTextField = "subcategoryname";
+        ddlsubcategory.DataValueField = "subcategoryid";
+        ddlsubcategory.DataBind();
+        ddlsubcategory.ClearSelection();
+        ddlsubcategory.Items.Insert(0, new ListItem { Value = "0", Text = "--Select SubCategory--", Selected = true });
+        ddlsubcategory.SelectedValue = "0";
+    }
+    protected void ddlsubcategory_subcategoryIndexChanged(object sender, EventArgs e)
+    {
+        SalesDBManager SalesDB = new SalesDBManager();
+        string branchid = ddlcompany.SelectedItem.Value;
+        string subcatid = ddlsubcategory.SelectedItem.Value;
+        cmd = new SqlCommand("SELECT productmaster.productid, productmaster.categoryid,productmaster.price as mrp, productmaster.imagepath, productmaster.subcategoryid, productmaster.uim AS Puim,  productmaster.productname, productmaster.billingprice,   productmaster.productcode, productmaster.hsncode, productmaster.sub_cat_code, productmaster.sku, productmaster.description, productmaster.igst, productmaster.cgst, productmaster.sgst, productmaster.gsttaxcategory, productmaster.status, productmaster.createdby, productmaster.createdon, uimmaster.uim, productmoniter.qty, productmoniter.price, categorymaster.category, subcategorymaster.subcategoryname, productmaster.supplierid  FROM productmaster INNER JOIN productmoniter ON productmaster.productid=productmoniter.productid INNER JOIN categorymaster ON productmaster.categoryid = categorymaster.categoryid INNER JOIN subcategorymaster ON productmaster.subcategoryid = subcategorymaster.subcategoryid LEFT OUTER JOIN uimmaster ON uimmaster.sno=productmaster.uim  WHERE (productmoniter.branchid = @branchid) AND (productmaster.subcategoryid=@subcatid)");
+        cmd.Parameters.Add("@branchid", branchid);
+        cmd.Parameters.Add("@subcatid", subcatid);
+
+        DataTable dttrips = vdm.SelectQuery(cmd).Tables[0];
+        ddlproductname.DataSource = dttrips;
+        ddlproductname.DataTextField = "productname";
+        ddlproductname.DataValueField = "productid";
+        ddlproductname.DataBind();
+        ddlproductname.ClearSelection();
+        ddlproductname.Items.Insert(0, new ListItem { Value = "0", Text = "--Select ProductName--", Selected = true });
+        ddlproductname.SelectedValue = "0";
+    }
+    
     protected void btn_Generate_Click(object sender, EventArgs e)
     {
         try
@@ -101,12 +167,14 @@ public partial class TotalInwardReport : System.Web.UI.Page
             lbltodate.Text = todate.ToString("dd/MM/yyyy");
             string branchid = Session["BranchID"].ToString();
 
+            string productid = ddlproductname.SelectedItem.Value;
 
-            cmd = new SqlCommand("Select inward_maindetails.sno, inward_maindetails.doe, inward_maindetails.refno, inward_maindetails.mrnno, suppliersdetails.name, subcategorymaster.subcategoryname, productmaster.productname, inward_subdetails.qty, inward_subdetails.price, inward_subdetails.totvalue,  productmaster.productid  from inward_maindetails INNER JOIN inward_subdetails ON inward_subdetails.refno=inward_maindetails.sno INNER JOIN productmaster ON productmaster.productid=inward_subdetails.productid INNER JOIN subcategorymaster ON subcategorymaster.subcategoryid =productmaster.subcategoryid INNER JOIN suppliersdetails on suppliersdetails.supplierid = inward_maindetails.supplierid WHERE inward_maindetails.branchid=@branchid AND inward_maindetails.doe BETWEEN @d1 and @d2");
+            cmd = new SqlCommand("Select inward_maindetails.sno, inward_maindetails.doe, inward_maindetails.refno, inward_maindetails.mrnno, suppliersdetails.name, subcategorymaster.subcategoryname, productmaster.productname, inward_subdetails.qty, inward_subdetails.price, inward_subdetails.totvalue,  productmaster.productid  from inward_maindetails INNER JOIN inward_subdetails ON inward_subdetails.refno=inward_maindetails.sno INNER JOIN productmaster ON productmaster.productid=inward_subdetails.productid INNER JOIN subcategorymaster ON subcategorymaster.subcategoryid =productmaster.subcategoryid INNER JOIN suppliersdetails on suppliersdetails.supplierid = inward_maindetails.supplierid WHERE inward_maindetails.branchid=@branchid AND inward_subdetails.productid=@productid AND inward_maindetails.doe BETWEEN @d1 and @d2");
                 cmd.Parameters.Add("@d1", GetLowDate(fromdate));
-                cmd.Parameters.Add("@d2", GetHighDate(todate));
+                cmd.Parameters.Add("@d2", GetHighDate(todate)); 
                 cmd.Parameters.Add("@branchid", branchid);
-                DataTable dttotalinward = vdm.SelectQuery(cmd).Tables[0];
+                cmd.Parameters.Add("@productid", productid);
+            DataTable dttotalinward = vdm.SelectQuery(cmd).Tables[0];
                 if (dttotalinward.Rows.Count > 0)
                 {
                     double totalqty = 0;

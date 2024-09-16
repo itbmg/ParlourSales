@@ -30,9 +30,9 @@
         
     </script>
     <script type="text/javascript">
-        function exportfn() {
-            window.location = "exporttoxl.aspx";
-        }
+        //function exportfn() {
+        //    window.location = "exporttoxl.aspx";
+        //}
 
         //------------>Prevent Backspace<--------------------//
         $(document).unbind('keydown').bind('keydown', function (event) {
@@ -84,9 +84,37 @@
                         </h3>
                     </div>
                     <div class="box-body">
-                        <div align="center">
+                        <div>
                             <table>
                                 <tr>
+                                     <td>
+                                            <label for="cash_in_hand">
+                                                Company Id</label>
+                                            <asp:DropDownList ID="ddlcompany" runat="server" CssClass="form-control" AutoPostBack="true">
+                                            </asp:DropDownList>
+                                        </td>
+                                    <td style="width:6px;"></td>
+                                    <td>
+                                            <label for="cash_in_hand">
+                                                CategoryName</label>
+                                            <asp:DropDownList ID="ddlcategory" runat="server" CssClass="form-control" OnSelectedIndexChanged="ddlcategory_CategoryIndexChanged" AutoPostBack="true">
+                                            </asp:DropDownList>
+                                        </td>
+                                    <td style="width:6px;"></td>
+                                    <td>
+                                            <label for="cash_in_hand">
+                                                SubCategoryName</label>
+                                            <asp:DropDownList ID="ddlsubcategory" runat="server" CssClass="form-control" OnSelectedIndexChanged="ddlsubcategory_subcategoryIndexChanged" AutoPostBack="true">
+                                            </asp:DropDownList>
+                                        </td>
+                                    <td style="width:6px;"></td>
+                                     <td>
+                                            <label for="cash_in_hand">
+                                                ProductName</label>
+                                            <asp:DropDownList ID="ddlproductname" runat="server" CssClass="form-control"  AutoPostBack="true">
+                                            </asp:DropDownList>
+                                        </td>
+                                    <td style="width:6px;"></td>
                                     <td>
                                         <asp:Label ID="lblfrom_date" Font-Bold="true" runat="server" Text="Label">From Date</asp:Label>&nbsp;
                                         <asp:TextBox ID="dtp_FromDate" runat="server" CssClass="form-control"></asp:TextBox>
