@@ -19,7 +19,6 @@ public partial class Dailyreport : System.Web.UI.Page
             Response.Redirect("Login.aspx");
         else
         {
-            BranchID = Session["BranchID"].ToString();
             vdm = new SalesDBManager();
             if (!Page.IsPostBack)
             {
@@ -27,6 +26,7 @@ public partial class Dailyreport : System.Web.UI.Page
                 {
                     DateTime dt = DateTime.Now.AddDays(-1);
                     dtp_FromDate.Text = dt.ToString("dd-MM-yyyy HH:mm");
+                    bindbranchdetails();
                 }
             }
         }
@@ -58,7 +58,32 @@ public partial class Dailyreport : System.Web.UI.Page
         DT = DT.AddSeconds(Sec);
         return DT;
     }
+    private void bindbranchdetails()
+    {
+        string leveltype = Session["LevelType"].ToString();
 
+        SalesDBManager SalesDB = new SalesDBManager();
+        if (leveltype == "SuperAdmin")
+        {
+            cmd = new SqlCommand("SELECT  branchmaster.branchid, branchmaster.branchname FROM  branchmaster INNER JOIN branchmapping ON branchmaster.branchid=branchmapping.subbranch where branchmapping.superbranch=@branchid");
+            cmd.Parameters.Add("@branchid", Session["BranchID"].ToString());
+        }
+        else
+        {
+            cmd = new SqlCommand("SELECT  branchmaster.branchid, branchmaster.branchname FROM  branchmaster INNER JOIN branchmapping ON branchmaster.branchid=branchmapping.subbranch where branchmapping.subbranch=@branchid");
+            cmd.Parameters.Add("@branchid", Session["BranchID"].ToString());
+        }
+
+
+        DataTable dtcmp = SalesDB.SelectQuery(cmd).Tables[0];
+        ddlbranch.DataSource = dtcmp;
+        ddlbranch.DataTextField = "branchname";
+        ddlbranch.DataValueField = "branchid";
+        ddlbranch.DataBind();
+        ddlbranch.ClearSelection();
+        ddlbranch.Items.Insert(0, new ListItem { Value = "0", Text = "--Select Branch--", Selected = true });
+        ddlbranch.SelectedValue = "0";
+    }
     protected void btn_Generate_Click(object sender, EventArgs e)
     {
         getdata();
@@ -66,7 +91,7 @@ public partial class Dailyreport : System.Web.UI.Page
 
     private void getdata()
     {
-        BranchID = Session["BranchID"].ToString();
+        BranchID = ddlbranch.SelectedValue;
         SalesDBManager SalesDB = new SalesDBManager();
         DateTime fromdate = DateTime.Now;
         DateTime todate = DateTime.Now;

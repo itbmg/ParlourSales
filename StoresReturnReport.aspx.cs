@@ -18,7 +18,6 @@ public partial class StoresReturnReport : System.Web.UI.Page
             Response.Redirect("Login.aspx");
         else
         {
-            BranchID = Session["BranchID"].ToString();
             vdm = new SalesDBManager();
             if (!Page.IsPostBack)
             {
@@ -29,11 +28,36 @@ public partial class StoresReturnReport : System.Web.UI.Page
                     ////dtp_ToDate.Text = dt.ToString("dd-MM-yyyy HH:mm");
                     dtp_FromDate.Text = DateTime.Now.ToString("dd-MM-yyyy HH:mm");
                     dtp_ToDate.Text = DateTime.Now.ToString("dd-MM-yyyy HH:mm");
+                    bindbranchdetails();
                 }
             }
         }
     }
+    private void bindbranchdetails()
+    {
 
+        string leveltype = Session["LevelType"].ToString();
+
+        SalesDBManager SalesDB = new SalesDBManager();
+        if (leveltype == "SuperAdmin")
+        {
+            cmd = new SqlCommand("SELECT  branchmaster.branchid, branchmaster.branchname FROM  branchmaster INNER JOIN branchmapping ON branchmaster.branchid=branchmapping.subbranch where branchmapping.superbranch=@branchid");
+            cmd.Parameters.Add("@branchid", Session["BranchID"].ToString());
+        }
+        else
+        {
+            cmd = new SqlCommand("SELECT  branchmaster.branchid, branchmaster.branchname FROM  branchmaster INNER JOIN branchmapping ON branchmaster.branchid=branchmapping.subbranch where branchmapping.subbranch=@branchid");
+            cmd.Parameters.Add("@branchid", Session["BranchID"].ToString());
+        }
+        DataTable dtcmp = SalesDB.SelectQuery(cmd).Tables[0];
+        ddlbranch.DataSource = dtcmp;
+        ddlbranch.DataTextField = "branchname";
+        ddlbranch.DataValueField = "branchid";
+        ddlbranch.DataBind();
+        ddlbranch.ClearSelection();
+        ddlbranch.Items.Insert(0, new ListItem { Value = "0", Text = "--Select Branch--", Selected = true });
+        ddlbranch.SelectedValue = "0";
+    }
     private DateTime GetLowDate(DateTime dt)
     {
         double Hour, Min, Sec;
@@ -68,7 +92,7 @@ public partial class StoresReturnReport : System.Web.UI.Page
 
     private void getdata()
     {
-        BranchID = Session["BranchID"].ToString();
+       string branchid = ddlbranch.SelectedValue; ;
         SalesDBManager SalesDB = new SalesDBManager();
         DateTime fromdate = DateTime.Now;
         string[] fromdatestrig = dtp_FromDate.Text.Split(' ');
@@ -111,7 +135,7 @@ public partial class StoresReturnReport : System.Web.UI.Page
         Report.Columns.Add("Remarks");
 
         vdm = new SalesDBManager();
-        string branchid = Session["BranchID"].ToString();
+        //string branchid = Session["BranchID"].ToString();
         cmd = new SqlCommand("select productmaster.productname, SR.sno, SR.returntype, SR.doe, SR.branchid, SR.remarks, SR.invoiceno, SR.refno, SR.billtotalvalue, SR.entryby, SR.createdon, SR.status, SSR.productid, SSR.quantity, SSR.price, SSR.storesreturn_sno, SSR.totalvalue, SSR.ordertax  from stores_return AS SR INNER JOIN sub_stores_return AS SSR ON SR.sno=SSR.storesreturn_sno INNER JOIN productmaster ON productmaster.productid = SSR.productid WHERE SR.doe between @d1 and @d2 AND SR.branchid=@branchid ");//, inwarddetails.indentno
         cmd.Parameters.AddWithValue("@d1", GetLowDate(fromdate));
         cmd.Parameters.AddWithValue("@d2", GetHighDate(todate));

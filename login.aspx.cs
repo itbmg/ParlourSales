@@ -108,7 +108,7 @@ public partial class login : System.Web.UI.Page
                 }
                 else
                 {
-                    if (leveltype == "Admin     ")
+                    if (leveltype == "Admin")
                     {
                         Response.Redirect("Default.aspx", false);
                     }
@@ -116,15 +116,15 @@ public partial class login : System.Web.UI.Page
                     {
                         Response.Redirect("Default.aspx", false);
                     }
-                    if (leveltype == "User      ")
+                    if (leveltype == "User")
                     {
                         Response.Redirect("vpos.aspx", false);
                     }
-                    if (leveltype == "Manager   ")
+                    if (leveltype == "Manager")
                     {
                         Response.Redirect("Default.aspx", false);
                     }
-                    if (leveltype == "Accounts  ")
+                    if (leveltype == "Accounts")
                     {
                         Response.Redirect("Default.aspx", false);
                     }
@@ -132,7 +132,7 @@ public partial class login : System.Web.UI.Page
                     {
                         Response.Redirect("Distibuterindent.aspx", false);
                     }
-                    if (leveltype == "Indent    ")
+                    if (leveltype == "Indent")
                     {
                         ValidateLogin();
                         Response.Redirect("Distibuterindent.aspx", false);

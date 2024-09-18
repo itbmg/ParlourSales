@@ -115,14 +115,17 @@
         if (leveltype == "SuperAdmin") {
             $('#lidefault').css('display', 'block');
             $('#lidashboard').css('display', 'block ');
-            $('#lipos').css('display', 'block ');
+            $('#lipos').css('display', 'none');
             $('#lirecipe').css('display', 'block');
             $('#limaster').css('display', 'block ');
             $('#lisales').css('display', 'block');
             $('#litransactions').css('display', 'block');
             $('#ligiftcards').css('display', 'block');
             $('#lireports').css('display', 'block ');
+            $('#storereturn').css('display', 'none');
+            
             $('#lidistibutor').css('display', 'block ');
+            $('#Li8').css('display', 'none');
             $('#Li9').css('display', 'none');
             $('#Li10').css('display', 'block');
             $('#Li11').css('display', 'block');
@@ -149,7 +152,7 @@
             $('#Li1').css('display', 'none');
         }
     });
-    </script>
+</script>
 
     <form id="form1" runat="server">
     <asp:ToolkitScriptManager ID="ToolkitScriptManager1" runat="server">
@@ -225,6 +228,7 @@
                         <li id="supmst"><a href="suppliermaster.aspx"><i class="fa fa-circle-o"></i>Supplier Master</a></li>
                         <li id="empmst"><a href="empmaster.aspx"><i class="fa fa-circle-o"></i>Employe Master</a></li>
                         <li id="HeadOfAcMaster"><a href="HeadOfAcMaster.aspx"><i class="fa fa-circle-o"></i>Head Of Accounts</a></li>
+                        <li id="lblratemanage"><a href="RatesManage.aspx"><i class="fa fa-circle-o"></i> RateManage</a></li>
                     </ul>
                 </li>
                 <%--<li class="treeview mm_sales" id="lidistibutor"> 
@@ -264,7 +268,7 @@
                         <li id="Li6"><a href="stocktransfer.aspx"><i class="fa fa-circle-o"></i> Stock Transfor</a></li>--%>
                         <%--<li id="Li4"><a href="stocktransferapproval.aspx"><i class="fa fa-circle-o"></i> Stock Transfor Approval</a></li>--%>
                         <li id="storereturn"><a href="storereturn.aspx"><i class="fa fa-circle-o"></i> Store Return</a></li>
-                        <li id="storereturn"><a href="StoreReturnEdit.aspx"><i class="fa fa-circle-o"></i>Store ReturnEdit</a></li>
+                        <li id="storereturn1"><a href="StoreReturnEdit.aspx"><i class="fa fa-circle-o"></i>Store ReturnEdit</a></li>
                         <%--<li id="Li5"><a href="storereturnapproval.aspx"><i class="fa fa-circle-o"></i>Store Return Approval</a></li>
                         <li id="purchases_add_expense"><a href="expences.aspx"><i class="fa fa-circle-o"></i>Add Expenses</a></li>--%>
                        <%-- <li id="Li3"><a href="itemmonitor.aspx"><i class="fa fa-circle-o"></i>Item Monitor</a></li>--%>

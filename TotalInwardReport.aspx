@@ -89,8 +89,8 @@
                                 <tr>
                                      <td>
                                             <label for="cash_in_hand">
-                                                Company Id</label>
-                                            <asp:DropDownList ID="ddlcompany" runat="server" CssClass="form-control" AutoPostBack="true">
+                                                BranchName</label>
+                                            <asp:DropDownList ID="ddlbranch" runat="server" CssClass="form-control" AutoPostBack="true">
                                             </asp:DropDownList>
                                         </td>
                                     <td style="width:6px;"></td>

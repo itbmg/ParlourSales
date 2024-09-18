@@ -2311,11 +2311,11 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                 getproductdetails.cgst = dr["cgst"].ToString();
                 getproductdetails.igst = dr["igst"].ToString();
                 getproductdetails.mrp = dr["mrp"].ToString();
-                getproductdetails.price = dr["billingprice"].ToString();
+                getproductdetails.price = dr["price"].ToString();
                 getproductdetails.productid = dr["productid"].ToString();
                 getproductdetails.subcategoryid = dr["subcategoryid"].ToString();
                 // getproductdetails.imagepath = dr["imagepath"].ToString();
-                getproductdetails.billingprice = dr["billingprice"].ToString();
+                getproductdetails.billingprice = dr["price"].ToString();
                 getproductdetails.GSTTaxCategory = dr["gsttaxcategory"].ToString();
                 getproductdetails.ftplocation = "ftp://223.196.32.30/PURCHASE/";
                 getproductdetails.status = dr["status"].ToString();
@@ -4372,7 +4372,18 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
         try
         {
             vdm = new SalesDBManager();
-            cmd = new SqlCommand("SELECT cmpid, locationid, branchid, branchname, address, phone, tino, stno, cstno, emailid, gstin, regtype, stateid, titlename, branchcode, pramoterid, lat, long, flag,  panno, branchtype, status, pramotername, tallyledger, sapledger, sapledgercode FROM  branchmaster");
+            string LevelType = context.Session["LevelType"].ToString();
+            string BranchID = context.Session["BranchID"].ToString();
+            if (LevelType == "SuperAdmin")
+            {
+                cmd = new SqlCommand("SELECT cmpid, locationid, branchid, branchname, address, phone, tino, stno, cstno, emailid, gstin, regtype, stateid, titlename, branchcode, pramoterid, lat, long, flag,  panno, branchtype, status, pramotername, tallyledger, sapledger, sapledgercode FROM  branchmaster as aa INNER JOIN branchmapping as bb ON aa.branchid=bb.subbranch where bb.superbranch=@branchid ");
+            }
+            else
+            {
+                cmd = new SqlCommand("SELECT cmpid, locationid, branchid, branchname, address, phone, tino, stno, cstno, emailid, gstin, regtype, stateid, titlename, branchcode, pramoterid, lat, long, flag,  panno, branchtype, status, pramotername, tallyledger, sapledger, sapledgercode FROM  branchmaster  as aa INNER JOIN branchmapping as bb ON aa.branchid=bb.subbranch where bb.subbranch=@branchid");
+            }
+            cmd.Parameters.Add("@branchid", BranchID);
+
             DataTable routes = vdm.SelectQuery(cmd).Tables[0];
             List<parlordetails> SectionMaster = new List<parlordetails>();
             foreach (DataRow dr in routes.Rows)
@@ -4851,9 +4862,10 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             string createdby = context.Session["Employ_Sno"].ToString();
             DateTime ServerDateCurrentdate = SalesDBManager.GetTime(vdm.conn);
             DateTime closedate = ServerDateCurrentdate.AddDays(-1);
-            cmd = new SqlCommand("select * from registorclosingdetails where doe between @d1 and @d2");
+            cmd = new SqlCommand("select * from registorclosingdetails where parlorid=@branchid AND doe between @d1 and @d2");
             cmd.Parameters.Add("@d1", GetLowDate(closedate));
             cmd.Parameters.Add("@d2", GetHighDate(closedate));
+            cmd.Parameters.Add("@branchid", branchid);
             DataTable dtexisting = vdm.SelectQuery(cmd).Tables[0];
             if (dtexisting.Rows.Count == 0)
             {
@@ -4896,7 +4908,8 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                             vdm.insert(cmd);
                         }
                     }
-                    cmd = new SqlCommand("select * from productmoniter");
+                    cmd = new SqlCommand("select * from productmoniter where branchid=@branchid");
+                    cmd.Parameters.Add("@branchid", branchid);
                     DataTable dtitem = vdm.SelectQuery(cmd).Tables[0];
                     cmd = new SqlCommand("select op_bal,refno, productid, price, clo_bal,doe,branchid from sub_registorclosingdetails where branchid=@branchid and doe between @d1 and @d2");
                     cmd.Parameters.Add("@d1", GetLowDate(closedate).AddDays(-1));
@@ -5020,9 +5033,10 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             string createdby = context.Session["Employ_Sno"].ToString();
             DateTime ServerDateCurrentdate = SalesDBManager.GetTime(vdm.conn);
             DateTime closedate = ServerDateCurrentdate;
-            cmd = new SqlCommand("select * from registorclosingdetails where doe between @d1 and @d2");
+            cmd = new SqlCommand("select * from registorclosingdetails where doe between @d1 and @d2 and parlorid=@branchid");
             cmd.Parameters.Add("@d1", GetLowDate(closedate).AddDays(-1));
             cmd.Parameters.Add("@d2", GetHighDate(closedate).AddDays(-1));
+            cmd.Parameters.Add("@branchid", branchid);
             DataTable dtexisting = vdm.SelectQuery(cmd).Tables[0];
 
             
@@ -5071,7 +5085,8 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                         }
                     }
 
-                    cmd = new SqlCommand("select * from productmoniter");
+                    cmd = new SqlCommand("select * from productmoniter where branchid=@branchid");
+                    cmd.Parameters.Add("@branchid", branchid);
                     DataTable dtitem = vdm.SelectQuery(cmd).Tables[0];
                     cmd = new SqlCommand("select op_bal,refno, productid, price, clo_bal,doe,branchid from sub_registorclosingdetails where branchid=@branchid and doe between @d1 and @d2");
                     cmd.Parameters.Add("@d1", GetLowDate(closedate).AddDays(-1));
@@ -10631,10 +10646,12 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             string InvoicNo = context.Request["InvoicNo"];
             string refno = context.Request["refno"];
             string branchid = context.Session["BranchID"].ToString();
+            string Branch = context.Request["ddlBranchName"].ToString();
+            
             //SELECT  distibutorsalemaindetails.sno, distibutorsalemaindetails.distibutorid, distibutorsalemaindetails.branchid, distibutorsalemaindetails.invoiceno, distibutorsalemaindetails.invoicedate,  distibutorsalemaindetails.status, distibutorsalemaindetails.doe, distibutorsalemaindetails.remarks, distibutorsalemaindetails.billtotalvalue, distibutorsalemaindetails.refnote, distibutorsalemaindetails.createdby,  distibutorsalemaindetails.createdon, distibutorsalesubdetails.sno AS Expr1, distibutorsalesubdetails.productid, distibutorsalesubdetails.quantity, distibutorsalesubdetails.price, distibutorsalesubdetails.totvalue,  distibutorsalesubdetails.stock_refno, distibutorsalesubdetails.igst, distibutorsalesubdetails.cgst, distibutorsalesubdetails.sgst FROM            distibutorsalemaindetails INNER JOIN distibutorsalesubdetails ON distibutorsalemaindetails.sno = distibutorsalesubdetails.stock_refno WHERE        (distibutorsalemaindetails.branchid = @bid) AND (distibutorsalemaindetails.invoicedate BETWEEN @D1 AND @D2)
             cmd = new SqlCommand("SELECT branchmaster.address, branchmaster.phone, branchmaster.gstin, PM.sno, PM.custmorid, customermaster.name AS custmorname, PM.referencenote, PM.totalitems,  PM.totalpayble, PM.totalpaying, PM.balance, PM.description, PM.modeofpay, PM.payiningnote, PM.discount, PM.status, PM.branchid, PM.doe,  PM.createdby, PM.issueno, PS.refno, PS.productid, PS.productname, PS.qty, PS.totvalue, PS.ordertax, productmaster.sgst, productmaster.cgst, productmaster.igst, productmoniter.price  FROM  possale_maindetails AS PM INNER JOIN  possale_subdetails AS PS ON PM.sno = PS.refno INNER JOIN  customermaster ON PM.custmorid = customermaster.sno INNER JOIN productmaster ON PS.productid = productmaster.productid INNER JOIN branchmaster ON branchmaster.branchid=PM.branchid INNER JOIN productmoniter ON productmoniter.productid=PS.productid WHERE (PM.sno = @SNO) AND productmoniter.branchid=@BID");
             cmd.Parameters.Add("@SNO", InvoicNo);
-            cmd.Parameters.Add("@BID", branchid);
+            cmd.Parameters.Add("@BID", Branch);
             DataTable routes = vdm.SelectQuery(cmd).Tables[0];
             DataView view = new DataView(routes);
             DataTable dtoutward = view.ToTable(true, "sno", "custmorid", "totalitems", "totalpayble", "totalpaying", "balance", "doe", "issueno", "custmorname", "modeofpay", "discount", "address", "phone", "gstin");

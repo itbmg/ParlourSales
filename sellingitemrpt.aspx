@@ -26,14 +26,14 @@
                             <div class="well well-sm col-sm-12">
                                 <table style="width: 100%;">
                                     <tr>
-                                        <td>
+                                       <%-- <td>
                                             <label for="cash_in_hand">
                                                 Company Id</label>
                                             <asp:DropDownList ID="ddlcompany" runat="server" CssClass="form-control" OnSelectedIndexChanged="ddlcompany_SelectedIndexChanged" AutoPostBack="true">
                                             </asp:DropDownList>
                                         </td>
                                         <td style="width: 2%;">
-                                        </td>
+                                        </td>--%>
                                         <td>
                                             <label for="cash_in_hand">
                                                 Parlor</label>

@@ -25,39 +25,48 @@ public partial class sellingitemrpt : System.Web.UI.Page
             {
                 if (!Page.IsCallback)
                 {
-                    bindcompanydetails();
                     DateTime dt = DateTime.Now.AddDays(-1);
                     dtp_FromDate.Text = dt.ToString("dd-MM-yyyy HH:mm");
                     dtp_toDate.Text = dt.ToString("dd-MM-yyyy HH:mm");
+                    bindbranchs();
                 }
             }
         }
     }
 
-    private void bindcompanydetails()
-    {
+    //private void bindcompanydetails()
+    //{
 
-        SalesDBManager SalesDB = new SalesDBManager();
-        cmd = new SqlCommand("select sno, cmpname, cmpcode from companymaster");
-        DataTable dtcmp = vdm.SelectQuery(cmd).Tables[0];
-        ddlcompany.DataSource = dtcmp;
-        ddlcompany.DataTextField = "cmpname";
-        ddlcompany.DataValueField = "sno";
-        ddlcompany.DataBind();
-        ddlcompany.ClearSelection();
-        ddlcompany.Items.Insert(0, new ListItem { Value = "0", Text = "--Select Company--", Selected = true });
-        ddlcompany.SelectedValue = "0";
-    }
+    //    SalesDBManager SalesDB = new SalesDBManager();
+    //    cmd = new SqlCommand("select sno, cmpname, cmpcode from companymaster");
+    //    DataTable dtcmp = vdm.SelectQuery(cmd).Tables[0];
+    //    ddlcompany.DataSource = dtcmp;
+    //    ddlcompany.DataTextField = "cmpname";
+    //    ddlcompany.DataValueField = "sno";
+    //    ddlcompany.DataBind();
+    //    ddlcompany.ClearSelection();
+    //    ddlcompany.Items.Insert(0, new ListItem { Value = "0", Text = "--Select Company--", Selected = true });
+    //    ddlcompany.SelectedValue = "0";
+    //}
 
     private void bindbranchs()
     {
 
+        string leveltype = Session["LevelType"].ToString();
+
         SalesDBManager SalesDB = new SalesDBManager();
-        string mainbranch = ddlcompany.SelectedItem.Value;
-        cmd = new SqlCommand("SELECT branchmaster.branchid, branchmaster.branchname, branchmaster.cmpid FROM branchmaster WHERE (branchmaster.cmpid = @m)");
-        cmd.Parameters.Add("@m", mainbranch);
-        DataTable dttrips = vdm.SelectQuery(cmd).Tables[0];
-        ddlbranch.DataSource = dttrips;
+        if (leveltype == "SuperAdmin")
+        {
+            cmd = new SqlCommand("SELECT  branchmaster.branchid, branchmaster.branchname FROM  branchmaster INNER JOIN branchmapping ON branchmaster.branchid=branchmapping.subbranch where branchmapping.superbranch=@branchid");
+            cmd.Parameters.Add("@branchid", Session["BranchID"].ToString());
+        }
+        else
+        {
+            cmd = new SqlCommand("SELECT  branchmaster.branchid, branchmaster.branchname FROM  branchmaster INNER JOIN branchmapping ON branchmaster.branchid=branchmapping.subbranch where branchmapping.subbranch=@branchid");
+            cmd.Parameters.Add("@branchid", Session["BranchID"].ToString());
+        }
+        DataTable dtcmp = SalesDB.SelectQuery(cmd).Tables[0];
+        ddlbranch.DataSource = dtcmp;
         ddlbranch.DataTextField = "branchname";
         ddlbranch.DataValueField = "branchid";
         ddlbranch.DataBind();
@@ -130,7 +139,7 @@ public partial class sellingitemrpt : System.Web.UI.Page
 
     private void getdata()
     {
-        BranchID = Session["BranchID"].ToString();
+        BranchID = ddlbranch.SelectedValue;
         SalesDBManager SalesDB = new SalesDBManager();
         DateTime fromdate = DateTime.Now;
         DateTime todate = DateTime.Now;

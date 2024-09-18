@@ -33,23 +33,34 @@ public partial class CashBook : System.Web.UI.Page
             {
                 txtFromdate.Text = DateTime.Now.ToString("dd-MM-yyyy HH:mm");
                 lblTitle.Text = Session["TitleName"].ToString();
-                bindcompanydetails();
+                bindbranchdetails();
 
             }
         }
     }
-    private void bindcompanydetails()
+    private void bindbranchdetails()
     {
-
+        string leveltype =Session["LevelType"].ToString();
         SalesDBManager SalesDB = new SalesDBManager();
-        cmd = new SqlCommand("SELECT  branchid, branchname FROM  branchmaster");
+        if (leveltype == "SuperAdmin")
+        {
+            cmd = new SqlCommand("SELECT  branchmaster.branchid, branchmaster.branchname FROM  branchmaster INNER JOIN branchmapping ON branchmaster.branchid=branchmapping.subbranch where branchmapping.superbranch=@branchid");
+            cmd.Parameters.Add("@branchid", BranchID);
+        }
+        else
+        {
+            cmd = new SqlCommand("SELECT  branchmaster.branchid, branchmaster.branchname FROM  branchmaster INNER JOIN branchmapping ON branchmaster.branchid=branchmapping.subbranch where branchmapping.subbranch=@branchid");
+            cmd.Parameters.Add("@branchid", BranchID);
+        }
+        
+
         DataTable dtcmp = SalesDB.SelectQuery(cmd).Tables[0];
         ddlcompany.DataSource = dtcmp;
         ddlcompany.DataTextField = "branchname";
         ddlcompany.DataValueField = "branchid";
         ddlcompany.DataBind();
         ddlcompany.ClearSelection();
-        ddlcompany.Items.Insert(0, new ListItem { Value = "0", Text = "--Select Customer--", Selected = true });
+        ddlcompany.Items.Insert(0, new ListItem { Value = "0", Text = "--Select Branch--", Selected = true });
         ddlcompany.SelectedValue = "0";
     }
     protected void btnGenerate_Click(object sender, EventArgs e)
@@ -432,6 +443,7 @@ public partial class CashBook : System.Web.UI.Page
                 string refno = dtoutward.Rows[0]["refno"].ToString();
 
                 cmd = new SqlCommand("select * from productmoniter");
+                    cmd.Parameters.Add("@branchid", ddlcompany.SelectedValue);
                 DataTable dtitem = vdm.SelectQuery(cmd).Tables[0];
                 cmd = new SqlCommand("select op_bal,refno, productid, price, clo_bal,doe,branchid from sub_registorclosingdetails where branchid=@branchid and doe between @d1 and @d2");
                 cmd.Parameters.Add("@d1", GetLowDate(fromdate).AddDays(-1));

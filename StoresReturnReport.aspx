@@ -25,6 +25,13 @@
                             <div class="well well-sm col-sm-12">
                             <table style="width:100%;">
                             <tr>
+                                <td style="width: 2%;"></td>
+                                        <td>
+                                            <label>
+                                                BranchName</label>
+                                            <asp:DropDownList ID="ddlbranch" runat="server" CssClass="form-control">
+                                            </asp:DropDownList>
+                                        </td>
                                 <td>
                              <label for="cash_in_hand">
                                     FromDate</label>

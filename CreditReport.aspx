@@ -27,8 +27,8 @@
                                     <tr>
                                         <td>
                                             <label for="cash_in_hand">
-                                                Customer</label>
-                                            <asp:DropDownList ID="ddlcompany" runat="server" CssClass="form-control" AutoPostBack="true">
+                                                BranchNAme</label>
+                                            <asp:DropDownList ID="ddlbranch" runat="server" CssClass="form-control" AutoPostBack="true">
                                             </asp:DropDownList>
                                         </td>
                                         <td style="width: 2%;"></td>

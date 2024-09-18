@@ -28,7 +28,7 @@ public partial class TotalInwardReport : System.Web.UI.Page
                     dtp_Todate.Text = DateTime.Now.ToString("dd-MM-yyyy HH:mm");// Convert.ToString(lbltodate.Text);/// //// 
                     //lblAddress.Text = Session["Address"].ToString();
                     //lblTitle.Text = Session["TitleName"].ToString();
-                    bindcompanydetails();
+                    bindbranchdetails();
                     bindcategory();
                 }
             }
@@ -61,25 +61,36 @@ public partial class TotalInwardReport : System.Web.UI.Page
         return DT;
     }
     DataTable Report = new DataTable();
-    private void bindcompanydetails()
+    private void bindbranchdetails()
     {
 
+        string leveltype = Session["LevelType"].ToString();
+
         SalesDBManager SalesDB = new SalesDBManager();
-        cmd = new SqlCommand("SELECT cmpid, locationid, branchid, branchname, address, phone, tino, stno, cstno, emailid, gstin, regtype, stateid, titlename, branchcode, pramoterid, lat, long, flag,  panno, branchtype, status, pramotername, tallyledger, sapledger, sapledgercode FROM  branchmaster");
-        DataTable dtcmp = vdm.SelectQuery(cmd).Tables[0];
-        ddlcompany.DataSource = dtcmp;
-        ddlcompany.DataTextField = "branchname";
-        ddlcompany.DataValueField = "branchid";
-        ddlcompany.DataBind();
-        ddlcompany.ClearSelection();
-        ddlcompany.Items.Insert(0, new ListItem { Value = "0", Text = "--Select Company--", Selected = true });
-        ddlcompany.SelectedValue = "0";
+        if (leveltype == "SuperAdmin")
+        {
+            cmd = new SqlCommand("SELECT  branchmaster.branchid, branchmaster.branchname FROM  branchmaster INNER JOIN branchmapping ON branchmaster.branchid=branchmapping.subbranch where branchmapping.superbranch=@branchid");
+            cmd.Parameters.Add("@branchid", Session["BranchID"].ToString());
+        }
+        else
+        {
+            cmd = new SqlCommand("SELECT  branchmaster.branchid, branchmaster.branchname FROM  branchmaster INNER JOIN branchmapping ON branchmaster.branchid=branchmapping.subbranch where branchmapping.subbranch=@branchid");
+            cmd.Parameters.Add("@branchid", Session["BranchID"].ToString());
+        }
+        DataTable dtcmp = SalesDB.SelectQuery(cmd).Tables[0];
+        ddlbranch.DataSource = dtcmp;
+        ddlbranch.DataTextField = "branchname";
+        ddlbranch.DataValueField = "branchid";
+        ddlbranch.DataBind();
+        ddlbranch.ClearSelection();
+        ddlbranch.Items.Insert(0, new ListItem { Value = "0", Text = "--Select Branch--", Selected = true });
+        ddlbranch.SelectedValue = "0";
     }
     private void bindcategory()
     {
 
         SalesDBManager SalesDB = new SalesDBManager();
-        string mainbranch = ddlcompany.SelectedItem.Value;
+        string mainbranch = ddlbranch.SelectedItem.Value;
         cmd = new SqlCommand("SELECT category, cat_code, status, categoryid FROM categorymaster");
         cmd.Parameters.Add("@m", mainbranch);
         DataTable dttrips = vdm.SelectQuery(cmd).Tables[0];
@@ -109,7 +120,7 @@ public partial class TotalInwardReport : System.Web.UI.Page
     protected void ddlsubcategory_subcategoryIndexChanged(object sender, EventArgs e)
     {
         SalesDBManager SalesDB = new SalesDBManager();
-        string branchid = ddlcompany.SelectedItem.Value;
+        string branchid = ddlbranch.SelectedItem.Value;
         string subcatid = ddlsubcategory.SelectedItem.Value;
         cmd = new SqlCommand("SELECT productmaster.productid, productmaster.categoryid,productmaster.price as mrp, productmaster.imagepath, productmaster.subcategoryid, productmaster.uim AS Puim,  productmaster.productname, productmaster.billingprice,   productmaster.productcode, productmaster.hsncode, productmaster.sub_cat_code, productmaster.sku, productmaster.description, productmaster.igst, productmaster.cgst, productmaster.sgst, productmaster.gsttaxcategory, productmaster.status, productmaster.createdby, productmaster.createdon, uimmaster.uim, productmoniter.qty, productmoniter.price, categorymaster.category, subcategorymaster.subcategoryname, productmaster.supplierid  FROM productmaster INNER JOIN productmoniter ON productmaster.productid=productmoniter.productid INNER JOIN categorymaster ON productmaster.categoryid = categorymaster.categoryid INNER JOIN subcategorymaster ON productmaster.subcategoryid = subcategorymaster.subcategoryid LEFT OUTER JOIN uimmaster ON uimmaster.sno=productmaster.uim  WHERE (productmoniter.branchid = @branchid) AND (productmaster.subcategoryid=@subcatid)");
         cmd.Parameters.Add("@branchid", branchid);
@@ -165,7 +176,7 @@ public partial class TotalInwardReport : System.Web.UI.Page
             }
             lblFromDate.Text = fromdate.ToString("dd/MM/yyyy");
             lbltodate.Text = todate.ToString("dd/MM/yyyy");
-            string branchid = Session["BranchID"].ToString();
+            string branchid = ddlbranch.SelectedItem.Value;
 
             string productid = ddlproductname.SelectedItem.Value;
 

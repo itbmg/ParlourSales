@@ -19,7 +19,6 @@ public partial class CreditReport : System.Web.UI.Page
             Response.Redirect("Login.aspx");
         else
         {
-            BranchID = Session["BranchID"].ToString();
             vdm = new SalesDBManager();
             if (!Page.IsPostBack)
             {
@@ -30,24 +29,35 @@ public partial class CreditReport : System.Web.UI.Page
                     ////dtp_ToDate.Text = dt.ToString("dd-MM-yyyy HH:mm");
                     dtp_FromDate.Text = DateTime.Now.ToString("dd-MM-yyyy HH:mm");
                     dtp_ToDate.Text = DateTime.Now.ToString("dd-MM-yyyy HH:mm");
-                    bindcompanydetails();
+                    bindbranchdetails();
                 }
             }
         }
     }
-    private void bindcompanydetails()
+    private void bindbranchdetails()
     {
 
+        string leveltype = Session["LevelType"].ToString();
+
         SalesDBManager SalesDB = new SalesDBManager();
-        cmd = new SqlCommand("SELECT  branchid, branchname FROM  branchmaster");
-        DataTable dtcmp = vdm.SelectQuery(cmd).Tables[0];
-        ddlcompany.DataSource = dtcmp;
-        ddlcompany.DataTextField = "branchname";
-        ddlcompany.DataValueField = "branchid";
-        ddlcompany.DataBind();
-        ddlcompany.ClearSelection();
-        ddlcompany.Items.Insert(0, new ListItem { Value = "0", Text = "--Select Customer--", Selected = true });
-        ddlcompany.SelectedValue = "0";
+        if (leveltype == "SuperAdmin")
+        {
+            cmd = new SqlCommand("SELECT  branchmaster.branchid, branchmaster.branchname FROM  branchmaster INNER JOIN branchmapping ON branchmaster.branchid=branchmapping.subbranch where branchmapping.superbranch=@branchid");
+            cmd.Parameters.Add("@branchid", Session["BranchID"].ToString());
+        }
+        else
+        {
+            cmd = new SqlCommand("SELECT  branchmaster.branchid, branchmaster.branchname FROM  branchmaster INNER JOIN branchmapping ON branchmaster.branchid=branchmapping.subbranch where branchmapping.subbranch=@branchid");
+            cmd.Parameters.Add("@branchid", Session["BranchID"].ToString());
+        }
+        DataTable dtcmp = SalesDB.SelectQuery(cmd).Tables[0];
+        ddlbranch.DataSource = dtcmp;
+        ddlbranch.DataTextField = "branchname";
+        ddlbranch.DataValueField = "branchid";
+        ddlbranch.DataBind();
+        ddlbranch.ClearSelection();
+        ddlbranch.Items.Insert(0, new ListItem { Value = "0", Text = "--Select Branch--", Selected = true });
+        ddlbranch.SelectedValue = "0";
     }
     private DateTime GetLowDate(DateTime dt)
     {
@@ -83,7 +93,7 @@ public partial class CreditReport : System.Web.UI.Page
 
     private void getdata()
     {
-        BranchID = Session["BranchID"].ToString();
+        BranchID = ddlbranch.SelectedValue;
         SalesDBManager SalesDB = new SalesDBManager();
         DateTime fromdate = DateTime.Now;
         string[] fromdatestrig = dtp_FromDate.Text.Split(' ');
@@ -141,11 +151,11 @@ public partial class CreditReport : System.Web.UI.Page
         //DailyReport.Columns.Add("Free");
         DailyReport.Columns.Add("Credit");
 
-        cmd = new SqlCommand("SELECT     sno,  totalpaying,modeofpay FROM possale_maindetails where doe BETWEEN @d1 AND @d2 and branchid=@branchid AND custmorid=@custmorid and modeofpay=@modeofpay");
+        cmd = new SqlCommand("SELECT     sno,  totalpaying,modeofpay FROM possale_maindetails where doe BETWEEN @d1 AND @d2 and branchid=@branchid and modeofpay=@modeofpay");
         cmd.Parameters.AddWithValue("@d1", GetLowDate(fromdate));
         cmd.Parameters.AddWithValue("@d2", GetHighDate(todate));
         cmd.Parameters.AddWithValue("@branchid", BranchID);
-        cmd.Parameters.AddWithValue("@custmorid", ddlcompany.SelectedValue);
+        //cmd.Parameters.AddWithValue("@custmorid", ddlcompany.SelectedValue);
         cmd.Parameters.AddWithValue("@modeofpay", ddlPaymenttype.SelectedValue);
         DataTable dtInvoice = SalesDB.SelectQuery(cmd).Tables[0];
         int J = 1;
