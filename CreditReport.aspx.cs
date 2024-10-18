@@ -140,6 +140,7 @@ public partial class CreditReport : System.Web.UI.Page
         DailyReport.Columns.Add("Sno");
         DailyReport.Columns.Add("Date");
         DailyReport.Columns.Add("Invoice no");
+        DailyReport.Columns.Add("Name");
         DailyReport.Columns.Add("ItemName");
         DailyReport.Columns.Add("Sale(Qty)");
         DailyReport.Columns.Add("Price");
@@ -151,7 +152,7 @@ public partial class CreditReport : System.Web.UI.Page
         //DailyReport.Columns.Add("Free");
         DailyReport.Columns.Add("Credit");
 
-        cmd = new SqlCommand("SELECT     sno,  totalpaying,modeofpay FROM possale_maindetails where doe BETWEEN @d1 AND @d2 and branchid=@branchid and modeofpay=@modeofpay");
+        cmd = new SqlCommand("SELECT     possale_maindetails.sno,  possale_maindetails.totalpaying,possale_maindetails.modeofpay, customermaster.name FROM possale_maindetails INNER JOIN customermaster ON customermaster.sno = possale_maindetails.custmorid where possale_maindetails.doe BETWEEN @d1 AND @d2 and possale_maindetails.branchid=@branchid  and possale_maindetails.modeofpay=@modeofpay");
         cmd.Parameters.AddWithValue("@d1", GetLowDate(fromdate));
         cmd.Parameters.AddWithValue("@d2", GetHighDate(todate));
         cmd.Parameters.AddWithValue("@branchid", BranchID);
@@ -165,6 +166,7 @@ public partial class CreditReport : System.Web.UI.Page
             foreach (DataRow drsub in dtInvoice.Rows)
             {
                 string refno = drsub["sno"].ToString();
+                string name = drsub["name"].ToString();
                 cmd = new SqlCommand("SELECT   possale_subdetails.qty, productmaster.productname,possale_maindetails.doe, possale_subdetails.price, possale_subdetails.totvalue,possale_subdetails.ordertax FROM possale_maindetails INNER JOIN possale_subdetails on possale_subdetails.refno = possale_maindetails.sno INNER JOIN productmaster ON productmaster.productid = possale_subdetails.productid  WHERE possale_maindetails.doe BETWEEN @d1 AND @d2 AND possale_maindetails.branchid=@bid AND possale_maindetails.sno=@refno");
                 cmd.Parameters.AddWithValue("@d1", GetLowDate(fromdate));
                 cmd.Parameters.AddWithValue("@d2", GetHighDate(todate));
@@ -216,6 +218,7 @@ public partial class CreditReport : System.Web.UI.Page
                     }
                     DataRow newvartical2 = DailyReport.NewRow();
                     newvartical2["Invoice no"] = refno;
+                    newvartical2["Name"] = name;
                     DateTime dt = Convert.ToDateTime(date);
                     newvartical2["Date"] = dt.ToString("dd/MMM/yyyy");
                     newvartical2["ItemName"] = "Total";
