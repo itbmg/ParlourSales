@@ -142,11 +142,11 @@
                 var $row = $(this).closest('tr');
                 price = $row.find('.price').val();
                 quantity = $row.find('.quantity').val();
-                taxprice = $row.find('.taxval').val();
+                taxprice = $row.find('.igstval').val();
                 var prod_total = price * quantity;
                 prod_total = prod_total.toFixed(2);
                 var total = parseFloat(prod_total);
-                var taxtotal = taxprice * quantity;
+                var taxtotal = (taxprice * prod_total)/100;
                 $row.find('#txtTotal').text(parseFloat(total).toFixed(2));
                 $row.find('#txttax').text(parseFloat(taxtotal).toFixed(2));
                 clstotalval();
