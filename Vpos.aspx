@@ -16,7 +16,7 @@
             var leveltype = '<%=Session["leveltype"] %>';
             var branchid = '<%=Session["BranchID"] %>';
             var leveltype = '<%=Session["leveltype"] %>';
-           
+
             if (leveltype == "Admin     ") {
                 $('#lidefault').css('display', 'block');
                 $('#lidashboard').css('display', 'block ');
@@ -101,11 +101,11 @@
             $("#btnpayment").click(function () {
                 document.getElementById("spnbtnval").innerHTML = "Save";
                 $("#payModal").modal({ backdrop: "static" })
-             })
+            })
             $("#btnsuspend").click(function () {
                 document.getElementById("spnbtnval").innerHTML = "Hold";
                 $("#payModal").modal({ backdrop: "static" })
-             })
+            })
             $("#btnregdtls").click(function () {
                 getregistervalues();
                 $("#divregistermodel").modal({ backdrop: "static" })
@@ -137,16 +137,17 @@
 
 
             $('#posTable').on('change', '.price', calTotal)
-                  .on('change', '.quantity', calTotal);
+                .on('change', '.quantity', calTotal);
             function calTotal() {
                 var $row = $(this).closest('tr');
                 price = $row.find('.price').val();
                 quantity = $row.find('.quantity').val();
                 taxprice = $row.find('.igstval').val();
+                var hdntaxprice = $row.find('#hdntaxprice').val();
                 var prod_total = price * quantity;
                 prod_total = prod_total.toFixed(2);
                 var total = parseFloat(prod_total);
-                var taxtotal = (taxprice * prod_total)/100;
+                var taxtotal = hdntaxprice * quantity;
                 $row.find('#txtTotal').text(parseFloat(total).toFixed(2));
                 $row.find('#txttax').text(parseFloat(taxtotal).toFixed(2));
                 clstotalval();
@@ -158,7 +159,7 @@
             var s = function (msg) {
                 if (msg) {
                     if (msg.length > 0) {
-                       
+
                         if (msg == "Please Close The Yesterday Registor Details") {
                             alert(msg);
                             window.open("storeclose.aspx", "_self");
@@ -168,8 +169,8 @@
                             window.open("storeopen.aspx", "_self");
                         }
                         if (msg == "ok") {
-                          
-                            
+
+
                         }
                     }
                 }
@@ -299,7 +300,7 @@
                         document.getElementById("spnregtotalcash").innerHTML = totalsale - expenses;
                         document.getElementById("spncregtotalcash").innerHTML = totalsale - expenses;
                         document.getElementById("txttotal_cash_submitted").value = totalsale - expenses;
-                        
+
                     }
                     else {
                     }
@@ -333,7 +334,7 @@
                     tottaxamount += parseFloat(totltax);
                 }
             });
-            
+
             var totalamount1 = parseFloat(totaamount);
             var grandtotal = parseFloat(totalamount1);
             var grandtotal1 = grandtotal.toFixed(2);
@@ -345,9 +346,9 @@
                 diff = grandtotal1 - grandtotal;
             }
             document.getElementById('ts_con').innerHTML = tottaxamount.toFixed(2);
-            document.getElementById('total').innerHTML = grandtotal.toFixed(2); 
+            document.getElementById('total').innerHTML = grandtotal.toFixed(2);
             var totalpayable = grandtotal + tottaxamount;
-            document.getElementById('total-payable').innerHTML = totalpayable.toFixed(2);
+            document.getElementById('total-payable').innerHTML = Math.round(totalpayable,2);
             document.getElementById('count').innerHTML = rowcount;
             document.getElementById('spnitem_count').innerHTML = rowcount;
             document.getElementById('spntwt').innerHTML = totalpayable.toFixed(2);
@@ -431,12 +432,12 @@
             if (dupliitemlist.indexOf(val) == -1) {
                 for (var i = 0; i < productdetails.length; i++) {
                     if (val == productdetails[i].productid) {
-                         productname = productdetails[i].productname;
-                         price = productdetails[i].price;
-                         productid = productdetails[i].productid;
+                        productname = productdetails[i].productname;
+                        price = productdetails[i].price;
+                        productid = productdetails[i].productid;
                         var cgst = productdetails[i].cgst;
                         var sgst = productdetails[i].sgst;
-                         igst = productdetails[i].igst;
+                        igst = productdetails[i].igst;
                         itemlist.push({ Sno: txtsno, productname: productname, price: price, Quantity: Quantity, TotalCost: TotalCost, productid: productid, perunittax: perunittax, igst: igst });
                         dupliitemlist.push(val);
                     }
@@ -452,7 +453,7 @@
                         }
                         else {
                             itemresults += '<td  class="btn btn-block btn-xs edit btn-warning"><span class="sname" id="spn_Productname">' + itemlist[i].productname + '</span></td>';
-                        }  
+                        }
                         var igst = parseFloat(itemlist[i].igst);
                         var itemprice = parseFloat(itemlist[i].price);
                         var divisionval = 100 + igst;
@@ -471,6 +472,7 @@
                         itemresults += '<td  class="text-right" style="width:20%"><span class="clstotal text-right ssubtotal" id="txtTotal">' + subtotal + '</span></td>';
                         itemresults += '<td class="text-center"><span onclick="removerow(this);" style="cursor: pointer;color: red;"><i class="fa fa-trash-o"></i></span></td>';
                         itemresults += '<td class="text-center"><input id="hdnproductsno" type="hidden" value="' + itemlist[i].productid + '"></td>';
+                        itemresults += '<td class="text-center"><input id="hdntaxprice" type="hidden" value="' + taxprice + '"></td>';
                         itemresults += '<td  class="text-right" style="display:none;"><span class="clstax text-right ssubtotal" id="txttax">' + taxvalue + '</span><input id="txt_perunittax" name="tax" class="taxval" type="text" value="' + taxvalue + '" style="display:none;"/></td>';
                         itemresults += '<td  class="text-right" style="display:none;"><span class="clsigst text-right ssubtotal" id="txtigst">' + igst + '</span><input id="txt_igst" name="igst" class="igstval" type="text" value="' + igst + '" style="display:none;"/></td>';
                         itemresults += '</tr>';
@@ -507,7 +509,7 @@
 
                     }
                 });
-                
+
             }
             else {
                 $(thisid).closest("tr").find('#txtTotal').val("0");
@@ -610,7 +612,7 @@
                         }
                         else {
                             itemresults += '<td  class="btn btn-block btn-xs edit btn-warning"><span class="sname" id="spn_Productname">' + itemlist[i].productname + '</span></td>';
-                        }  
+                        }
                         var itemprice = parseFloat(itemlist[i].price);
                         var igst = parseFloat(itemlist[i].igst);
                         var divisonvalue = 100 + igst;
@@ -700,7 +702,7 @@
                     }
                     else {
                         itemresults += '<td  class="btn btn-block btn-xs edit btn-warning"><span class="sname" id="spn_Productname">' + dummyitem[i].productname + '</span></td>';
-                    }  
+                    }
                     itemresults += '<td  class="text-right" style="width:20%"><span class="text-right sprice" id="sprice_1541067686388">' + dummyitem[i].price + '</span><input id="txt_perunitrs" name="prices" class="price" type="text" value="' + dummyitem[i].price + '" style="display:none;"/></td>';
                     itemresults += '<td class="text-right" style="width:20%"><input id="txt_quantity" type="text" class="quantity form-control input-qty kb-pad text-center rquantity" style="width: 52% !important;float: right !important;" onkeyup="qtychage(this);"    value="' + dummyitem[i].Quantity + '" name="quantity"/></td>';
                     itemresults += '<td  class="text-right" style="width:20%"><span class="clstotal text-right ssubtotal" id="txtTotal">' + dummyitem[i].TotalCost + '</span></td>';
@@ -972,7 +974,7 @@
             var stripesale = document.getElementById("spncregstripesale").innerHTML;
             var othersale = document.getElementById("spncregothersale").innerHTML;
             var totalsale = document.getElementById("spncregtotalsale").innerHTML;
-            var expenses  = document.getElementById("spncregexpenses").innerHTML;
+            var expenses = document.getElementById("spncregexpenses").innerHTML;
             var totalcash = document.getElementById("spncregtotalcash").innerHTML;
 
             var paytm = document.getElementById("spncpaytmamt").innerHTML;
@@ -1001,7 +1003,8 @@
                 return false;
             }
 
-            var data = { 'op': 'save_parlorerclosingregister', 'cashinhand': cashinhand, 'cashsale': cashsale, 'chequesale': chequesale, 'giftcardsale': giftcardsale, 'ccsale': ccsale,
+            var data = {
+                'op': 'save_parlorerclosingregister', 'cashinhand': cashinhand, 'cashsale': cashsale, 'chequesale': chequesale, 'giftcardsale': giftcardsale, 'ccsale': ccsale,
                 'stripesale': stripesale, 'othersale': othersale, 'totalsale': totalsale, 'expenses': expenses, 'totalcash': totalcash, 'submittedcash': submittedcash, 'submittedslips': submittedslips,
                 'submittedchecks': submittedchecks, 'description': description, 'btnreg': btnreg, 'paytm': paytm, 'phonepay': phonepay, 'closeitems': closeitems
             };
@@ -1025,9 +1028,9 @@
             var totalpayable = document.getElementById("total-payable").innerHTML;
             var discountamt = (parseFloat(totalpayable) * parseFloat(discount)) / 100;
             var totalval = (parseFloat(totalpayable) - parseFloat(discountamt));
-            document.getElementById("total-payable").innerHTML = totalval.toFixed(2);
+            document.getElementById("total-payable").innerHTML = Math.round(totalval,2);
             document.getElementById("totds_con").innerHTML = discount;
-           
+
             document.getElementById("spntwt").innerHTML = totalval.toFixed(2);
             document.getElementById("spntotal_paying").innerHTML = totalval.toFixed(2);
             document.getElementById("txtamount").value = totalval.toFixed(2);
@@ -1053,7 +1056,7 @@
                 error: e
             });
         }
-       
+
     </script>
 </head>
 <body class="skin-green sidebar-collapse sidebar-mini pos">
@@ -2739,7 +2742,8 @@
                 if (socket.readyState == 1) {
                     if (order_printers == '') {
 
-                        var socket_data = { 'printer': false, 'order': true,
+                        var socket_data = {
+                            'printer': false, 'order': true,
                             'logo': 'https://spos.tecdiary.com/uploads/logo.png',
                             'text': order
                         };
