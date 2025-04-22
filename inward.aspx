@@ -187,6 +187,13 @@
             });
         }
 
+        function barcode() {
+            var txtbarcode = document.getElementById('txtitem').value;
+            test1();
+            //$('#posTable').on('change', '.price', calTotal)
+            //    .on('change', '.quantity', calTotal);
+            //calTotal()
+        }
 
         var DataTable;
         var ProductTable = [];
@@ -225,7 +232,7 @@
             if (txtbarcode != "") {
                 if (ProductTable.indexOf(txtbarcode) == -1) {
                     for (var i = 0; i < productdetails.length; i++) {
-                        if (txtbarcode == productdetails[i].productname) {
+                        if (txtbarcode == productdetails[i].productname || txtbarcode == productdetails[i].sku) {
                             productname = productdetails[i].productname;
                             price = productdetails[i].price;
                             productid = productdetails[i].productid;
@@ -610,7 +617,7 @@
                                         </div>
                                         <div class="col-md-12 col-sm-12">
                                             <div class="form-group">
-                                                <input type="text" name="focus_add_item" value="" class="form-control ui-autocomplete-input" id="txtitem" placeholder="Search product by code or name, you can scan barcode too">
+                                                <input type="text" name="focus_add_item" value="" class="form-control ui-autocomplete-input" id="txtitem" onchange="barcode();" placeholder="Search product by code or name, you can scan barcode too">
                                             </div>
                                         </div>
                                         <div id="div_itemData"></div>

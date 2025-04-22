@@ -120,7 +120,13 @@
             })
             $("#btnshartcut").click(function () { $("#divshartcutkeys").modal({ backdrop: "static" }) })
         });
-
+        function barcode() {
+            var txtbarcode = document.getElementById('txtitem').value;
+            test1();
+            //$('#posTable').on('change', '.price', calTotal)
+            //    .on('change', '.quantity', calTotal);
+            //calTotal()
+        }
         $(document).click(function () {
             $('#txtitem').keypress(function (e) {
                 var key = e.which;
@@ -134,6 +140,7 @@
             $('input[name="butAssignProd"]').click(function () {
                 test1();
             });
+            
 
 
             $('#posTable').on('change', '.price', calTotal)
@@ -154,6 +161,7 @@
             }
         });
 
+       
         function checkregistordetails() {
             var data = { 'op': 'get_registordetails' };
             var s = function (msg) {
@@ -551,7 +559,7 @@
         function test1() {
             var val = document.getElementById('txtitem').value;
             for (var i = 0; i < productdetails.length; i++) {
-                if (val == productdetails[i].productname) {
+                if (val == productdetails[i].productname || val == productdetails[i].sku) {
                     val = productdetails[i].productid;
                 }
             }
@@ -1237,7 +1245,7 @@
                                                 placeholder="Reference Note">
                                         </div>
                                         <div class="form-group" style="margin-bottom: 5px;">
-                                            <input type="text" name="code" id="txtitem" class="form-control ui-autocomplete-input"
+                                            <input type="text" name="code" id="txtitem" onchange="barcode();" class="form-control ui-autocomplete-input"
                                                 placeholder="Search product by code or name, you can scan barcode too">
 
                                                 <input type="text" name="butAssignProd" placeholder="click here" style="display:none;">
