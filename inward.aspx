@@ -191,7 +191,7 @@
         }
 
         function barcode() {
-            //var txtbarcode = document.getElementById('txtitem').value;
+            var txtbarcode = document.getElementById('txtitem').value;
             test1();
             //$('#posTable').on('change', '.price', calTotal)
             //    .on('change', '.quantity', calTotal);
@@ -235,7 +235,7 @@
             if (txtbarcode != "") {
                 if (ProductTable.indexOf(txtbarcode) == -1) {
                     for (var i = 0; i < productdetails.length; i++) {
-                        if (txtbarcode == productdetails[i].sku) {
+                        if (txtbarcode == productdetails[i].productname || txtbarcode == productdetails[i].sku) {
                             productname = productdetails[i].productname;
                             price = productdetails[i].price;
                             productid = productdetails[i].productid;
@@ -623,9 +623,7 @@
                                         </div>
                                         <div class="col-md-12 col-sm-12">
                                             <div class="form-group">
-                                                <input id="txtitem" type="text" class="form-control" name="sku" onchange="barcode();" placeholder="Scan Here" />
-
-                                                <%-- <input type="text" name="focus_add_item" value="" class="form-control ui-autocomplete-input" id="txtitem" onchange="barcode();" placeholder="Search product by code or name, you can scan barcode too">--%>
+                                                <input type="text" name="focus_add_item" value="" class="form-control ui-autocomplete-input" id="txtitem" onchange="barcode();" placeholder="Search product by code or name, you can scan barcode too">
                                             </div>
                                         </div>
                                         <div id="div_itemData"></div>
@@ -663,8 +661,13 @@
                                 </div>
 
                             </div>
-                            <input type="submit" name="update" value="Save" class="btn btn-primary" id="btnsave" onclick="btnsubmitinward_click();" />
+                        </div>
+
+                        <div style="text-align:center">
+                            <input type="button" name="update" value="Save" class="btn btn-primary" id="btnsave" onclick="btnsubmitinward_click();" />
                             <input type="button" name="update" value="Close" class="btn btn-primary" id="btnclose" />
+
+
                         </div>
                     </div>
                 </div>

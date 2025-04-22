@@ -121,62 +121,46 @@
             $("#btnshartcut").click(function () { $("#divshartcutkeys").modal({ backdrop: "static" }) })
         });
         function barcode() {
-            //var txtbarcode = document.getElementById('txtitem').value;
+            var txtbarcode = document.getElementById('txtitem').value;
             test1();
             //$('#posTable').on('change', '.price', calTotal)
             //    .on('change', '.quantity', calTotal);
             //calTotal()
         }
-        //$(document).click(function () {
-        //    $('#txtitem').keypress(function (e) {
-        //        var key = e.which;
-        //        if (key == 13)  // the enter key code
-        //        {
-        //            $('input[name = butAssignProd]').click();
-        //            return false;
-        //        }
-        //    });
+        $(document).click(function () {
+            $('#txtitem').keypress(function (e) {
+                var key = e.which;
+                if (key == 13)  // the enter key code
+                {
+                    $('input[name = butAssignProd]').click();
+                    return false;
+                }
+            });
 
-        //    $('input[name="butAssignProd"]').click(function () {
-        //        test1();
-        //    });
+            $('input[name="butAssignProd"]').click(function () {
+                test1();
+            });
             
 
 
-        //    $('#posTable').on('change', '.price', calTotal)
-        //        .on('change', '.quantity', calTotal);
-        //    function calTotal() {
-        //        var $row = $(this).closest('tr');
-        //        price = $row.find('.price').val();
-        //        quantity = $row.find('.quantity').val();
-        //        taxprice = $row.find('.igstval').val();
-        //        var hdntaxprice = $row.find('#hdntaxprice').val();
-        //        var prod_total = price * quantity;
-        //        prod_total = prod_total.toFixed(2);
-        //        var total = parseFloat(prod_total);
-        //        var taxtotal = hdntaxprice * quantity;
-        //        $row.find('#txtTotal').text(parseFloat(total).toFixed(2));
-        //        $row.find('#txttax').text(parseFloat(taxtotal).toFixed(2));
-        //        clstotalval();
-        //    }
-        //});
+            $('#posTable').on('change', '.price', calTotal)
+                .on('change', '.quantity', calTotal);
+            function calTotal() {
+                var $row = $(this).closest('tr');
+                price = $row.find('.price').val();
+                quantity = $row.find('.quantity').val();
+                taxprice = $row.find('.igstval').val();
+                var hdntaxprice = $row.find('#hdntaxprice').val();
+                var prod_total = price * quantity;
+                prod_total = prod_total.toFixed(2);
+                var total = parseFloat(prod_total);
+                var taxtotal = hdntaxprice * quantity;
+                $row.find('#txtTotal').text(parseFloat(total).toFixed(2));
+                $row.find('#txttax').text(parseFloat(taxtotal).toFixed(2));
+                clstotalval();
+            }
+        });
 
-        $('#posTable').on('change', '.price', calTotal)
-            .on('change', '.quantity', calTotal);
-        function calTotal() {
-            var $row = $(this).closest('tr');
-            price = $row.find('.price').val();
-            quantity = $row.find('.quantity').val();
-            taxprice = $row.find('.igstval').val();
-            var hdntaxprice = $row.find('#hdntaxprice').val();
-            var prod_total = price * quantity;
-            prod_total = prod_total.toFixed(2);
-            var total = parseFloat(prod_total);
-            var taxtotal = hdntaxprice * quantity;
-            $row.find('#txtTotal').text(parseFloat(total).toFixed(2));
-            $row.find('#txttax').text(parseFloat(taxtotal).toFixed(2));
-            clstotalval();
-        }
        
         function checkregistordetails() {
             var data = { 'op': 'get_registordetails' };
@@ -575,7 +559,7 @@
         function test1() {
             var val = document.getElementById('txtitem').value;
             for (var i = 0; i < productdetails.length; i++) {
-                if (val == productdetails[i].sku) {
+                if (val == productdetails[i].productname || val == productdetails[i].sku) {
                     val = productdetails[i].productid;
                 }
             }
@@ -1261,9 +1245,8 @@
                                                 placeholder="Reference Note">
                                         </div>
                                         <div class="form-group" style="margin-bottom: 5px;">
-                                    <input id="txtitem" type="text" class="form-control" name="sku" onchange="barcode();" placeholder="Scan Here"/>
-                                            <%--<input type="text" name="code" id="txtitem" onchange="barcode();" class="form-control ui-autocomplete-input"
-                                                placeholder="Search product by code or name, you can scan barcode too">--%>
+                                            <input type="text" name="code" id="txtitem" onchange="barcode();" class="form-control ui-autocomplete-input"
+                                                placeholder="Search product by code or name, you can scan barcode too">
 
                                                 <input type="text" name="butAssignProd" placeholder="click here" style="display:none;">
                                         </div>
@@ -1410,7 +1393,7 @@
                                     <input type="hidden" name="eid" id="is_delete" value="0">
                                     <input type="hidden" name="total_items" id="total_items" value="0">
                                     <input type="hidden" name="total_quantity" id="total_quantity" value="0">
-                                    <input type="submit" id="submit" value="Submit Sale" style="display: none;">
+                                    <input type="button" id="submit" value="Submit Sale" style="display: none;">
                                 </div>
                                 </form>
                             </div>
@@ -2032,7 +2015,7 @@
                     <button type="button" class="btn btn-default pull-left" data-dismiss="modal">
                         Close
                     </button>
-                    <button type="submit" class="btn btn-primary" id="btnadd_customer" onclick="btncustomersaveclick();">
+                    <button type="button" class="btn btn-primary" id="btnadd_customer" onclick="btncustomersaveclick();">
                         Add Customer
                     </button>
                 </div>
