@@ -8,10 +8,13 @@
             getinwarddetails();
             get_supplierdetails();
             $("#btnaddclick").click(function () {
+                forclearall();
                 $('#divitem').css('display', 'block');
                 $('#divbind').css('display', 'none');
             })
             $("#btnclose").click(function () {
+                forclearall();
+                getinwarddetails();
                 $('#divitem').css('display', 'none');
                 $('#divbind').css('display', 'block');
             })
@@ -19,7 +22,7 @@
 
         $(document).click(function () {
             $('#posTable').on('change', '.price', calTotal)
-                  .on('change', '.quantity', calTotal);
+                .on('change', '.quantity', calTotal);
             function calTotal() {
                 var $row = $(this).closest('tr');
                 price = $row.find('.price').val();
@@ -188,7 +191,7 @@
         }
 
         function barcode() {
-            var txtbarcode = document.getElementById('txtitem').value;
+            //var txtbarcode = document.getElementById('txtitem').value;
             test1();
             //$('#posTable').on('change', '.price', calTotal)
             //    .on('change', '.quantity', calTotal);
@@ -232,7 +235,7 @@
             if (txtbarcode != "") {
                 if (ProductTable.indexOf(txtbarcode) == -1) {
                     for (var i = 0; i < productdetails.length; i++) {
-                        if (txtbarcode == productdetails[i].productname || txtbarcode == productdetails[i].sku) {
+                        if (txtbarcode == productdetails[i].sku) {
                             productname = productdetails[i].productname;
                             price = productdetails[i].price;
                             productid = productdetails[i].productid;
@@ -409,7 +412,7 @@
                 alert("Please Select Items Names");
                 return false;
             }
-            var Data = { 'op': 'save_inwarddetails', 'date': date, 'refnote': refno, 'supplier': supplier, 'reciveornot': reciveornot, 'description': description, 'btnvalue': btnvalue, 'totalvalue': totalvalue, 'sno':sno, 'fillitems': fillitems };
+            var Data = { 'op': 'save_inwarddetails', 'date': date, 'refnote': refno, 'supplier': supplier, 'reciveornot': reciveornot, 'description': description, 'btnvalue': btnvalue, 'totalvalue': totalvalue, 'sno': sno, 'fillitems': fillitems };
             var s = function (msg) {
                 if (msg) {
                     alert(msg);
@@ -428,6 +431,9 @@
             document.getElementById('slctcstatus').selectedIndex = "1";
             document.getElementById('total').innerHTML = "0";
             document.getElementById('txtaddress').value = "";
+            document.getElementById('btnsave').value = "Save";
+            document.getElementById('total').innerHTML = 0;
+            document.getElementById('count').innerHTML = 0;
             itemlist = [];
             dupliitemlist = [];
             var results = "";
@@ -451,7 +457,7 @@
             }; $(document).ajaxStart($.blockUI).ajaxStop($.unblockUI);
             callHandler(data, s, e);
         }
-      
+
         var inward_subdetails = [];
         function fillinwarddtls(msg) {
             scrollTo(0, 0);
@@ -473,12 +479,13 @@
                 itemresults += '<td  class="10"  style="display:none;">' + inward[i].reciveornot + '</td>';
                 itemresults += '<td  class="9"  style="display:none;">' + inward[i].description + '</td>';
                 itemresults += '<td  class="7" style="display:none;">' + inward[i].supplierid + '</td>';
+                itemresults += '<td  class="7" style="display:none;">' + inward[i].supplierid + '</td>';
                 itemresults += '<td class="8" style="display:none;">' + inward[i].sno + '</td>';
                 itemresults += '</tr>';
             }
             itemresults += '</table>';
             $("#divinwarddata").html(itemresults);
-            
+
         }
         var sno = 0;
         function update(thisid) {
@@ -563,61 +570,62 @@
 
     </script>
 </asp:Content>
-<asp:content id="Content2" contentplaceholderid="ContentPlaceHolder1" runat="Server">
-    
+<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="Server">
+
     <section class="content">
-    <div class="row"  id="divitem" style="display:none;">
-        <div class="col-xs-12">
-            <div class="box box-primary">
-                <div class="box-header">
-                    <h3 class="box-title">Inward</h3>
-                </div>
-                <div class="box-body">
-                    <div class="col-lg-12">
-                        <div class="clearfix"></div>
+        <div class="row" id="divitem" style="display: none;">
+            <div class="col-xs-12">
+                <div class="box box-primary">
+                    <div class="box-header">
+                        <h3 class="box-title">Inward</h3>
+                    </div>
+                    <div class="box-body">
+                        <div class="col-lg-12">
+                            <div class="clearfix"></div>
                             <div class="row">
                                 <div class="col-lg-12">
                                     <div class="well well-sm">
-                                     <div class="col-md-4 col-sm-4">
+                                        <div class="col-md-4 col-sm-4">
                                             <div class="form-group">
                                                 <label for="cancel_sale">Date</label>
-                                                 <input type="date" class="form-control" id="txt_Date" style="border-radius: 0px; important">
+                                                <input type="date" class="form-control" id="txt_Date" style="border-radius: 0px; important">
                                             </div>
                                         </div>
 
-                                        
+
                                         <div class="col-md-4 col-sm-4">
                                             <div class="form-group">
-                                                <label for="focus_add_item">Referance No</label> 
+                                                <label for="focus_add_item">Referance No</label>
                                                 <input type="text" name="focus_add_item" value="" class="form-control tip" id="txtrefno">
                                             </div>
                                         </div>
                                         <div class="col-md-4 col-sm-4">
                                             <div class="form-group">
                                                 <label for="cancel_sale">Supplier Name</label>
-                                                 <select class="form-control" id="slctstate" required="required" style="width:100%;" tabindex="-1" aria-hidden="true">
-                                                   
-                                                 </select>
+                                                <select class="form-control" id="slctstate" required="required" style="width: 100%;" tabindex="-1" aria-hidden="true">
+                                                </select>
                                             </div>
                                         </div>
                                         <div class="col-md-4 col-sm-4">
                                             <div class="form-group">
                                                 <label for="close_register">Reacived</label>
-                                                  <select name="language" class="form-control tip select2 select2-hidden-accessible" id="slctcstatus" required="required" style="width:100%;" data-fv-field="language" tabindex="-1" aria-hidden="true">
+                                                <select name="language" class="form-control tip select2 select2-hidden-accessible" id="slctcstatus" required="required" style="width: 100%;" data-fv-field="language" tabindex="-1" aria-hidden="true">
                                                     <option value="Received" selected="selected">Received</option>
                                                     <option value="NotReceived">Not received yet</option>
-                                                 </select>
+                                                </select>
                                             </div>
                                         </div>
                                         <div class="col-md-4 col-sm-4">
                                             <div class="form-group">
                                                 <label for="close_register">Description</label>
-                                                 <textarea id="txtaddress" class="form-control"></textarea>
+                                                <textarea id="txtaddress" class="form-control"></textarea>
                                             </div>
                                         </div>
                                         <div class="col-md-12 col-sm-12">
                                             <div class="form-group">
-                                                <input type="text" name="focus_add_item" value="" class="form-control ui-autocomplete-input" id="txtitem" onchange="barcode();" placeholder="Search product by code or name, you can scan barcode too">
+                                                <input id="txtitem" type="text" class="form-control" name="sku" onchange="barcode();" placeholder="Scan Here" />
+
+                                                <%-- <input type="text" name="focus_add_item" value="" class="form-control ui-autocomplete-input" id="txtitem" onchange="barcode();" placeholder="Search product by code or name, you can scan barcode too">--%>
                                             </div>
                                         </div>
                                         <div id="div_itemData"></div>
@@ -626,20 +634,18 @@
                                             <table id="totaltbl" class="table table-condensed totals" style="margin-bottom: 10px;">
                                                 <tbody>
                                                     <tr class="info">
-                                                        <td width="25%">
-                                                            Total Items
+                                                        <td width="25%">Total Items
                                                         </td>
                                                         <td class="text-right" style="padding-right: 10px;">
                                                             <span id="count">0</span>
                                                         </td>
-                                                        <td width="25%">
-                                                            Total
+                                                        <td width="25%">Total
                                                         </td>
                                                         <td class="text-right" colspan="2" style="text-align: center;">
                                                             <span id="total">0</span>
                                                         </td>
                                                     </tr>
-                                                    
+
                                                 </tbody>
                                             </table>
                                         </div>
@@ -651,33 +657,38 @@
                             <div class="row">
                                 <div class="col-lg-12">
                                     <div class="well well-sm">
-                                        
+
                                         <div class="clearfix"></div>
                                     </div>
                                 </div>
-                                
+
                             </div>
-                            <input type="submit" name="update" value="Save" class="btn btn-primary" id="btnsave" onclick="btnsubmitinward_click();"> <input type="button" name="update" value="Close" class="btn btn-primary" id="btnclose"></div>
+                            <input type="submit" name="update" value="Save" class="btn btn-primary" id="btnsave" onclick="btnsubmitinward_click();" />
+                            <input type="button" name="update" value="Close" class="btn btn-primary" id="btnclose" />
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="row" id="divbind">
-        <div class="col-xs-12">
-            <div class="box box-primary">
-                <div class="box-header">
-                    <h3 class="box-title">Inward Entry</h3>
-                </div><div style="float: right; padding-right: 14px;padding-bottom: 5px;"><input type="button" name="AddIteam" value="Add Inward" class="btn btn-primary" id="btnaddclick"></br></div>
-                        <div id="divinwarddata"></div>
-        </div>
+            <div class="col-xs-12">
+                <div class="box box-primary">
+                    <div class="box-header">
+                        <h3 class="box-title">Inward Entry</h3>
+                    </div>
+                    <div style="float: right; padding-right: 14px; padding-bottom: 5px;">
+                        <input type="button" name="AddIteam" value="Add Inward" class="btn btn-primary" id="btnaddclick"></br>
+                    </div>
+                    <div id="divinwarddata"></div>
+                </div>
 
-                
+
             </div>
         </div>
         <div hidden>
-                                <label id="lbl_sno">
-                                </label>
-                        </div>
+            <label id="lbl_sno">
+            </label>
+        </div>
     </section>
-</asp:content>
+</asp:Content>
