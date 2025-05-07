@@ -140,7 +140,7 @@
             $('input[name="butAssignProd"]').click(function () {
                 test1();
             });
-            
+
 
 
             $('#posTable').on('change', '.price', calTotal)
@@ -149,19 +149,27 @@
                 var $row = $(this).closest('tr');
                 price = $row.find('.price').val();
                 quantity = $row.find('.quantity').val();
-                taxprice = $row.find('.igstval').val();
+                taxprice = $row.find('#txt_igst').val();
                 var hdntaxprice = $row.find('#hdntaxprice').val();
                 var prod_total = price * quantity;
                 prod_total = prod_total.toFixed(2);
                 var total = parseFloat(prod_total);
-                var taxtotal = hdntaxprice * quantity;
+                var taxtotal = 0;
+                if (hdntaxprice > 0) {
+                    taxtotal = hdntaxprice * quantity;
+                }
+
+                else {
+                    hdntaxprice = (price * taxprice) / 100;
+                    taxtotal = hdntaxprice * quantity;
+                }
                 $row.find('#txtTotal').text(parseFloat(total).toFixed(2));
                 $row.find('#txttax').text(parseFloat(taxtotal).toFixed(2));
                 clstotalval();
             }
         });
 
-       
+
         function checkregistordetails() {
             var data = { 'op': 'get_registordetails' };
             var s = function (msg) {
@@ -356,7 +364,7 @@
             document.getElementById('ts_con').innerHTML = tottaxamount.toFixed(2);
             document.getElementById('total').innerHTML = grandtotal.toFixed(2);
             var totalpayable = grandtotal + tottaxamount;
-            document.getElementById('total-payable').innerHTML = Math.round(totalpayable,2);
+            document.getElementById('total-payable').innerHTML = Math.round(totalpayable, 2);
             document.getElementById('count').innerHTML = rowcount;
             document.getElementById('spnitem_count').innerHTML = rowcount;
             document.getElementById('spntwt').innerHTML = totalpayable.toFixed(2);
@@ -419,17 +427,19 @@
                 if ($(this).find('#spn_Productname').text() != "") {
                     txtsno = rowsno;
                     productname = $(this).find('#spn_Productname').text();
+                    moniterqty = $(this).find('#txtstock').text();
                     price = $(this).find('#txt_orgprice').text();
                     Quantity = $(this).find('#txt_quantity').val();
                     TotalCost = $(this).find('#txtTotal').text();
                     productid = $(this).find('#hdnproductsno').val();
                     perunittax = $(this).find('#txt_perunittax').val();
                     igst = $(this).find('#txt_igst').val();
-                    itemlist.push({ Sno: txtsno, productname: productname, price: price, Quantity: Quantity, TotalCost: TotalCost, productid: productid, perunittax: perunittax, igst: igst });
+                    itemlist.push({ Sno: txtsno, productname: productname, moniterqty: moniterqty, price: price, Quantity: Quantity, TotalCost: TotalCost, productid: productid, perunittax: perunittax, igst: igst });
                     rowsno++;
                 }
             });
             var productname = 0;
+            var moniterqty = 0;
             var price = 0;
             var Quantity = 1;
             var TotalCost = 0;
@@ -441,17 +451,18 @@
                 for (var i = 0; i < productdetails.length; i++) {
                     if (val == productdetails[i].productid) {
                         productname = productdetails[i].productname;
+                        moniterqty = productdetails[i].moniterqty;
                         price = productdetails[i].price;
                         productid = productdetails[i].productid;
                         var cgst = productdetails[i].cgst;
                         var sgst = productdetails[i].sgst;
                         igst = productdetails[i].igst;
-                        itemlist.push({ Sno: txtsno, productname: productname, price: price, Quantity: Quantity, TotalCost: TotalCost, productid: productid, perunittax: perunittax, igst: igst });
+                        itemlist.push({ Sno: txtsno, productname: productname, moniterqty: moniterqty, price: price, Quantity: Quantity, TotalCost: TotalCost, productid: productid, perunittax: perunittax, igst: igst });
                         dupliitemlist.push(val);
                     }
                 }
                 if (itemlist.length > 0) {
-                    var itemresults = '<table id="posTable" class="table table-striped table-condensed table-hover list-table" style="margin: 0px;" data-height="100"><thead> <tr class="success"><th> Product</th> <th style="width: 15%; text-align: center;"> Price </th><th style="width: 15%; text-align: center;"> Qty</th><th style="width: 20%; text-align: center;">Subtotal </th> <th style="width: 20px;" class="satu"><i class="fa fa-trash-o"></i> </th></tr></thead> ';
+                    var itemresults = '<table id="posTable" class="table table-striped table-condensed table-hover list-table" style="margin: 0px;" data-height="100"><thead> <tr class="success"><th> Product</th> <th style="width: 15%; text-align: center;"> Stock </th> <th style="width: 15%; text-align: center;"> Price </th><th style="width: 15%; text-align: center;"> Qty</th><th style="width: 20%; text-align: center;">Subtotal </th> <th style="width: 20px;" class="satu"><i class="fa fa-trash-o"></i> </th></tr></thead> ';
                     for (var i = 0; i < itemlist.length; i++) {
                         itemresults += '<tr>';
                         itemresults += '<td style="display:none;"><span class="sname" id="txt_orgprice">' + itemlist[i].price + '</span></td>';
@@ -462,6 +473,8 @@
                         else {
                             itemresults += '<td  class="btn btn-block btn-xs edit btn-warning"><span class="sname" id="spn_Productname">' + itemlist[i].productname + '</span></td>';
                         }
+                        itemresults += '<td  class="text-right" style="width:20%"><span class="clsstock text-right ssubtotal" id="txtstock">' + itemlist[i].moniterqty + '</span></td>';
+
                         var igst = parseFloat(itemlist[i].igst);
                         var itemprice = parseFloat(itemlist[i].price);
                         var divisionval = 100 + igst;
@@ -482,7 +495,7 @@
                         itemresults += '<td class="text-center"><input id="hdnproductsno" type="hidden" value="' + itemlist[i].productid + '"></td>';
                         itemresults += '<td class="text-center"><input id="hdntaxprice" type="hidden" value="' + taxprice + '"></td>';
                         itemresults += '<td  class="text-right" style="display:none;"><span class="clstax text-right ssubtotal" id="txttax">' + taxvalue + '</span><input id="txt_perunittax" name="tax" class="taxval" type="text" value="' + taxvalue + '" style="display:none;"/></td>';
-                        itemresults += '<td  class="text-right" style="display:none;"><span class="clsigst text-right ssubtotal" id="txtigst">' + igst + '</span><input id="txt_igst" name="igst" class="igstval" type="text" value="' + igst + '" style="display:none;"/></td>';
+                        itemresults += '<td  class="text-right" style="display:none;"><span class="igstval text-right ssubtotal" id="txtigst">' + igst + '</span><input id="txt_igst" name="igst" class="igstval" type="text" value="' + igst + '" style="display:none;"/></td>';
                         itemresults += '</tr>';
                     }
                     itemresults += '</table>';
@@ -501,10 +514,20 @@
         function qtychage(thisid) {
             var price = 0;
             var quantity = 0;
+            var stock = 0;
             var total = 0;
             price = $(thisid).closest("tr").find('#txt_perunitrs').val();
             quantity = $(thisid).closest("tr").find('#txt_quantity').val();
-            if (quantity != "") {
+            stock = $(thisid).closest("tr").find('#txtstock').text();
+            if (quantity > 0) {
+                if (quantity > stock) { // Corrected condition
+                    alert("Entered quantity exceeds available stock. Please enter a valid quantity.");
+                    $(thisid).val("0"); // Optionally clear the invalid quantity
+                    $(thisid).css("border", "2px solid red"); // Highlight the text box with a red border
+                    return false;
+                } else {
+                    $(thisid).css("border", ""); // Remove the red border if the condition is valid
+                }
                 price = parseFloat(price);
                 quantity = parseFloat(quantity);
                 total = price * quantity;
@@ -578,13 +601,14 @@
                 if ($(this).find('#spn_Productname').text() != "") {
                     txtsno = rowsno;
                     productname = $(this).find('#spn_Productname').text();
+                    moniterqty = $(this).find('#txtstock').text();
                     price = $(this).find('#txt_orgprice').text();
                     Quantity = $(this).find('#txt_quantity').val();
                     TotalCost = $(this).find('#txtTotal').text();
                     productid = $(this).find('#hdnproductsno').val();
                     perunittax = $(this).find('#txt_perunittax').val();
                     igst = $(this).find('#txt_igst').val();
-                    itemlist.push({ Sno: txtsno, productname: productname, price: price, Quantity: Quantity, TotalCost: TotalCost, productid: productid, perunittax: perunittax, igst: igst });
+                    itemlist.push({ Sno: txtsno, productname: productname, moniterqty: moniterqty, price: price, Quantity: Quantity, TotalCost: TotalCost, productid: productid, perunittax: perunittax, igst: igst });
                     rowsno++;
                 }
             });
@@ -600,17 +624,18 @@
                 for (var i = 0; i < productdetails.length; i++) {
                     if (val == productdetails[i].productid) {
                         var productname = productdetails[i].productname;
+                        var moniterqty = productdetails[i].moniterqty;
                         var price = productdetails[i].price;
                         var productid = productdetails[i].productid;
                         var cgst = productdetails[i].cgst;
                         var sgst = productdetails[i].sgst;
                         var igst = productdetails[i].igst;
-                        itemlist.push({ Sno: Sno, productname: productname, price: price, Quantity: Quantity, TotalCost: TotalCost, productid: productid, perunittax: perunittax, igst: igst });
+                        itemlist.push({ Sno: Sno, productname: productname, moniterqty: moniterqty, price: price, Quantity: Quantity, TotalCost: TotalCost, productid: productid, perunittax: perunittax, igst: igst });
                         dupliitemlist.push(productid);
                     }
                 }
                 if (itemlist.length > 0) {
-                    var itemresults = '<table id="posTable" class="table table-striped table-condensed table-hover list-table" style="margin: 0px;" data-height="100"><thead> <tr class="success"><th> Product</th> <th style="width: 15%; text-align: center;"> Price </th><th style="width: 15%; text-align: center;"> Qty</th><th style="width: 20%; text-align: center;">Subtotal </th> <th style="width: 20px;" class="satu"><i class="fa fa-trash-o"></i> </th></tr></thead> ';
+                    var itemresults = '<table id="posTable" class="table table-striped table-condensed table-hover list-table" style="margin: 0px;" data-height="100"><thead> <tr class="success"><th> Product</th> <th style="width: 15%; text-align: center;"> Stock </th> <th style="width: 15%; text-align: center;"> Price </th><th style="width: 15%; text-align: center;"> Qty</th><th style="width: 20%; text-align: center;">Subtotal </th> <th style="width: 20px;" class="satu"><i class="fa fa-trash-o"></i> </th></tr></thead> ';
                     for (var i = 0; i < itemlist.length; i++) {
                         itemresults += '<tr>';
                         itemresults += '<td style="display:none;"><span class="sname" id="txt_orgprice">' + itemlist[i].price + '</span></td>';
@@ -621,6 +646,7 @@
                         else {
                             itemresults += '<td  class="btn btn-block btn-xs edit btn-warning"><span class="sname" id="spn_Productname">' + itemlist[i].productname + '</span></td>';
                         }
+                        itemresults += '<td  class="text-right" style="width:20%"><span class="clsstock text-right ssubtotal" id="txtstock">' + itemlist[i].moniterqty + '</span></td>';
                         var itemprice = parseFloat(itemlist[i].price);
                         var igst = parseFloat(itemlist[i].igst);
                         var divisonvalue = 100 + igst;
@@ -637,7 +663,7 @@
                         itemresults += '<td class="text-center"><span onclick="removerow(this);" style="cursor: pointer;color: red;"><i class="fa fa-trash-o"></i></span></td>';
                         itemresults += '<td class="text-center"><input id="hdnproductsno" type="hidden" value="' + itemlist[i].productid + '"></td>';
                         itemresults += '<td class="text-right" style="display:none;"><span class="clstax text-right ssubtotal" id="txttax">' + taxvalue + '</span><input id="txt_perunittax" name="tax" class="taxval" type="text" value="' + taxvalue + '" style="display:none;"/></td>';
-                        itemresults += '<td class="text-right" style="display:none;"><span class="clsigst text-right" id="txtigst">' + igst + '</span><input id="txt_igst" name="igst" class="taxigst" type="text" value="' + igst + '" style="display:none;"/></td>';
+                        itemresults += '<td class="text-right" style="display:none;"><span class="igstval text-right" id="txtigst">' + igst + '</span><input id="txt_igst" name="igst" class="igstval" type="text" value="' + igst + '" style="display:none;"/></td>';
                         itemresults += '</tr>';
                     }
                     itemresults += '</table>';
@@ -665,13 +691,14 @@
                 if ($(this).find('#spn_Productname').text() != "") {
                     txtsno = rowsno;
                     var productname = $(this).find('#spn_Productname').text();
+                    var moniterqty = $(this).find('#txtstock').text();
                     var PerUnitRs = $(this).find('#txt_perunitrs').val();
                     var Quantity = $(this).find('#txt_quantity').val();
                     var TotalCost = $(this).find('#txtTotal').text();
                     var Totaltax = $(this).find('#txttax').text();
                     var igst = $(this).find('#txtigst').text();
                     var hdnproductsno = $(this).find('#hdnproductsno').val();
-                    itemlist.push({ Sno: txtsno, productname: productname, price: PerUnitRs, Quantity: Quantity, TotalCost: TotalCost, perunittax: Totaltax, igst: igst, productid: hdnproductsno });
+                    itemlist.push({ Sno: txtsno, productname: productname, moniterqty: moniterqty, price: PerUnitRs, Quantity: Quantity, TotalCost: TotalCost, perunittax: Totaltax, igst: igst, productid: hdnproductsno });
                 }
             });
             var product_name = $(thisid).parent().parent().children('.1').html();
@@ -685,6 +712,7 @@
                 }
                 else {
                     var productname = itemlist[i].productname;
+                    var moniterqty = itemlist[i].moniterqty;
                     var PerUnitRs = itemlist[i].price;
                     var Quantity = itemlist[i].Quantity;
                     var TotalCost = itemlist[i].TotalCost;
@@ -692,15 +720,15 @@
                     var igst = itemlist[i].igst;
                     var productid = itemlist[i].productid;
                     var sumprice = parseFloat(PerUnitRs) + parseFloat(Totaltax);
-                    dummyitem.push({ productname: productname, price: PerUnitRs, Quantity: Quantity, TotalCost: TotalCost, Totaltax: Totaltax, igst: igst, productid: productid, sumprice: sumprice });
-                    rdummyitem.push({ Sno: txtsno, productname: productname, price: sumprice, Quantity: Quantity, TotalCost: TotalCost, perunittax: Totaltax, igst: igst, productid: productid });
+                    dummyitem.push({ productname: productname, moniterqty: moniterqty, price: PerUnitRs, Quantity: Quantity, TotalCost: TotalCost, Totaltax: Totaltax, igst: igst, productid: productid, sumprice: sumprice });
+                    rdummyitem.push({ Sno: txtsno, productname: productname, moniterqty: moniterqty, price: sumprice, Quantity: Quantity, TotalCost: TotalCost, perunittax: Totaltax, igst: igst, productid: productid });
                     dupliitemlist.push(productid);
                 }
             }
             if (dummyitem.length > 0) {
                 itemlist = [];
                 itemlist = rdummyitem;
-                var itemresults = '<table id="posTable" class="table table-striped table-condensed table-hover list-table" style="margin: 0px;" data-height="100"><thead> <tr class="success"><th> Product</th> <th style="width: 15%; text-align: center;"> Price </th><th style="width: 15%; text-align: center;"> Qty</th><th style="width: 20%; text-align: center;">Subtotal </th> <th style="width: 20px;" class="satu"><i class="fa fa-trash-o"></i> </th></tr></thead> ';
+                var itemresults = '<table id="posTable" class="table table-striped table-condensed table-hover list-table" style="margin: 0px;" data-height="100"><thead> <tr class="success"><th> Product</th> <th style="width: 15%; text-align: center;"> Stock </th><th style="width: 15%; text-align: center;"> Price </th><th style="width: 15%; text-align: center;"> Qty</th><th style="width: 20%; text-align: center;">Subtotal </th> <th style="width: 20px;" class="satu"><i class="fa fa-trash-o"></i> </th></tr></thead> ';
                 for (var i = 0; i < dummyitem.length; i++) {
                     itemresults += '<tr>';
                     itemresults += '<td  style="display:none;"><span class="sname" id="txt_orgprice">' + dummyitem[i].sumprice + '</span></td>';
@@ -711,12 +739,13 @@
                     else {
                         itemresults += '<td  class="btn btn-block btn-xs edit btn-warning"><span class="sname" id="spn_Productname">' + dummyitem[i].productname + '</span></td>';
                     }
+                    itemresults += '<td  class="text-right" style="width:20%"><span class="clsstock text-right ssubtotal" id="txtstock">' + itemlist[i].moniterqty + '</span></td>';
                     itemresults += '<td  class="text-right" style="width:20%"><span class="text-right sprice" id="sprice_1541067686388">' + dummyitem[i].price + '</span><input id="txt_perunitrs" name="prices" class="price" type="text" value="' + dummyitem[i].price + '" style="display:none;"/></td>';
                     itemresults += '<td class="text-right" style="width:20%"><input id="txt_quantity" type="text" class="quantity form-control input-qty kb-pad text-center rquantity" style="width: 52% !important;float: right !important;" onkeyup="qtychage(this);"    value="' + dummyitem[i].Quantity + '" name="quantity"/></td>';
                     itemresults += '<td  class="text-right" style="width:20%"><span class="clstotal text-right ssubtotal" id="txtTotal">' + dummyitem[i].TotalCost + '</span></td>';
                     itemresults += '<td class="text-center"><span onclick="removerow(this);"style="cursor: pointer;color: red;"><i class="fa fa-trash-o"></i></span></td>';
                     itemresults += '<td class="text-center" style="display:none;"><span class="clstax text-right ssubtotal" id="txttax">' + dummyitem[i].Totaltax + '</span><input id="txt_perunittax" name="tax" class="taxval" type="text" value="' + dummyitem[i].Totaltax + '" style="display:none;"/></td>';
-                    itemresults += '<td class="text-center" style="display:none;"><span class="clsigst text-right " id="txtigst">' + dummyitem[i].igst + '</span><input id="txt_igst" name="igst" class="taxigst" type="text" value="' + dummyitem[i].igst + '" style="display:none;"/></td>';
+                    itemresults += '<td class="text-center" style="display:none;"><span class="igstval text-right " id="txtigst">' + dummyitem[i].igst + '</span><input id="txt_igst" name="igst" class="igstval" type="text" value="' + dummyitem[i].igst + '" style="display:none;"/></td>';
                     itemresults += '<td class="text-center"><input id="hdnproductsno" type="hidden" value="' + dummyitem[i].productid + '"></td>';
                     itemresults += '</tr>';
                 }
@@ -1036,7 +1065,7 @@
             var totalpayable = document.getElementById("total-payable").innerHTML;
             var discountamt = (parseFloat(totalpayable) * parseFloat(discount)) / 100;
             var totalval = (parseFloat(totalpayable) - parseFloat(discountamt));
-            document.getElementById("total-payable").innerHTML = Math.round(totalval,2);
+            document.getElementById("total-payable").innerHTML = Math.round(totalval, 2);
             document.getElementById("totds_con").innerHTML = discount;
 
             document.getElementById("spntwt").innerHTML = totalval.toFixed(2);
@@ -1073,148 +1102,148 @@
             <a href="#" class="logo">
                 <span class="logo-mini">POS</span>
                 <span class="logo-lg">Simple<b>POS</b></span>
-                            </a>
+            </a>
             <nav class="navbar navbar-static-top" role="navigation">
-                
-                    <div class="navbar-custom-menu">
-                        <ul class="nav navbar-nav">
-                            <li><a href="#" class="clock">30th October 2018 01:08 PM</a></li>
-                            <li><a href="Default.aspx"><i class="fa fa-dashboard"></i></a></li>
-                                                        <li style="display:none;"><a href=""><i class="fa fa-cogs"></i></a></li>
-                                                                                    <li style="display:none;"><a href="" target="_blank"><i class="fa fa-desktop"></i></a></li>
-                                                        <li class="hidden-xs hidden-sm" style="display:none;"><a href="" id="btnshartcut" data-toggle="modal" data-target="#myModal"><i class="fa fa-key"></i></a></li>
-                                                        <li><a href="" id="btnregdtls" data-toggle="modal" data-target="#myModal">Register Details</a></li>
-                                                        <li><a href="" id="btntodaysaledtls" data-toggle="modal" data-target="#myModal">Today's Sale</a></li>
-                                                        <li><a href="" id="btncloseregister" data-toggle="modal" data-target="#myModal">Close Register</a></li>
-                                                        <li class="dropdown user user-menu">
-                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                                    <img src="images/male.png" class="user-image" alt="Avatar">
-                                    <span id="spnusername"></span>
-                                </a>
-                                <ul class="dropdown-menu">
-                                    <li class="user-header">
-                                        <img src="images/male.png" class="img-circle" alt="Avatar">
-                                        <p>
-                                            <span id="spnuserrole"></span>                                           <%-- <small>Member since Thu 25 Jun 2015 11:59 AM</small>--%>
-                                        </p>
-                                    </li>
-                                    <li class="user-footer">
-                                        <div class="pull-left">
-                                            <a href="#" class="btn btn-default btn-flat">Profile</a>
-                                        </div>
-                                        <div class="pull-right">
-                                            <a href="login.aspx" class="btn btn-default btn-flat sign_out">Sign Out</a>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <a href="#" data-toggle="control-sidebar" class="sidebar-icon"><i class="fa fa-folder sidebar-icon"></i></a>
-                            </li>
-                        </ul>
-                    </div>
-                </nav>
-            </header>
-        <aside class="main-sidebar">
-                <section class="sidebar" style="height: auto;">
-                    <ul class="sidebar-menu">
-                <!-- <li class="header">Main Navigation</li> --> 
 
-                <li class="mm_welcome active" id="lidefault"><a href="Default.aspx"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>
-                                <li class="mm_pos" id="lidashboard"><a href="Dashboard.aspx"><i class="fa fa-th"></i> <span>ChartDash Board</span></a></li>
-                                <li class="mm_pos" id="lipos"><a href="vpos.aspx"><i class="fa fa-th"></i> <span>POS</span></a></li>
-                                <li class="mm_pos" id="lirecipe"><a href="vpos.aspx"><i class="fa fa-th"></i> <span>Recipe Management</span></a></li>
-                                <li class="treeview mm_products" id="limaster">
-                    <a href="#">
-                        <i class="fa fa-barcode"></i>
-                        <span>Masters</span>
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </a>
-                    <ul class="treeview-menu">
-                        <li id="catmst"><a href="minimasters.aspx"><i class="fa fa-circle-o"></i>Mini Masters</a></li>
-                        <li id="cmpmst"><a href="cmpmasters.aspx"><i class="fa fa-circle-o"></i>Company Master</a></li>
-                        <li id="parmst"><a href="Branchmaster.aspx"><i class="fa fa-circle-o"></i>Parlor Master</a></li>
-                        <li id="itemmst"><a href="itemmaster.aspx"><i class="fa fa-circle-o"></i>Item Master</a></li>
-                        <li id="supmst"><a href="suppliermaster.aspx"><i class="fa fa-circle-o"></i>Supplier Master</a></li>
-                        <li id="empmst"><a href="empmaster.aspx"><i class="fa fa-circle-o"></i>Employe Master</a></li>
-                    </ul>
-                </li>
-                <li class="treeview mm_sales" id="lidistibutor"> 
-                    <a href="#">
-                        <i class="fa fa-shopping-cart"></i>
-                        <span>Distibutor</span>
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </a>
-                    <ul class="treeview-menu">
-                        <li id="Li10"><a href="subdistibutarmaster.aspx"><i class="fa fa-circle-o"></i>Sub Distibutor Master</a></li>
-                        <li id="Li9"><a href="Distibuterindent.aspx"><i class="fa fa-circle-o"></i> Indent</a></li>
-                        <li id="Li11"><a href="distibutorrate.aspx"><i class="fa fa-circle-o"></i> Rate Management</a></li>
-                        <li id="Li12"><a href="distibutorsale.aspx"><i class="fa fa-circle-o"></i>Sale</a></li>
-                        <li id="Li13"><a href="invoicereport.aspx"><i class="fa fa-circle-o"></i> Invoice Report</a></li>
-                    </ul>
-                </li>
-                  <li class="treeview mm_sales" id="lisales"> 
-                    <a href="#">
-                        <i class="fa fa-shopping-cart"></i>
-                        <span>Sales</span>
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </a>
-                    <ul class="treeview-menu">
-                        <li id="sales_index"><a href="sales.aspx"><i class="fa fa-circle-o"></i> List Of Sales</a></li>
-                        <li id="sales_opened"><a href="opendbills.aspx"><i class="fa fa-circle-o"></i> List Of Opened Bills</a></li>
-                    </ul>
-                </li>
-                <li class="treeview mm_purchases" id="litransactions"> 
-                    <a href="#">
-                        <i class="fa fa-plus"></i>
-                        <span>Transactions</span>
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </a>
-                    <ul class="treeview-menu">
-                        <li id="Li1"><a href="inward.aspx"><i class="fa fa-circle-o"></i> Inward</a></li>
-                        <li id="purchases_add"><a href="stocktransfer.aspx"><i class="fa fa-circle-o"></i> Stock Transfor</a></li>
-                        <li id="purchases_add_expense"><a href="expences.aspx"><i class="fa fa-circle-o"></i>Add Expenses</a></li>
-                        <li id="storereturn"><a href="storereturn.aspx"><i class="fa fa-circle-o"></i> Store Return</a></li>
-                    </ul>
-                </li>
-
-
-
-                <li class="treeview mm_gift_cards" id="ligiftcards"> 
-                    <a href="#">
-                        <i class="fa fa-credit-card"></i>
-                        <span>Gift Card</span>
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </a>
-                    <ul class="treeview-menu">
-                        <li id="gift_cards_index"><a href="#"><i class="fa fa-circle-o"></i> List Gift Cards</a></li>
-                        <li id="gift_cards_add"><a href="#"><i class="fa fa-circle-o"></i> Add Gift Card</a></li>
-                    </ul>
-                </li>
-                
-                <li class="treeview mm_reports" id="lireports">
-                    <a href="#">
-                        <i class="fa fa-bar-chart-o"></i>
-                        <span>Reports</span>
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </a>
-                    <ul class="treeview-menu">
-                        <li id="reports_daily_sales"><a href="#"><i class="fa fa-circle-o"></i> Daily Sales</a></li>
-                        <li id="reports_monthly_sales"><a href="#"><i class="fa fa-circle-o"></i> Branch Wise Sales</a></li>
-                        <li id="reports_index"><a href="#"><i class="fa fa-circle-o"></i> Parlor Wise Sales Report</a></li>
-                        <li class="divider"></li>
-                        <li id="reports_payments"><a href="#"><i class="fa fa-circle-o"></i> Parlor Wise Sales Comparision</a></li>
-                        <li class="divider"></li>
-                        <li id="reports_registers"><a href="#"><i class="fa fa-circle-o"></i> Supplier Wise Purchase Report</a></li>
-                        <li class="divider"></li>
-                        <li id="reports_top_products"><a href="#"><i class="fa fa-circle-o"></i>Item Wise Sale Rpt</a></li>
-                        <li id="Li2"><a href="#"><i class="fa fa-circle-o"></i> Products Report</a></li>
-                        <li id="reports_products"><a href="#"><i class="fa fa-circle-o"></i> Pening Orders Report</a></li>
-                    </ul>
-                </li>
+                <div class="navbar-custom-menu">
+                    <ul class="nav navbar-nav">
+                        <li><a href="#" class="clock">30th October 2018 01:08 PM</a></li>
+                        <li><a href="Default.aspx"><i class="fa fa-dashboard"></i></a></li>
+                        <li style="display: none;"><a href=""><i class="fa fa-cogs"></i></a></li>
+                        <li style="display: none;"><a href="" target="_blank"><i class="fa fa-desktop"></i></a></li>
+                        <li class="hidden-xs hidden-sm" style="display: none;"><a href="" id="btnshartcut" data-toggle="modal" data-target="#myModal"><i class="fa fa-key"></i></a></li>
+                        <li><a href="" id="btnregdtls" data-toggle="modal" data-target="#myModal">Register Details</a></li>
+                        <li><a href="" id="btntodaysaledtls" data-toggle="modal" data-target="#myModal">Today's Sale</a></li>
+                        <li><a href="" id="btncloseregister" data-toggle="modal" data-target="#myModal">Close Register</a></li>
+                        <li class="dropdown user user-menu">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                <img src="images/male.png" class="user-image" alt="Avatar">
+                                <span id="spnusername"></span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li class="user-header">
+                                    <img src="images/male.png" class="img-circle" alt="Avatar">
+                                    <p>
+                                        <span id="spnuserrole"></span><%-- <small>Member since Thu 25 Jun 2015 11:59 AM</small>--%>
+                                    </p>
+                                </li>
+                                <li class="user-footer">
+                                    <div class="pull-left">
+                                        <a href="#" class="btn btn-default btn-flat">Profile</a>
+                                    </div>
+                                    <div class="pull-right">
+                                        <a href="login.aspx" class="btn btn-default btn-flat sign_out">Sign Out</a>
+                                    </div>
+                                </li>
                             </ul>
-                </section>
-            </aside>
+                        </li>
+                        <li>
+                            <a href="#" data-toggle="control-sidebar" class="sidebar-icon"><i class="fa fa-folder sidebar-icon"></i></a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </header>
+        <aside class="main-sidebar">
+            <section class="sidebar" style="height: auto;">
+                <ul class="sidebar-menu">
+                    <!-- <li class="header">Main Navigation</li> -->
+
+                    <li class="mm_welcome active" id="lidefault"><a href="Default.aspx"><i class="fa fa-dashboard"></i><span>Dashboard</span></a></li>
+                    <li class="mm_pos" id="lidashboard"><a href="Dashboard.aspx"><i class="fa fa-th"></i><span>ChartDash Board</span></a></li>
+                    <li class="mm_pos" id="lipos"><a href="vpos.aspx"><i class="fa fa-th"></i><span>POS</span></a></li>
+                    <li class="mm_pos" id="lirecipe"><a href="vpos.aspx"><i class="fa fa-th"></i><span>Recipe Management</span></a></li>
+                    <li class="treeview mm_products" id="limaster">
+                        <a href="#">
+                            <i class="fa fa-barcode"></i>
+                            <span>Masters</span>
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li id="catmst"><a href="minimasters.aspx"><i class="fa fa-circle-o"></i>Mini Masters</a></li>
+                            <li id="cmpmst"><a href="cmpmasters.aspx"><i class="fa fa-circle-o"></i>Company Master</a></li>
+                            <li id="parmst"><a href="Branchmaster.aspx"><i class="fa fa-circle-o"></i>Parlor Master</a></li>
+                            <li id="itemmst"><a href="itemmaster.aspx"><i class="fa fa-circle-o"></i>Item Master</a></li>
+                            <li id="supmst"><a href="suppliermaster.aspx"><i class="fa fa-circle-o"></i>Supplier Master</a></li>
+                            <li id="empmst"><a href="empmaster.aspx"><i class="fa fa-circle-o"></i>Employe Master</a></li>
+                        </ul>
+                    </li>
+                    <li class="treeview mm_sales" id="lidistibutor">
+                        <a href="#">
+                            <i class="fa fa-shopping-cart"></i>
+                            <span>Distibutor</span>
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li id="Li10"><a href="subdistibutarmaster.aspx"><i class="fa fa-circle-o"></i>Sub Distibutor Master</a></li>
+                            <li id="Li9"><a href="Distibuterindent.aspx"><i class="fa fa-circle-o"></i>Indent</a></li>
+                            <li id="Li11"><a href="distibutorrate.aspx"><i class="fa fa-circle-o"></i>Rate Management</a></li>
+                            <li id="Li12"><a href="distibutorsale.aspx"><i class="fa fa-circle-o"></i>Sale</a></li>
+                            <li id="Li13"><a href="invoicereport.aspx"><i class="fa fa-circle-o"></i>Invoice Report</a></li>
+                        </ul>
+                    </li>
+                    <li class="treeview mm_sales" id="lisales">
+                        <a href="#">
+                            <i class="fa fa-shopping-cart"></i>
+                            <span>Sales</span>
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li id="sales_index"><a href="sales.aspx"><i class="fa fa-circle-o"></i>List Of Sales</a></li>
+                            <li id="sales_opened"><a href="opendbills.aspx"><i class="fa fa-circle-o"></i>List Of Opened Bills</a></li>
+                        </ul>
+                    </li>
+                    <li class="treeview mm_purchases" id="litransactions">
+                        <a href="#">
+                            <i class="fa fa-plus"></i>
+                            <span>Transactions</span>
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li id="Li1"><a href="inward.aspx"><i class="fa fa-circle-o"></i>Inward</a></li>
+                            <li id="purchases_add"><a href="stocktransfer.aspx"><i class="fa fa-circle-o"></i>Stock Transfor</a></li>
+                            <li id="purchases_add_expense"><a href="expences.aspx"><i class="fa fa-circle-o"></i>Add Expenses</a></li>
+                            <li id="storereturn"><a href="storereturn.aspx"><i class="fa fa-circle-o"></i>Store Return</a></li>
+                        </ul>
+                    </li>
+
+
+
+                    <li class="treeview mm_gift_cards" id="ligiftcards">
+                        <a href="#">
+                            <i class="fa fa-credit-card"></i>
+                            <span>Gift Card</span>
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li id="gift_cards_index"><a href="#"><i class="fa fa-circle-o"></i>List Gift Cards</a></li>
+                            <li id="gift_cards_add"><a href="#"><i class="fa fa-circle-o"></i>Add Gift Card</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="treeview mm_reports" id="lireports">
+                        <a href="#">
+                            <i class="fa fa-bar-chart-o"></i>
+                            <span>Reports</span>
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li id="reports_daily_sales"><a href="#"><i class="fa fa-circle-o"></i>Daily Sales</a></li>
+                            <li id="reports_monthly_sales"><a href="#"><i class="fa fa-circle-o"></i>Branch Wise Sales</a></li>
+                            <li id="reports_index"><a href="#"><i class="fa fa-circle-o"></i>Parlor Wise Sales Report</a></li>
+                            <li class="divider"></li>
+                            <li id="reports_payments"><a href="#"><i class="fa fa-circle-o"></i>Parlor Wise Sales Comparision</a></li>
+                            <li class="divider"></li>
+                            <li id="reports_registers"><a href="#"><i class="fa fa-circle-o"></i>Supplier Wise Purchase Report</a></li>
+                            <li class="divider"></li>
+                            <li id="reports_top_products"><a href="#"><i class="fa fa-circle-o"></i>Item Wise Sale Rpt</a></li>
+                            <li id="Li2"><a href="#"><i class="fa fa-circle-o"></i>Products Report</a></li>
+                            <li id="reports_products"><a href="#"><i class="fa fa-circle-o"></i>Pening Orders Report</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </section>
+        </aside>
         <div class="content-wrapper" style="min-height: 440px;">
             <div class="col-lg-12 alerts" style="display: none;">
             </div>
@@ -1224,196 +1253,181 @@
                         <td style="width: 460px;">
                             <div id="pos">
                                 <form action="https://#/pos" id="pos-sale-form" method="post" accept-charset="utf-8">
-                                <input type="hidden" name="spos_token" value="0dbeb4034dd067d5db67226fc01f3361">
-                                <div class="well well-sm" id="leftdiv">
-                                    <div id="lefttop" style="margin-bottom: 5px;">
-                                        <div class="form-group" style="margin-bottom: 5px;">
-                                            <div class="input-group">
-                                                <select name="customer_id" id="ddlcustomer" data-placeholder="Select Customer" class="form-control"
-                                                    style="width: 90%; position: absolute;">
-                                                </select>
-                                                <div class="input-group-addon no-print" style="padding: 2px 5px;">
-                                                    <a href="#" id="add-customer" class="external" data-toggle="modal" data-target="#myModal">
-                                                        <i class="fa fa-2x fa-plus-circle" id="addIcon"></i></a>
+                                    <input type="hidden" name="spos_token" value="0dbeb4034dd067d5db67226fc01f3361">
+                                    <div class="well well-sm" id="leftdiv">
+                                        <div id="lefttop" style="margin-bottom: 5px;">
+                                            <div class="form-group" style="margin-bottom: 5px;">
+                                                <div class="input-group">
+                                                    <select name="customer_id" id="ddlcustomer" data-placeholder="Select Customer" class="form-control"
+                                                        style="width: 90%; position: absolute;">
+                                                    </select>
+                                                    <div class="input-group-addon no-print" style="padding: 2px 5px;">
+                                                        <a href="#" id="add-customer" class="external" data-toggle="modal" data-target="#myModal">
+                                                            <i class="fa fa-2x fa-plus-circle" id="addIcon"></i></a>
+                                                    </div>
+                                                </div>
+                                                <div style="clear: both;">
+                                                </div>
+                                            </div>
+                                            <div class="form-group" style="margin-bottom: 5px;">
+                                                <input type="text" name="hold_ref" value="" id="hold_ref" class="form-control kb-text"
+                                                    placeholder="Reference Note">
+                                            </div>
+                                            <div class="form-group" style="margin-bottom: 5px;">
+                                                <input type="text" name="code" id="txtitem" onchange="barcode();" class="form-control ui-autocomplete-input"
+                                                    placeholder="Search product by code or name, you can scan barcode too">
+
+                                                <input type="text" name="butAssignProd" placeholder="click here" style="display: none;">
+                                            </div>
+                                        </div>
+                                        <div id="printhead" class="print">
+                                            <p>
+                                                Date: 30th October 2018
+                                            </p>
+                                        </div>
+                                        <div id="print" class="fixed-table-container">
+                                            <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: auto; height: 250px;">
+                                                <div id="list-table-div" style="overflow: auto; width: auto; height: 0px;">
+                                                    <div class="fixed-table-header">
+                                                        <table class="table table-striped table-condensed table-hover list-table" style="margin: 0;">
+                                                            <thead>
+                                                                <tr class="success">
+                                                                    <th>Product
+                                                                    </th>
+                                                                     <th style="width: 15%; text-align: center;">Stock
+ </th>
+                                                                    <th style="width: 15%; text-align: center;">Price
+                                                                    </th>
+                                                                    <th style="width: 15%; text-align: center;">Qty
+                                                                    </th>
+                                                                    <th style="width: 20%; text-align: center;">Subtotal
+                                                                    </th>
+                                                                    <th style="width: 20px;" class="satu">
+                                                                        <i class="fa fa-trash-o"></i>
+                                                                    </th>
+                                                                </tr>
+                                                            </thead>
+                                                        </table>
+                                                    </div>
+                                                    <div id="div_itemData">
+                                                    </div>
+                                                </div>
+                                                <div class="slimScrollBar" style="background: rgb(0, 0, 0); width: 7px; position: absolute; top: 0px; opacity: 0.4; display: none; border-radius: 7px; z-index: 99; right: 1px; height: 267px;">
+                                                </div>
+                                                <div class="slimScrollRail" style="width: 7px; height: 100%; position: absolute; top: 0px; display: none; border-radius: 7px; background: rgb(51, 51, 51); opacity: 0.2; z-index: 90; right: 1px;">
                                                 </div>
                                             </div>
                                             <div style="clear: both;">
                                             </div>
+                                            <div id="totaldiv">
+                                                <table id="totaltbl" class="table table-condensed totals" style="margin-bottom: 10px;">
+                                                    <tbody>
+                                                        <tr class="info">
+                                                            <td width="25%">Total Items
+                                                            </td>
+                                                            <td class="text-right" style="padding-right: 10px;">
+                                                                <span id="count">0</span>
+                                                            </td>
+                                                            <td width="25%">Total
+                                                            </td>
+                                                            <td class="text-right" colspan="2">
+                                                                <span id="total">0</span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr class="info">
+                                                            <td width="25%">
+                                                                <a href="#" id="add_discount" style="font-weight: bold; color: #333;">Discount</a>
+                                                            </td>
+                                                            <td class="text-right" style="padding-right: 10px;">
+                                                                <span id="totds_con">0</span>
+                                                            </td>
+                                                            <td width="25%">
+                                                                <a href="#" id="add_tax" style="font-weight: bold; color: #333;">Order Tax</a>
+                                                            </td>
+                                                            <td class="text-right">
+                                                                <span id="ts_con">0</span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr class="success">
+                                                            <td colspan="2" style="font-weight: bold;">Total Payable <a role="button" data-toggle="modal" data-target="#noteModal"><i class="fa fa-comment"></i></a>
+                                                            </td>
+                                                            <td class="text-right" colspan="2" style="font-weight: bold;">
+                                                                <span id="total-payable">0</span>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>
-                                        <div class="form-group" style="margin-bottom: 5px;">
-                                            <input type="text" name="hold_ref" value="" id="hold_ref" class="form-control kb-text"
-                                                placeholder="Reference Note">
-                                        </div>
-                                        <div class="form-group" style="margin-bottom: 5px;">
-                                            <input type="text" name="code" id="txtitem" onchange="barcode();" class="form-control ui-autocomplete-input"
-                                                placeholder="Search product by code or name, you can scan barcode too">
-
-                                                <input type="text" name="butAssignProd" placeholder="click here" style="display:none;">
-                                        </div>
-                                    </div>
-                                    <div id="printhead" class="print">
-                                        <p>
-                                            Date: 30th October 2018</p>
-                                    </div>
-                                    <div id="print" class="fixed-table-container">
-                                        <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: auto;
-                                            height: 250px;">
-                                            <div id="list-table-div" style="overflow: auto; width: auto; height: 0px;">
-                                                <div class="fixed-table-header">
-                                                    <table class="table table-striped table-condensed table-hover list-table" style="margin: 0;">
-                                                        <thead>
-                                                            <tr class="success">
-                                                                <th>
-                                                                    Product
-                                                                </th>
-                                                                <th style="width: 30%; text-align: center;">
-                                                                    Price
-                                                                </th>
-                                                                <th style="width: 15%; text-align: center;">
-                                                                    Qty
-                                                                </th>
-                                                                <th style="width: 20%; text-align: center;">
-                                                                    Subtotal
-                                                                </th>
-                                                                <th style="width: 20px;" class="satu">
-                                                                    <i class="fa fa-trash-o"></i>
-                                                                </th>
-                                                            </tr>
-                                                        </thead>
-                                                    </table>
+                                        <div id="botbuttons" class="col-xs-12 text-center">
+                                            <div class="row">
+                                                <div class="col-xs-4" style="padding: 0;">
+                                                    <div class="btn-group-vertical btn-block">
+                                                        <button type="button" class="btn btn-warning btn-block btn-flat" id="btnsuspend">
+                                                            Hold</button>
+                                                        <button type="button" class="btn btn-danger btn-block btn-flat" id="btnreset" onclick="btnresetclick();">
+                                                            Cancel</button>
+                                                    </div>
                                                 </div>
-                                                <div id="div_itemData">
+                                                <div class="col-xs-4" style="padding: 0 5px;">
+                                                    <div class="btn-group-vertical btn-block">
+                                                        <button type="button" class="btn bg-purple btn-block btn-flat" id="btnprint_order"
+                                                            onclick="btnprintorder();">
+                                                            Print Order</button>
+                                                        <button type="button" class="btn bg-navy btn-block btn-flat" id="btnprint_bill" onclick="btnprintbill();">
+                                                            Print Bill</button>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="slimScrollBar" style="background: rgb(0, 0, 0); width: 7px; position: absolute;
-                                                top: 0px; opacity: 0.4; display: none; border-radius: 7px; z-index: 99; right: 1px;
-                                                height: 267px;">
-                                            </div>
-                                            <div class="slimScrollRail" style="width: 7px; height: 100%; position: absolute;
-                                                top: 0px; display: none; border-radius: 7px; background: rgb(51, 51, 51); opacity: 0.2;
-                                                z-index: 90; right: 1px;">
-                                            </div>
-                                        </div>
-                                        <div style="clear: both;">
-                                        </div>
-                                        <div id="totaldiv">
-                                            <table id="totaltbl" class="table table-condensed totals" style="margin-bottom: 10px;">
-                                                <tbody>
-                                                    <tr class="info">
-                                                        <td width="25%">
-                                                            Total Items
-                                                        </td>
-                                                        <td class="text-right" style="padding-right: 10px;">
-                                                            <span id="count">0</span>
-                                                        </td>
-                                                        <td width="25%">
-                                                            Total
-                                                        </td>
-                                                        <td class="text-right" colspan="2">
-                                                            <span id="total">0</span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr class="info">
-                                                        <td width="25%">
-                                                            <a href="#" id="add_discount" style="font-weight:bold; color:#333;">Discount</a>
-                                                        </td>
-                                                        <td class="text-right" style="padding-right: 10px;">
-                                                            <span id="totds_con">0</span>
-                                                        </td>
-                                                        <td width="25%">
-                                                            <a href="#" id="add_tax" style="font-weight:bold; color:#333;">Order Tax</a>
-                                                        </td>
-                                                        <td class="text-right">
-                                                            <span id="ts_con">0</span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr class="success">
-                                                        <td colspan="2" style="font-weight: bold;">
-                                                            Total Payable <a role="button" data-toggle="modal" data-target="#noteModal"><i class="fa fa-comment">
-                                                            </i></a>
-                                                        </td>
-                                                        <td class="text-right" colspan="2" style="font-weight: bold;">
-                                                            <span id="total-payable">0</span>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                    <div id="botbuttons" class="col-xs-12 text-center">
-                                        <div class="row">
-                                            <div class="col-xs-4" style="padding: 0;">
-                                                <div class="btn-group-vertical btn-block">
-                                                    <button type="button" class="btn btn-warning btn-block btn-flat" id="btnsuspend">
-                                                        Hold</button>
-                                                    <button type="button" class="btn btn-danger btn-block btn-flat" id="btnreset" onclick="btnresetclick();">
-                                                        Cancel</button>
+                                                <div class="col-xs-4" style="padding: 0;">
+                                                    <button type="button" class="btn btn-success btn-block btn-flat" id="btnpayment"
+                                                        style="height: 67px;">
+                                                        Payment</button>
                                                 </div>
                                             </div>
-                                            <div class="col-xs-4" style="padding: 0 5px;">
-                                                <div class="btn-group-vertical btn-block">
-                                                    <button type="button" class="btn bg-purple btn-block btn-flat" id="btnprint_order"
-                                                        onclick="btnprintorder();">
-                                                        Print Order</button>
-                                                    <button type="button" class="btn bg-navy btn-block btn-flat" id="btnprint_bill" onclick="btnprintbill();">
-                                                        Print Bill</button>
-                                                </div>
-                                            </div>
-                                            <div class="col-xs-4" style="padding: 0;">
-                                                <button type="button" class="btn btn-success btn-block btn-flat" id="btnpayment"
-                                                    style="height: 67px;">
-                                                    Payment</button>
-                                            </div>
                                         </div>
+                                        <div class="clearfix">
+                                        </div>
+                                        <span id="hidesuspend"></span>
+                                        <input type="hidden" name="spos_note" value="" id="spos_note">
+                                        <div id="payment-con">
+                                            <input type="hidden" name="amount" id="amount_val" value="">
+                                            <input type="hidden" name="balance_amount" id="balance_val" value="">
+                                            <input type="hidden" name="paid_by" id="paid_by_val" value="cash">
+                                            <input type="hidden" name="cc_no" id="cc_no_val" value="">
+                                            <input type="hidden" name="paying_gift_card_no" id="paying_gift_card_no_val" value="">
+                                            <input type="hidden" name="cc_holder" id="cc_holder_val" value="">
+                                            <input type="hidden" name="cheque_no" id="cheque_no_val" value="">
+                                            <input type="hidden" name="cc_month" id="cc_month_val" value="">
+                                            <input type="hidden" name="cc_year" id="cc_year_val" value="">
+                                            <input type="hidden" name="cc_type" id="cc_type_val" value="">
+                                            <input type="hidden" name="cc_cvv2" id="cc_cvv2_val" value="">
+                                            <input type="hidden" name="balance" id="balance_val" value="">
+                                            <input type="hidden" name="payment_note" id="payment_note_val" value="">
+                                        </div>
+                                        <input type="hidden" name="customer" id="customer" value="1">
+                                        <input type="hidden" name="order_tax" id="tax_val" value="5%">
+                                        <input type="hidden" name="order_discount" id="discount_val" value="0">
+                                        <input type="hidden" name="count" id="total_item" value="">
+                                        <input type="hidden" name="did" id="is_delete" value="0">
+                                        <input type="hidden" name="eid" id="is_delete" value="0">
+                                        <input type="hidden" name="total_items" id="total_items" value="0">
+                                        <input type="hidden" name="total_quantity" id="total_quantity" value="0">
+                                        <input type="button" id="submit" value="Submit Sale" style="display: none;">
                                     </div>
-                                    <div class="clearfix">
-                                    </div>
-                                    <span id="hidesuspend"></span>
-                                    <input type="hidden" name="spos_note" value="" id="spos_note">
-                                    <div id="payment-con">
-                                        <input type="hidden" name="amount" id="amount_val" value="">
-                                        <input type="hidden" name="balance_amount" id="balance_val" value="">
-                                        <input type="hidden" name="paid_by" id="paid_by_val" value="cash">
-                                        <input type="hidden" name="cc_no" id="cc_no_val" value="">
-                                        <input type="hidden" name="paying_gift_card_no" id="paying_gift_card_no_val" value="">
-                                        <input type="hidden" name="cc_holder" id="cc_holder_val" value="">
-                                        <input type="hidden" name="cheque_no" id="cheque_no_val" value="">
-                                        <input type="hidden" name="cc_month" id="cc_month_val" value="">
-                                        <input type="hidden" name="cc_year" id="cc_year_val" value="">
-                                        <input type="hidden" name="cc_type" id="cc_type_val" value="">
-                                        <input type="hidden" name="cc_cvv2" id="cc_cvv2_val" value="">
-                                        <input type="hidden" name="balance" id="balance_val" value="">
-                                        <input type="hidden" name="payment_note" id="payment_note_val" value="">
-                                    </div>
-                                    <input type="hidden" name="customer" id="customer" value="1">
-                                    <input type="hidden" name="order_tax" id="tax_val" value="5%">
-                                    <input type="hidden" name="order_discount" id="discount_val" value="0">
-                                    <input type="hidden" name="count" id="total_item" value="">
-                                    <input type="hidden" name="did" id="is_delete" value="0">
-                                    <input type="hidden" name="eid" id="is_delete" value="0">
-                                    <input type="hidden" name="total_items" id="total_items" value="0">
-                                    <input type="hidden" name="total_quantity" id="total_quantity" value="0">
-                                    <input type="button" id="submit" value="Submit Sale" style="display: none;">
-                                </div>
                                 </form>
                             </div>
                         </td>
                         <td>
                             <div class="contents" id="right-col" style="height: 184px;">
                                 <div id="item-list">
-                                    <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: auto;
-                                        height: 250px;">
-                                        <div class="items" style="overflow:scroll; width: auto; height: 400px;">
+                                    <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: auto; height: 250px;">
+                                        <div class="items" style="overflow: scroll; width: auto; height: 400px;">
                                             <div id="div_ProductData">
                                             </div>
                                         </div>
-                                        <div class="slimScrollBar" style="background: rgb(0, 0, 0); width: 7px; position: absolute;
-                                            top: 0px; opacity: 0.4; display: none; border-radius: 7px; z-index: 99; right: 1px;
-                                            height: 537px;">
+                                        <div class="slimScrollBar" style="background: rgb(0, 0, 0); width: 7px; position: absolute; top: 0px; opacity: 0.4; display: none; border-radius: 7px; z-index: 99; right: 1px; height: 537px;">
                                         </div>
-                                        <div class="slimScrollRail" style="width: 7px; height: 100%; position: absolute;
-                                            top: 0px; display: none; border-radius: 7px; background: rgb(51, 51, 51); opacity: 0.2;
-                                            z-index: 90; right: 1px;">
+                                        <div class="slimScrollRail" style="width: 7px; height: 100%; position: absolute; top: 0px; display: none; border-radius: 7px; background: rgb(51, 51, 51); opacity: 0.2; z-index: 90; right: 1px;">
                                         </div>
                                     </div>
                                 </div>
@@ -1425,7 +1439,7 @@
                                                 <i class="fa fa-chevron-left"></i>
                                             </button>
                                         </div>
-                                        <div class="btn-group" style="display:none;">
+                                        <div class="btn-group" style="display: none;">
                                             <button style="z-index: 10003;" class="btn btn-success pos-tip btn-flat" type="button"
                                                 id="sellGiftCard">
                                                 <i class="fa fa-credit-card" id="addIcon"></i>Sell Gift Card</button>
@@ -1446,16 +1460,18 @@
         </div>
     </div>
     <aside class="control-sidebar control-sidebar-dark" id="categories-list">
-            <div class="tab-content sb">
-                <div class="tab-pane active sb" id="control-sidebar-home-tab">
-                    <div id="filter-categories-con">
-                        <input type="text" autocomplete="off" data-list=".control-sidebar-menu" name="filter-categories" id="filter-categories" class="form-control sb col-xs-12 kb-text" placeholder="Type to filter categories" style="margin-bottom: 20px;">
-                    </div>
-                    <div class="clearfix sb"></div>
-                    <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: 100%; height: 250px;">
-                    
-                  <div id="divcategory"></div>
-                <div class="slimScrollBar" style="background: rgb(0, 0, 0); width: 7px; position: absolute; top: 0px; opacity: 0.4; display: none; border-radius: 7px; z-index: 99; right: 1px; height: 55px;"></div><div class="slimScrollRail" style="width: 7px; height: 100%; position: absolute; top: 0px; display: none; border-radius: 7px; background: rgb(51, 51, 51); opacity: 0.2; z-index: 90; right: 1px;"></div></div>
+        <div class="tab-content sb">
+            <div class="tab-pane active sb" id="control-sidebar-home-tab">
+                <div id="filter-categories-con">
+                    <input type="text" autocomplete="off" data-list=".control-sidebar-menu" name="filter-categories" id="filter-categories" class="form-control sb col-xs-12 kb-text" placeholder="Type to filter categories" style="margin-bottom: 20px;">
+                </div>
+                <div class="clearfix sb"></div>
+                <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: 100%; height: 250px;">
+
+                    <div id="divcategory"></div>
+                    <div class="slimScrollBar" style="background: rgb(0, 0, 0); width: 7px; position: absolute; top: 0px; opacity: 0.4; display: none; border-radius: 7px; z-index: 99; right: 1px; height: 55px;"></div>
+                    <div class="slimScrollRail" style="width: 7px; height: 100%; position: absolute; top: 0px; display: none; border-radius: 7px; background: rgb(51, 51, 51); opacity: 0.2; z-index: 90; right: 1px;"></div>
+                </div>
             </div>
         </div>
     </aside>
@@ -1463,8 +1479,7 @@
     </div>
     <div id="order_tbl" style="display: none;">
         <span id="order_span"></span>
-        <table id="order-table" class="prT table table-striped table-condensed" style="width: 100%;
-            margin-bottom: 0;">
+        <table id="order-table" class="prT table table-striped table-condensed" style="width: 100%; margin-bottom: 0;">
         </table>
     </div>
     <div id="bill_tbl" style="display: none;">
@@ -1478,18 +1493,14 @@
     </div>
     <div style="width: 500px; background: #FFF; display: block">
         <div id="order-data" style="display: none;" class="text-center">
-            <h1>
-                SimplePOS</h1>
-            <h2>
-                Order</h2>
+            <h1>SimplePOS</h1>
+            <h2>Order</h2>
             <div id="preo" class="text-left">
             </div>
         </div>
         <div id="bill-data" style="display: none;" class="text-center">
-            <h1>
-                SimplePOS</h1>
-            <h2>
-                Bill</h2>
+            <h1>SimplePOS</h1>
+            <h2>Bill</h2>
             <div id="preb" class="text-left">
             </div>
         </div>
@@ -1505,12 +1516,12 @@
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
                         <i class="fa fa-times"></i>
                     </button>
-                    <h4 class="modal-title" id="myModalLabel">
-                        Sell Gift Card</h4>
+                    <h4 class="modal-title" id="myModalLabel">Sell Gift Card</h4>
                 </div>
                 <div class="modal-body">
                     <p>
-                        Please fill in the information below</p>
+                        Please fill in the information below
+                    </p>
                     <div class="alert alert-danger gcerror-con" style="display: none;">
                         <button data-dismiss="alert" class="close" type="button">
                             ×</button>
@@ -1563,8 +1574,7 @@
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
                         <i class="fa fa-times"></i>
                     </button>
-                    <h4 class="modal-title" id="dsModalLabel">
-                        Discount (5 or 5%)</h4>
+                    <h4 class="modal-title" id="dsModalLabel">Discount (5 or 5%)</h4>
                 </div>
                 <div class="modal-body">
                     <input type="text" class="form-control" id="txtdiscount" value="">
@@ -1572,12 +1582,8 @@
                         <div class="iradio_square-blue checked" aria-checked="false" aria-disabled="false"
                             style="position: relative;">
                             <input type="radio" name="apply_to" value="order" id="apply_to_order" checked="checked"
-                                style="position: absolute; top: -20%; left: -20%; display: block; width: 140%;
-                                height: 140%; margin: 0px; padding: 0px; background: rgb(255, 255, 255); border: 0px;
-                                opacity: 0;">
-                            <ins class="iCheck-helper" style="position: absolute; top: -20%; left: -20%; display: block;
-                                width: 140%; height: 140%; margin: 0px; padding: 0px; background: rgb(255, 255, 255);
-                                border: 0px; opacity: 0;"></ins>
+                                style="position: absolute; top: -20%; left: -20%; display: block; width: 140%; height: 140%; margin: 0px; padding: 0px; background: rgb(255, 255, 255); border: 0px; opacity: 0;">
+                            <ins class="iCheck-helper" style="position: absolute; top: -20%; left: -20%; display: block; width: 140%; height: 140%; margin: 0px; padding: 0px; background: rgb(255, 255, 255); border: 0px; opacity: 0;"></ins>
                         </div>
                         Apply to order total
                     </label>
@@ -1599,8 +1605,7 @@
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
                         <i class="fa fa-times"></i>
                     </button>
-                    <h4 class="modal-title" id="tsModalLabel">
-                        Tax (5 or 5%)</h4>
+                    <h4 class="modal-title" id="tsModalLabel">Tax (5 or 5%)</h4>
                 </div>
                 <div class="modal-body">
                     <input type="text" class="form-control input-sm kb-pad" id="get_ts" onclick="this.select();"
@@ -1623,8 +1628,7 @@
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
                         <i class="fa fa-times"></i>
                     </button>
-                    <h4 class="modal-title" id="noteModalLabel">
-                        Note</h4>
+                    <h4 class="modal-title" id="noteModalLabel">Note</h4>
                 </div>
                 <div class="modal-body">
                     <textarea name="snote" id="snote" class="pa form-control kb-text"></textarea>
@@ -1646,22 +1650,19 @@
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
                         <i class="fa fa-times"></i>
                     </button>
-                    <h4 class="modal-title" id="proModalLabel">
-                        Payment
+                    <h4 class="modal-title" id="proModalLabel">Payment
                     </h4>
                 </div>
                 <div class="modal-body">
                     <table class="table table-bordered table-striped">
                         <tbody>
                             <tr>
-                                <th style="width: 25%;">
-                                    Net Price
+                                <th style="width: 25%;">Net Price
                                 </th>
                                 <th style="width: 25%;">
                                     <span id="net_price"></span>
                                 </th>
-                                <th style="width: 25%;">
-                                    Product Tax
+                                <th style="width: 25%;">Product Tax
                                 </th>
                                 <th style="width: 25%;">
                                     <span id="pro_tax"></span><span id="pro_tax_method"></span>
@@ -1722,12 +1723,12 @@
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
                         <i class="fa fa-times"></i>
                     </button>
-                    <h4 class="modal-title" id="susModalLabel">
-                        Suspend Sale</h4>
+                    <h4 class="modal-title" id="susModalLabel">Suspend Sale</h4>
                 </div>
                 <div class="modal-body">
                     <p>
-                        Type Reference Note</p>
+                        Type Reference Note
+                    </p>
                     <div class="form-group">
                         <label for="reference_note">
                             Reference Note</label>
@@ -1758,8 +1759,7 @@
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
                         <i class="fa fa-times"></i>
                     </button>
-                    <h4 class="modal-title" id="payModalLabel">
-                        Payment
+                    <h4 class="modal-title" id="payModalLabel">Payment
                     </h4>
                 </div>
                 <div class="modal-body">
@@ -1769,28 +1769,24 @@
                                 <table class="table table-bordered table-condensed" style="margin-bottom: 0;">
                                     <tbody>
                                         <tr>
-                                            <td width="25%" style="border-right-color: #FFF !important;">
-                                                Total Items
+                                            <td width="25%" style="border-right-color: #FFF !important;">Total Items
                                             </td>
                                             <td width="25%" class="text-right">
                                                 <span id="spnitem_count">0.00</span>
                                             </td>
-                                            <td width="25%" style="border-right-color: #FFF !important;">
-                                                Total Payable
+                                            <td width="25%" style="border-right-color: #FFF !important;">Total Payable
                                             </td>
                                             <td width="25%" class="text-right">
                                                 <span id="spntwt">0.00</span>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td style="border-right-color: #FFF !important;">
-                                                Total Paying
+                                            <td style="border-right-color: #FFF !important;">Total Paying
                                             </td>
                                             <td class="text-right">
                                                 <span id="spntotal_paying">0.00</span>
                                             </td>
-                                            <td style="border-right-color: #FFF !important;">
-                                                Balance
+                                            <td style="border-right-color: #FFF !important;">Balance
                                             </td>
                                             <td class="text-right">
                                                 <span id="balance">0.00</span>
@@ -1913,7 +1909,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-xs-3 text-center" style="display:none;">
+                        <div class="col-xs-3 text-center" style="display: none;">
                             <!-- <span style="font-size: 1.2em; font-weight: bold;">Quick Cash</span> -->
                             <div class="btn-group btn-group-vertical" style="width: 100%;">
                                 <button type="button" class="btn btn-info btn-block quick-cash" id="quick-payable">
@@ -1954,71 +1950,70 @@
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
                         <i class="fa fa-times"></i>
                     </button>
-                    <h4 class="modal-title" id="cModalLabel">
-                        Add Customer
+                    <h4 class="modal-title" id="cModalLabel">Add Customer
                     </h4>
                 </div>
                 <form action="https://#/pos/add_customer" id="customer-form" method="post"
-                accept-charset="utf-8">
-                <input type="hidden" name="spos_token" value="0dbeb4034dd067d5db67226fc01f3361">
-                <div class="modal-body">
-                    <div id="c-alert" class="alert alert-danger" style="display: none;">
-                    </div>
-                    <div class="row">
-                        <div class="col-xs-12">
-                            <div class="form-group">
-                                <label class="control-label" for="code">
-                                    Name
-                                </label>
-                                <input type="text" name="name" value="" class="form-control input-sm kb-text" id="txtcname">
+                    accept-charset="utf-8">
+                    <input type="hidden" name="spos_token" value="0dbeb4034dd067d5db67226fc01f3361">
+                    <div class="modal-body">
+                        <div id="c-alert" class="alert alert-danger" style="display: none;">
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="code">
+                                        Name
+                                    </label>
+                                    <input type="text" name="name" value="" class="form-control input-sm kb-text" id="txtcname">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-6">
+                                <div class="form-group">
+                                    <label class="control-label" for="cemail">
+                                        Email Address
+                                    </label>
+                                    <input type="text" name="email" value="" class="form-control input-sm kb-text" id="txtcemail">
+                                </div>
+                            </div>
+                            <div class="col-xs-6">
+                                <div class="form-group">
+                                    <label class="control-label" for="phone">
+                                        Phone
+                                    </label>
+                                    <input type="text" name="phone" value="" class="form-control input-sm kb-pad" id="txtcphone">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-6">
+                                <div class="form-group">
+                                    <label class="control-label" for="cf1">
+                                        Custom Field 1
+                                    </label>
+                                    <input type="text" name="cf1" value="" class="form-control input-sm kb-text" id="txtcf1">
+                                </div>
+                            </div>
+                            <div class="col-xs-6">
+                                <div class="form-group">
+                                    <label class="control-label" for="cf2">
+                                        Custom Field 2
+                                    </label>
+                                    <input type="text" name="cf2" value="" class="form-control input-sm kb-text" id="txtcf2">
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-xs-6">
-                            <div class="form-group">
-                                <label class="control-label" for="cemail">
-                                    Email Address
-                                </label>
-                                <input type="text" name="email" value="" class="form-control input-sm kb-text" id="txtcemail">
-                            </div>
-                        </div>
-                        <div class="col-xs-6">
-                            <div class="form-group">
-                                <label class="control-label" for="phone">
-                                    Phone
-                                </label>
-                                <input type="text" name="phone" value="" class="form-control input-sm kb-pad" id="txtcphone">
-                            </div>
-                        </div>
+                    <div class="modal-footer" style="margin-top: 0;">
+                        <button type="button" class="btn btn-default pull-left" data-dismiss="modal">
+                            Close
+                        </button>
+                        <button type="button" class="btn btn-primary" id="btnadd_customer" onclick="btncustomersaveclick();">
+                            Add Customer
+                        </button>
                     </div>
-                    <div class="row">
-                        <div class="col-xs-6">
-                            <div class="form-group">
-                                <label class="control-label" for="cf1">
-                                    Custom Field 1
-                                </label>
-                                <input type="text" name="cf1" value="" class="form-control input-sm kb-text" id="txtcf1">
-                            </div>
-                        </div>
-                        <div class="col-xs-6">
-                            <div class="form-group">
-                                <label class="control-label" for="cf2">
-                                    Custom Field 2
-                                </label>
-                                <input type="text" name="cf2" value="" class="form-control input-sm kb-text" id="txtcf2">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer" style="margin-top: 0;">
-                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">
-                        Close
-                    </button>
-                    <button type="button" class="btn btn-primary" id="btnadd_customer" onclick="btncustomersaveclick();">
-                        Add Customer
-                    </button>
-                </div>
                 </form>
             </div>
         </div>
@@ -2031,153 +2026,152 @@
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
                         <i class="fa fa-times"></i>
                     </button>
-                    <h4 class="modal-title" id="H1">
-                        Register Details
+                    <h4 class="modal-title" id="H1">Register Details
                     </h4>
                 </div>
                 <form id="Form1" method="post" accept-charset="utf-8">
-                <div class="modal-body">
-                    <table width="100%" class="stable">
-                        <tbody>
-                            <tr> 
-                                <td style="border-bottom: 1px solid #EEE;">
-                                    <h4>
-                                       <strong> Cash in hand: </strong></h4>
-                                </td>
-                                <td style="text-align: right; border-bottom: 1px solid #EEE;">
-                                    <h4>
-                                       <strong> <span id="spnregcashinhand">0.00</span></strong></h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="border-bottom: 1px solid #EEE;">
-                                    <h4>
-                                       <strong> Cash Sales: </strong></h4>
-                                </td>
-                                <td style="text-align: right; border-bottom: 1px solid #EEE;">
-                                    <h4>
-                                       <strong> <span id="spnregcashsale">0.00</span></strong>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="border-bottom: 1px solid #EEE;">
-                                    <h4>
-                                       <strong> Cheque Sales: </strong></h4>
-                                </td>
-                                <td style="text-align: right; border-bottom: 1px solid #EEE;">
-                                    <h4>
-                                       <strong> <span id="spnregchequesale">0.00 </span></strong>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="border-bottom: 1px solid #EEE;">
-                                    <h4>
-                                       <strong> Gift Card Sales: </strong></h4>
-                                </td>
-                                <td style="text-align: right; border-bottom: 1px solid #EEE;">
-                                    <h4>
-                                       <strong> <span id="spnreggiftcardsale">0.00</span></strong>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="border-bottom: 1px solid #EEE;">
-                                    <h4>
-                                      <strong>  Credit Card Sales: </strong></h4>
-                                </td>
-                                <td style="text-align: right; border-bottom: 1px solid #EEE;">
-                                    <h4>
-                                      <strong>  <span id="spnregccsale">0.00</span></strong>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="border-bottom: 1px solid #DDD;">
-                                    <h4>
-                                      <strong>  Stripe: </strong></h4>
-                                </td>
-                                <td style="text-align: right; border-bottom: 1px solid #DDD;">
-                                    <h4>
-                                      <strong>  <span id="spnregstripesale">0.00</span></strong>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="border-bottom: 1px solid #DDD;">
-                                    <h4>
-                                      <strong>  Paytm: </strong></h4>
-                                </td>
-                                <td style="text-align: right; border-bottom: 1px solid #DDD;">
-                                    <h4>
-                                      <strong>  <span id="spnpaytmamt">0.00</span></strong>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="border-bottom: 1px solid #DDD;">
-                                    <h4>
-                                      <strong>  Phone Pay: </strong></h4>
-                                </td>
-                                <td style="text-align: right; border-bottom: 1px solid #DDD;">
-                                    <h4>
-                                      <strong>  <span id="spnphonepayamt">0.00</span></strong>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="border-bottom: 1px solid #008d4c;">
-                                    <h4>
-                                       <strong> Others: </strong></h4>
-                                </td>
-                                <td style="text-align: right; border-bottom: 1px solid #008d4c;">
-                                    <h4>
-                                       <strong> <span id="spnregothersale">0.00</span></strong>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td width="300px;" style="font-weight: bold;">
-                                    <h4>
-                                       <strong> Total Sales: </strong></h4>
-                                </td>
-                                <td width="200px;" style="font-weight: bold; text-align: right;">
-                                    <h4>
-                                      <strong>  <span id="spnregtotalsale">0.00 </span></strong>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td width="300px;" style="font-weight: bold;">
-                                    <h4>
-                                      <strong>  Expenses: </strong></h4>
-                                </td>
-                                <td width="200px;" style="font-weight: bold; text-align: right;">
-                                    <h4>
-                                       <strong> <span id="spnregexpenses">0.00</span> </strong>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td width="300px;" style="font-weight: bold;">
-                                    <h4>
-                                        <strong>Total Cash</strong>:</h4>
-                                </td>
-                                <td style="text-align: right;">
-                                    <h4>
-                                        <strong><span id="spnregtotalcash">0.00</span></strong>
-                                    </h4>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="modal-footer" style="margin-top: 0;">
-                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">
-                        Close
-                    </button>
-                </div>
+                    <div class="modal-body">
+                        <table width="100%" class="stable">
+                            <tbody>
+                                <tr>
+                                    <td style="border-bottom: 1px solid #EEE;">
+                                        <h4>
+                                            <strong>Cash in hand: </strong></h4>
+                                    </td>
+                                    <td style="text-align: right; border-bottom: 1px solid #EEE;">
+                                        <h4>
+                                            <strong><span id="spnregcashinhand">0.00</span></strong></h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-bottom: 1px solid #EEE;">
+                                        <h4>
+                                            <strong>Cash Sales: </strong></h4>
+                                    </td>
+                                    <td style="text-align: right; border-bottom: 1px solid #EEE;">
+                                        <h4>
+                                            <strong><span id="spnregcashsale">0.00</span></strong>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-bottom: 1px solid #EEE;">
+                                        <h4>
+                                            <strong>Cheque Sales: </strong></h4>
+                                    </td>
+                                    <td style="text-align: right; border-bottom: 1px solid #EEE;">
+                                        <h4>
+                                            <strong><span id="spnregchequesale">0.00 </span></strong>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-bottom: 1px solid #EEE;">
+                                        <h4>
+                                            <strong>Gift Card Sales: </strong></h4>
+                                    </td>
+                                    <td style="text-align: right; border-bottom: 1px solid #EEE;">
+                                        <h4>
+                                            <strong><span id="spnreggiftcardsale">0.00</span></strong>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-bottom: 1px solid #EEE;">
+                                        <h4>
+                                            <strong>Credit Card Sales: </strong></h4>
+                                    </td>
+                                    <td style="text-align: right; border-bottom: 1px solid #EEE;">
+                                        <h4>
+                                            <strong><span id="spnregccsale">0.00</span></strong>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-bottom: 1px solid #DDD;">
+                                        <h4>
+                                            <strong>Stripe: </strong></h4>
+                                    </td>
+                                    <td style="text-align: right; border-bottom: 1px solid #DDD;">
+                                        <h4>
+                                            <strong><span id="spnregstripesale">0.00</span></strong>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-bottom: 1px solid #DDD;">
+                                        <h4>
+                                            <strong>Paytm: </strong></h4>
+                                    </td>
+                                    <td style="text-align: right; border-bottom: 1px solid #DDD;">
+                                        <h4>
+                                            <strong><span id="spnpaytmamt">0.00</span></strong>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-bottom: 1px solid #DDD;">
+                                        <h4>
+                                            <strong>Phone Pay: </strong></h4>
+                                    </td>
+                                    <td style="text-align: right; border-bottom: 1px solid #DDD;">
+                                        <h4>
+                                            <strong><span id="spnphonepayamt">0.00</span></strong>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-bottom: 1px solid #008d4c;">
+                                        <h4>
+                                            <strong>Others: </strong></h4>
+                                    </td>
+                                    <td style="text-align: right; border-bottom: 1px solid #008d4c;">
+                                        <h4>
+                                            <strong><span id="spnregothersale">0.00</span></strong>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td width="300px;" style="font-weight: bold;">
+                                        <h4>
+                                            <strong>Total Sales: </strong></h4>
+                                    </td>
+                                    <td width="200px;" style="font-weight: bold; text-align: right;">
+                                        <h4>
+                                            <strong><span id="spnregtotalsale">0.00 </span></strong>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td width="300px;" style="font-weight: bold;">
+                                        <h4>
+                                            <strong>Expenses: </strong></h4>
+                                    </td>
+                                    <td width="200px;" style="font-weight: bold; text-align: right;">
+                                        <h4>
+                                            <strong><span id="spnregexpenses">0.00</span> </strong>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td width="300px;" style="font-weight: bold;">
+                                        <h4>
+                                            <strong>Total Cash</strong>:</h4>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <h4>
+                                            <strong><span id="spnregtotalcash">0.00</span></strong>
+                                        </h4>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer" style="margin-top: 0;">
+                        <button type="button" class="btn btn-default pull-left" data-dismiss="modal">
+                            Close
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -2193,121 +2187,111 @@
                     <button type="button" class="close mr10" onclick="window.print();">
                         <i class="fa fa-print"></i>
                     </button>
-                    <h4 class="modal-title" id="H2">
-                        Today Sale Details
+                    <h4 class="modal-title" id="H2">Today Sale Details
                     </h4>
                 </div>
                 <form id="Form2" method="post" accept-charset="utf-8">
-                <div class="modal-body">
-                    <table width="100%" class="stable">
-                        <tbody>
-                            <tr>
-                                <td style="border-bottom: 1px solid #008d4c;">
-                                    <h4>
-                                        Cash Sales:</h4>
-                                </td>
-                                <td style="text-align: right; border-bottom: 1px solid #008d4c;">
-                                    <h4>
-                                        <span id="spntodaycashsale">0.00</span>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="border-bottom: 1px solid #008d4c;">
-                                    <h4>
-                                        Cheque Sales:</h4>
-                                </td>
-                                <td style="text-align: right; border-bottom: 1px solid #008d4c;">
-                                    <h4>
-                                        <span id="spntodaychequesale">0.00 </span>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="border-bottom: 1px solid #008d4c;">
-                                    <h4>
-                                        Credit Card Sales:</h4>
-                                </td>
-                                <td style="text-align: right; border-bottom: 1px solid #008d4c;">
-                                    <h4>
-                                        <span id="spntodayccsale">0.00 </span>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="border-bottom: 1px solid #008d4c;">
-                                    <h4>
-                                        Gift Card Sales:</h4>
-                                </td>
-                                <td style="text-align: right; border-bottom: 1px solid #008d4c;">
-                                    <h4>
-                                        <span id="spntodaygiftcardsale">0.00 </span>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="border-bottom: 1px solid #008d4c;">
-                                    <h4>
-                                        Stripe:</h4>
-                                </td>
-                                <td style="text-align: right; border-bottom: 1px solid #008d4c;">
-                                    <h4>
-                                        <span id="spntodaystripesale">0.00 </span>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="border-bottom: 1px solid #008d4c;">
-                                    <h4>
-                                        Paytm:</h4>
-                                </td>
-                                <td style="text-align: right; border-bottom: 1px solid #008d4c;">
-                                    <h4>
-                                        <span id="spntodaypaytmamt">0.00 </span>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="border-bottom: 1px solid #008d4c;">
-                                    <h4>
-                                        Phone Pay:</h4>
-                                </td>
-                                <td style="text-align: right; border-bottom: 1px solid #008d4c;">
-                                    <h4>
-                                        <span id="spntodayphonepayamt">0.00 </span>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="border-bottom: 1px solid #008d4c;">
-                                    <h4>
-                                        Others:</h4>
-                                </td>
-                                <td style="text-align: right; border-bottom: 1px solid #008d4c;">
-                                    <h4>
-                                        <span id="spntodayothersale">0.00</span> 
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td width="300px;" style="font-weight: bold;">
-                                    <h4>
-                                        Total Sales:</h4>
-                                </td>
-                                <td width="200px;" style="font-weight: bold; text-align: right;">
-                                    <h4>
-                                        <span id="spntodaytotalsale">0.00</span>
-                                    </h4>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="modal-footer" style="margin-top: 0;">
-                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">
-                        Close
-                    </button>
-                </div>
+                    <div class="modal-body">
+                        <table width="100%" class="stable">
+                            <tbody>
+                                <tr>
+                                    <td style="border-bottom: 1px solid #008d4c;">
+                                        <h4>Cash Sales:</h4>
+                                    </td>
+                                    <td style="text-align: right; border-bottom: 1px solid #008d4c;">
+                                        <h4>
+                                            <span id="spntodaycashsale">0.00</span>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-bottom: 1px solid #008d4c;">
+                                        <h4>Cheque Sales:</h4>
+                                    </td>
+                                    <td style="text-align: right; border-bottom: 1px solid #008d4c;">
+                                        <h4>
+                                            <span id="spntodaychequesale">0.00 </span>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-bottom: 1px solid #008d4c;">
+                                        <h4>Credit Card Sales:</h4>
+                                    </td>
+                                    <td style="text-align: right; border-bottom: 1px solid #008d4c;">
+                                        <h4>
+                                            <span id="spntodayccsale">0.00 </span>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-bottom: 1px solid #008d4c;">
+                                        <h4>Gift Card Sales:</h4>
+                                    </td>
+                                    <td style="text-align: right; border-bottom: 1px solid #008d4c;">
+                                        <h4>
+                                            <span id="spntodaygiftcardsale">0.00 </span>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-bottom: 1px solid #008d4c;">
+                                        <h4>Stripe:</h4>
+                                    </td>
+                                    <td style="text-align: right; border-bottom: 1px solid #008d4c;">
+                                        <h4>
+                                            <span id="spntodaystripesale">0.00 </span>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-bottom: 1px solid #008d4c;">
+                                        <h4>Paytm:</h4>
+                                    </td>
+                                    <td style="text-align: right; border-bottom: 1px solid #008d4c;">
+                                        <h4>
+                                            <span id="spntodaypaytmamt">0.00 </span>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-bottom: 1px solid #008d4c;">
+                                        <h4>Phone Pay:</h4>
+                                    </td>
+                                    <td style="text-align: right; border-bottom: 1px solid #008d4c;">
+                                        <h4>
+                                            <span id="spntodayphonepayamt">0.00 </span>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-bottom: 1px solid #008d4c;">
+                                        <h4>Others:</h4>
+                                    </td>
+                                    <td style="text-align: right; border-bottom: 1px solid #008d4c;">
+                                        <h4>
+                                            <span id="spntodayothersale">0.00</span>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td width="300px;" style="font-weight: bold;">
+                                        <h4>Total Sales:</h4>
+                                    </td>
+                                    <td width="200px;" style="font-weight: bold; text-align: right;">
+                                        <h4>
+                                            <span id="spntodaytotalsale">0.00</span>
+                                        </h4>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer" style="margin-top: 0;">
+                        <button type="button" class="btn btn-default pull-left" data-dismiss="modal">
+                            Close
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -2323,191 +2307,181 @@
                     <button type="button" class="close mr10" onclick="window.print();">
                         <i class="fa fa-print"></i>
                     </button>
-                    <h4 class="modal-title" id="H3">
-                        Today Sale Details
+                    <h4 class="modal-title" id="H3">Today Sale Details
                     </h4>
                 </div>
                 <form id="Form3" method="post" accept-charset="utf-8">
-                <div class="modal-body">
-                    <table width="100%" class="stable">
-                        <tbody>
-                            <tr> 
-                                <td style="border-bottom: 1px solid #EEE;">
-                                    <h4>
-                                        Cash in hand: </h4>
-                                </td>
-                                <td style="text-align: right; border-bottom: 1px solid #EEE;">
-                                    <h4>
-                                        <span id="spncregcashinhand">0.00</span></h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="border-bottom: 1px solid #EEE;">
-                                    <h4>
-                                       Cash Sales: </h4>
-                                </td>
-                                <td style="text-align: right; border-bottom: 1px solid #EEE;">
-                                    <h4>
-                                       <span id="spncregcashsale">0.00</span>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="border-bottom: 1px solid #EEE;">
-                                    <h4>
-                                      Cheque Sales: </h4>
-                                </td>
-                                <td style="text-align: right; border-bottom: 1px solid #EEE;">
-                                    <h4>
-                                       <span id="spncregchequesale">0.00 </span>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="border-bottom: 1px solid #EEE;">
-                                    <h4>
-                                        Gift Card Sales: </h4>
-                                </td>
-                                <td style="text-align: right; border-bottom: 1px solid #EEE;">
-                                    <h4>
-                                      <span id="spncreggiftcardsale">0.00</span>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="border-bottom: 1px solid #EEE;">
-                                    <h4>
-                                      Credit Card Sales: </h4>
-                                </td>
-                                <td style="text-align: right; border-bottom: 1px solid #EEE;">
-                                    <h4>
-                                      <span id="spncregccsale">0.00</span>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="border-bottom: 1px solid #DDD;">
-                                    <h4>
-                                       Stripe: </h4>
-                                </td>
-                                <td style="text-align: right; border-bottom: 1px solid #DDD;">
-                                    <h4>
-                                      <span id="spncregstripesale">0.00</span>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="border-bottom: 1px solid #DDD;">
-                                    <h4>
-                                       Paytm: </h4>
-                                </td>
-                                <td style="text-align: right; border-bottom: 1px solid #DDD;">
-                                    <h4>
-                                      <span id="spncpaytmamt">0.00</span>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="border-bottom: 1px solid #DDD;">
-                                    <h4>
-                                       Phone Pay: </h4>
-                                </td>
-                                <td style="text-align: right; border-bottom: 1px solid #DDD;">
-                                    <h4>
-                                      <span id="spncphonepayamt">0.00</span>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="border-bottom: 1px solid #008d4c;">
-                                    <h4>
-                                        Others: </h4>
-                                </td>
-                                <td style="text-align: right; border-bottom: 1px solid #008d4c;">
-                                    <h4>
-                                        <span id="spncregothersale">0.00</span>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td width="300px;" style="font-weight: bold;">
-                                    <h4>
-                                       <strong> Total Sales: </strong></h4>
-                                </td>
-                                <td width="200px;" style="font-weight: bold; text-align: right;">
-                                    <h4>
-                                      <strong>  <span id="spncregtotalsale">0.00 </span></strong>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td width="300px;" style="font-weight: bold;">
-                                    <h4>
-                                      <strong>  Expenses: </strong></h4>
-                                </td>
-                                <td width="200px;" style="font-weight: bold; text-align: right;">
-                                    <h4>
-                                       <strong> <span id="spncregexpenses">0.00</span> </strong>
-                                    </h4>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td width="300px;" style="font-weight: bold;">
-                                    <h4>
-                                        <strong>Total Cash</strong>:</h4>
-                                </td>
-                                <td style="text-align: right;">
-                                    <h4>
-                                        <strong><span id="spncregtotalcash">0.00</span></strong>
-                                    </h4>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <hr>
-                    <div class="row">
-                        <div class="col-sm-6">
-                            <div class="form-group">
-                                <label for="total_cash_submitted">
-                                    Total Cash</label>
-                                <input type="hidden" name="total_cash" value="11">
-                                <input type="text" name="total_cash_submitted"  class="form-control input-tip"
-                                    id="txttotal_cash_submitted" required="required">
+                    <div class="modal-body">
+                        <table width="100%" class="stable">
+                            <tbody>
+                                <tr>
+                                    <td style="border-bottom: 1px solid #EEE;">
+                                        <h4>Cash in hand: </h4>
+                                    </td>
+                                    <td style="text-align: right; border-bottom: 1px solid #EEE;">
+                                        <h4>
+                                            <span id="spncregcashinhand">0.00</span></h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-bottom: 1px solid #EEE;">
+                                        <h4>Cash Sales: </h4>
+                                    </td>
+                                    <td style="text-align: right; border-bottom: 1px solid #EEE;">
+                                        <h4>
+                                            <span id="spncregcashsale">0.00</span>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-bottom: 1px solid #EEE;">
+                                        <h4>Cheque Sales: </h4>
+                                    </td>
+                                    <td style="text-align: right; border-bottom: 1px solid #EEE;">
+                                        <h4>
+                                            <span id="spncregchequesale">0.00 </span>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-bottom: 1px solid #EEE;">
+                                        <h4>Gift Card Sales: </h4>
+                                    </td>
+                                    <td style="text-align: right; border-bottom: 1px solid #EEE;">
+                                        <h4>
+                                            <span id="spncreggiftcardsale">0.00</span>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-bottom: 1px solid #EEE;">
+                                        <h4>Credit Card Sales: </h4>
+                                    </td>
+                                    <td style="text-align: right; border-bottom: 1px solid #EEE;">
+                                        <h4>
+                                            <span id="spncregccsale">0.00</span>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-bottom: 1px solid #DDD;">
+                                        <h4>Stripe: </h4>
+                                    </td>
+                                    <td style="text-align: right; border-bottom: 1px solid #DDD;">
+                                        <h4>
+                                            <span id="spncregstripesale">0.00</span>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-bottom: 1px solid #DDD;">
+                                        <h4>Paytm: </h4>
+                                    </td>
+                                    <td style="text-align: right; border-bottom: 1px solid #DDD;">
+                                        <h4>
+                                            <span id="spncpaytmamt">0.00</span>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-bottom: 1px solid #DDD;">
+                                        <h4>Phone Pay: </h4>
+                                    </td>
+                                    <td style="text-align: right; border-bottom: 1px solid #DDD;">
+                                        <h4>
+                                            <span id="spncphonepayamt">0.00</span>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-bottom: 1px solid #008d4c;">
+                                        <h4>Others: </h4>
+                                    </td>
+                                    <td style="text-align: right; border-bottom: 1px solid #008d4c;">
+                                        <h4>
+                                            <span id="spncregothersale">0.00</span>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td width="300px;" style="font-weight: bold;">
+                                        <h4>
+                                            <strong>Total Sales: </strong></h4>
+                                    </td>
+                                    <td width="200px;" style="font-weight: bold; text-align: right;">
+                                        <h4>
+                                            <strong><span id="spncregtotalsale">0.00 </span></strong>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td width="300px;" style="font-weight: bold;">
+                                        <h4>
+                                            <strong>Expenses: </strong></h4>
+                                    </td>
+                                    <td width="200px;" style="font-weight: bold; text-align: right;">
+                                        <h4>
+                                            <strong><span id="spncregexpenses">0.00</span> </strong>
+                                        </h4>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td width="300px;" style="font-weight: bold;">
+                                        <h4>
+                                            <strong>Total Cash</strong>:</h4>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <h4>
+                                            <strong><span id="spncregtotalcash">0.00</span></strong>
+                                        </h4>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <hr>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label for="total_cash_submitted">
+                                        Total Cash</label>
+                                    <input type="hidden" name="total_cash" value="11">
+                                    <input type="text" name="total_cash_submitted" class="form-control input-tip"
+                                        id="txttotal_cash_submitted" required="required">
+                                </div>
+                                <div class="form-group">
+                                    <label for="total_cheques_submitted">
+                                        Total Cheques</label>
+                                    <input type="hidden" name="total_cheques" value="0">
+                                    <input type="text" name="total_cheques_submitted" value="0" class="form-control input-tip"
+                                        id="total_cheques_submitted" required="required">
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="total_cheques_submitted">
-                                    Total Cheques</label>
-                                <input type="hidden" name="total_cheques" value="0">
-                                <input type="text" name="total_cheques_submitted" value="0" class="form-control input-tip"
-                                    id="total_cheques_submitted" required="required">
-                            </div>
-                        </div>
-                        <div class="col-sm-6">
-                            <div class="form-group">
-                                <label for="total_cc_slips_submitted">
-                                    Total Credit Card Slips</label>
-                                <input type="hidden" name="total_cc_slips" value="0">
-                                <input type="text" name="total_cc_slips_submitted" value="0" class="form-control input-tip"
-                                    id="total_cc_slips_submitted" required="required">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label for="total_cc_slips_submitted">
+                                        Total Credit Card Slips</label>
+                                    <input type="hidden" name="total_cc_slips" value="0">
+                                    <input type="text" name="total_cc_slips_submitted" value="0" class="form-control input-tip"
+                                        id="total_cc_slips_submitted" required="required">
+                                </div>
                             </div>
                         </div>
+                        <div class="form-group">
+                            <label for="note">
+                                Note</label>
+                            <textarea name="note" id="Textarea1" class="pa form-control kb-text"></textarea>
+                        </div>
+                        <div>
+                            <div id="divdinaminationdata"></div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="note">
-                            Note</label>
-                        <textarea name="note" id="Textarea1" class="pa form-control kb-text"></textarea>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default pull-left" data-dismiss="modal">
+                            Close</button>
+                        <button type="button" onclick="window.print();" class="btn btn-default">
+                            Print</button>
+                        <input type="button" name="closeregister" value="Close Register" class="btn btn-primary" onclick="btncloseregistordetails();">
                     </div>
-                    <div>
-                       <div id="divdinaminationdata"></div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">
-                        Close</button>
-                    <button type="button" onclick="window.print();" class="btn btn-default">
-                        Print</button>
-                    <input type="button" name="closeregister" value="Close Register" class="btn btn-primary" onclick="btncloseregistordetails();">
-                </div>
                 </form>
             </div>
         </div>
@@ -2520,120 +2494,95 @@
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
                         <i class="fa fa-times"></i>
                     </button>
-                    <h4 class="modal-title" id="H4">
-                        Shortcut Keys
+                    <h4 class="modal-title" id="H4">Shortcut Keys
                     </h4>
                 </div>
                 <form id="Form4" method="post" accept-charset="utf-8">
-                <div class="modal-body" id="pr_popover_content">
-                    <table class="table table-bordered table-condensed" style="margin-bottom: 0px;">
-                        <thead>
-                            <tr>
-                                <th>
-                                    Shortcut Keys
-                                </th>
-                                <th>
-                                    Actions
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    ALT+F1
-                                </td>
-                                <td>
-                                    Focus add/search item input
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    ALT+F2
-                                </td>
-                                <td>
-                                    Add Customer
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    ALT+F10
-                                </td>
-                                <td>
-                                    Toggle Category Slider
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    ALT+F5
-                                </td>
-                                <td>
-                                    Cancel Sale
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    ALT+F6
-                                </td>
-                                <td>
-                                    Suspend Sale
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    ALT+F11
-                                </td>
-                                <td>
-                                    Print Order
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    ALT+F12
-                                </td>
-                                <td>
-                                    Print Bill
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    ALT+F8
-                                </td>
-                                <td>
-                                    Finalize Sale
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    Ctrl+F1
-                                </td>
-                                <td>
-                                    Today's Sale
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    Ctrl+F2
-                                </td>
-                                <td>
-                                    Opened Bills
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    ALT+F7
-                                </td>
-                                <td>
-                                    Close Register
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="modal-footer" style="margin-top: 0;">
-                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">
-                        Close
-                    </button>
-                </div>
+                    <div class="modal-body" id="pr_popover_content">
+                        <table class="table table-bordered table-condensed" style="margin-bottom: 0px;">
+                            <thead>
+                                <tr>
+                                    <th>Shortcut Keys
+                                    </th>
+                                    <th>Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>ALT+F1
+                                    </td>
+                                    <td>Focus add/search item input
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>ALT+F2
+                                    </td>
+                                    <td>Add Customer
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>ALT+F10
+                                    </td>
+                                    <td>Toggle Category Slider
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>ALT+F5
+                                    </td>
+                                    <td>Cancel Sale
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>ALT+F6
+                                    </td>
+                                    <td>Suspend Sale
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>ALT+F11
+                                    </td>
+                                    <td>Print Order
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>ALT+F12
+                                    </td>
+                                    <td>Print Bill
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>ALT+F8
+                                    </td>
+                                    <td>Finalize Sale
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Ctrl+F1
+                                    </td>
+                                    <td>Today's Sale
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Ctrl+F2
+                                    </td>
+                                    <td>Opened Bills
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>ALT+F7
+                                    </td>
+                                    <td>Close Register
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer" style="margin-top: 0;">
+                        <button type="button" class="btn btn-default pull-left" data-dismiss="modal">
+                            Close
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -2785,8 +2734,7 @@
     <ul class="ui-autocomplete ui-front ui-menu ui-widget ui-widget-content" id="ui-id-1"
         tabindex="0" style="display: none;">
     </ul>
-    <span role="status" aria-live="assertive" aria-relevant="additions" class="ui-helper-hidden-accessible">
-    </span>
+    <span role="status" aria-live="assertive" aria-relevant="additions" class="ui-helper-hidden-accessible"></span>
     <span id="spnbtnval"></span>
 </body>
 </html>

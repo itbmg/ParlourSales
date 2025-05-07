@@ -133,6 +133,17 @@ public partial class SummaryReport : System.Web.UI.Page
         double grandtotal_returnqty = 0;
         double grandtotal_returnvalue = 0;
 
+        cmd = new SqlCommand("Delete from registorclosingdetails where parlorid=@parlorid and  createdon between @d1 and @d2");//,color,@color
+        cmd.Parameters.Add("@parlorid", BranchID);
+        cmd.Parameters.Add("@d1", GetLowDate(fromdate));
+        cmd.Parameters.Add("@d2", GetHighDate(fromdate));
+        vdm.Delete(cmd);
+        cmd = new SqlCommand("Delete from sub_registorclosingdetails where branchid=@branchid and  doe between @d1 and @d2");//,color,@color
+        cmd.Parameters.Add("@branchid", BranchID);
+        cmd.Parameters.Add("@d1", GetLowDate(fromdate));
+        cmd.Parameters.Add("@d2", GetHighDate(fromdate));
+        vdm.Delete(cmd);
+
         DataTable DailyReport = new DataTable();
         DailyReport.Columns.Add("Sno");
         DailyReport.Columns.Add("Itemcode");
@@ -149,17 +160,32 @@ public partial class SummaryReport : System.Web.UI.Page
         DailyReport.Columns.Add("Clos(Qty)");
         DailyReport.Columns.Add("Clos Value");
 
-        cmd = new SqlCommand("SELECT   Sum(possale_subdetails.qty) AS qty, productmaster.productid,productmaster.productname, possale_subdetails.price, Sum(possale_subdetails.totvalue) AS totvalue, Sum(possale_subdetails.ordertax) AS ordertax FROM possale_maindetails INNER JOIN possale_subdetails on possale_subdetails.refno = possale_maindetails.sno INNER JOIN productmaster ON productmaster.productid = possale_subdetails.productid  WHERE possale_maindetails.doe BETWEEN @d1 AND @d2 AND possale_maindetails.branchid=@bid  GROUP BY  productmaster.productname, possale_subdetails.price,productmaster.productid");
+        cmd = new SqlCommand("SELECT   Sum(possale_subdetails.qty) AS saleqty, productmaster.productid,productmaster.productname, possale_subdetails.price, Sum(possale_subdetails.totvalue) AS totvalue, Sum(possale_subdetails.ordertax) AS ordertax FROM possale_maindetails INNER JOIN possale_subdetails on possale_subdetails.refno = possale_maindetails.sno INNER JOIN productmaster ON productmaster.productid = possale_subdetails.productid  WHERE possale_maindetails.doe BETWEEN @d1 AND @d2 AND possale_maindetails.branchid=@bid  GROUP BY  productmaster.productname, possale_subdetails.price,productmaster.productid");
         cmd.Parameters.Add("@d1", GetLowDate(fromdate));
         cmd.Parameters.Add("@d2", GetHighDate(todate));
         cmd.Parameters.Add("@bid", BranchID);
         DataTable dtsales = SalesDB.SelectQuery(cmd).Tables[0];
         cmd = new SqlCommand("SELECT   Pmaster.productname,subreg.price,Pmaster.productid,subreg.return_qty ,subreg.op_bal,subreg.clo_bal,subreg.inwardqty,subreg.saleqty from sub_registorclosingdetails as subreg INNER JOIN  productmaster as Pmaster ON subreg.productid=Pmaster.productid  where (subreg.branchid=@branchid) and (subreg.doe between @d1 and @d2) order by Pmaster.productid");
         cmd.Parameters.Add("@branchid", BranchID);
+        cmd.Parameters.Add("@d1", GetLowDate(fromdate.AddDays(-1)));
+        cmd.Parameters.Add("@d2", GetHighDate(todate.AddDays(-1)));
+        DataTable dtOpping = SalesDB.SelectQuery(cmd).Tables[0];
+        cmd = new SqlCommand("SELECT SUM(inward_subdetails.qty) AS inwardqty,productmaster.productname, productmaster.productid,(CONVERT(NVARCHAR(10), inward_maindetails.doe, 120)) AS doe  FROM   inward_maindetails INNER JOIN  inward_subdetails ON inward_maindetails.sno = inward_subdetails.refno INNER JOIN productmaster ON productmaster.productid = inward_subdetails.productid  WHERE (inward_maindetails.doe BETWEEN @d11 AND @d22) AND (inward_maindetails.branchid = @bidd) AND (inward_maindetails.status = 'A') group by productmaster.productname, (CONVERT(NVARCHAR(10), inward_maindetails.doe, 120)),productmaster.productid");
+        cmd.Parameters.Add("@d11", GetLowDate(fromdate));
+        cmd.Parameters.Add("@d22", GetLowDate(fromdate));
+        cmd.Parameters.Add("@bidd", BranchID);
+        DataTable dtinward = vdm.SelectQuery(cmd).Tables[0];
+        cmd = new SqlCommand("SELECT   Pmaster.productname,subreg.price,Pmaster.productid,subreg.return_qty ,subreg.op_bal,subreg.clo_bal,subreg.inwardqty,subreg.saleqty from sub_registorclosingdetails as subreg INNER JOIN  productmaster as Pmaster ON subreg.productid=Pmaster.productid  where (subreg.branchid=@branchid) and (subreg.doe between @d1 and @d2) order by Pmaster.productid");
+        cmd.Parameters.Add("@branchid", BranchID);
         cmd.Parameters.Add("@d1", GetLowDate(fromdate));
         cmd.Parameters.Add("@d2", GetHighDate(todate));
         DataTable dtclosing = SalesDB.SelectQuery(cmd).Tables[0];
-        if (dtclosing.Rows.Count > 0)
+        cmd = new SqlCommand("select  SSR.productid, Sum(SSR.quantity) as ReturnQty,(CONVERT(NVARCHAR(10), SR.doe, 120)) AS doe   from stores_return AS SR INNER JOIN sub_stores_return AS SSR ON SR.sno=SSR.storesreturn_sno INNER JOIN productmaster ON productmaster.productid = SSR.productid WHERE SR.doe between @d1 and @d2 AND SR.branchid=@branchid GROUP BY SSR.productid,(CONVERT(NVARCHAR(10), SR.doe, 120))");//, inwarddetails.indentno
+        cmd.Parameters.Add("@d1", GetLowDate(fromdate));
+        cmd.Parameters.Add("@d2", GetHighDate(todate));
+        cmd.Parameters.Add("@branchid", BranchID);
+        DataTable dtRetrun = vdm.SelectQuery(cmd).Tables[0];
+        if (dtOpping.Rows.Count > 0)
         {
             sumsalequantity = 0;
             sumsalevalue = 0;
@@ -168,17 +194,27 @@ public partial class SummaryReport : System.Web.UI.Page
             suminwardqty = 0;
             grandtotalsuminwardqty = 0;
             int i = 1;
-            foreach (DataRow drtrans in dtclosing.Rows)
+
+
+           
+
+            cmd = new SqlCommand("insert into registorclosingdetails( parlorid, createdon, closedby, doe) values (@parlorid, @createdon, @closedby, @doe)");//,color,@color
+            cmd.Parameters.Add("@parlorid", BranchID);
+            cmd.Parameters.Add("@createdon", fromdate);
+            cmd.Parameters.Add("@doe", fromdate);
+            cmd.Parameters.Add("@closedby", 1);
+            vdm.insert(cmd);
+            foreach (DataRow drOpp in dtOpping.Rows)
             {
                 DataRow newrow = DailyReport.NewRow();
                 newrow["Sno"] = i++.ToString();
-                newrow["Itemcode"] = drtrans["productid"].ToString();
-                newrow["ItemName"] = drtrans["productname"].ToString();
-                newrow["Price"] = drtrans["price"].ToString();
+                newrow["Itemcode"] = drOpp["productid"].ToString();
+                newrow["ItemName"] = drOpp["productname"].ToString();
+                newrow["Price"] = drOpp["price"].ToString();
                 double opqty = 0;
-                double.TryParse(drtrans["op_bal"].ToString(), out opqty);
+                double.TryParse(drOpp["clo_bal"].ToString(), out opqty);
                 double price = 0;
-                double.TryParse(drtrans["price"].ToString(), out price);
+                double.TryParse(drOpp["price"].ToString(), out price);
                 double oppvalue = 0;
                 newrow["Opp(Qty)"] = opqty;
                 oppvalue = opqty * price;
@@ -187,23 +223,21 @@ public partial class SummaryReport : System.Web.UI.Page
                 //ftotaloppbal += oppvalue;
                 grand_totaloppbal += opqty;
                 double closqty = 0;
-                double.TryParse(drtrans["clo_bal"].ToString(), out closqty);
-                double closvalue = 0;
-                closvalue = closqty * price;
-                // ftotalClosingbal += closvalue;
-                newrow["Clos(Qty)"] = closqty;
-                newrow["Clos Value"] = closvalue;
-                grand_totalClosingbal += closqty;
-                grand_totalOppValbal += oppvalue;
-                grand_totalClosValbal += closvalue;
+                foreach (DataRow dra in dtclosing.Select("productid='" + drOpp["productid"].ToString() + "'"))
+                {
+                    double.TryParse(dra["clo_bal"].ToString(), out closqty);
+                }
+
 
                 double inwardqty = 0;
-                double.TryParse(drtrans["inwardqty"].ToString(), out inwardqty);
+                foreach (DataRow dra in dtinward.Select("productid='" + drOpp["productid"].ToString() + "'"))
+                {
+                    double.TryParse(dra["inwardqty"].ToString(), out inwardqty);
+                }
                 suminwardqty += inwardqty;
                 grandtotalsuminwardqty += inwardqty;
-                newrow["Rec(Qty)"] = drtrans["inwardqty"].ToString();
+                newrow["Rec(Qty)"] = inwardqty.ToString();
                 double totvalue = 0;
-                double.TryParse(drtrans["price"].ToString(), out price);
                 totvalue = price * inwardqty;
                 sumsalevalue += totvalue;
                 grandtotalsuminwardvalue += totvalue;
@@ -211,14 +245,17 @@ public partial class SummaryReport : System.Web.UI.Page
 
 
                 double saleqty = 0;
-                double.TryParse(drtrans["saleqty"].ToString(), out saleqty);
+                foreach (DataRow dra in dtsales.Select("productid='" + drOpp["productid"].ToString() + "'"))
+                {
+                    double.TryParse(dra["saleqty"].ToString(), out saleqty);
+                }
                 double ordertax = 0;
                 //double.TryParse(drtrans["ordertax"].ToString(), out ordertax);
                 sumsalequantity += saleqty;
                 grandtotalsumsalequantity += saleqty;
-                newrow["Issue(Qty)"] = drtrans["saleqty"].ToString();
+                newrow["Issue(Qty)"] = saleqty.ToString();
                 double totsalevalue = 0;
-                double.TryParse(drtrans["price"].ToString(), out price);
+                //double.TryParse(drtrans["price"].ToString(), out price);
                 totsalevalue = price * saleqty;
                 sumsalevalue += totsalevalue;
                 grandtotalsumsalevalue += totsalevalue;
@@ -233,13 +270,62 @@ public partial class SummaryReport : System.Web.UI.Page
 
                 double totreturnvalue = 0;
                 double returnqty = 0;
-                double.TryParse(drtrans["return_qty"].ToString(), out returnqty);
+                foreach (DataRow dra in dtRetrun.Select("productid='" + drOpp["productid"].ToString() + "'"))
+                {
+                    double.TryParse(dra["ReturnQty"].ToString(), out returnqty);
+                }
+                //double.TryParse(drtrans["return_qty"].ToString(), out returnqty);
                 totreturnvalue = price * returnqty;
                 newrow["Return(Qty)"] = returnqty;
                 grandtotal_returnqty += returnqty;
                 newrow["Return Value"] = totreturnvalue;
                 grandtotal_returnvalue += totreturnvalue;
+
+                double clos_qty = 0;
+                if (closqty == 0)
+                {
+                    clos_qty = (opqty + inwardqty + returnqty) - saleqty;
+                    closqty = clos_qty;
+                }
+                double closvalue = 0;
+                closvalue = closqty * price;
+                // ftotalClosingbal += closvalue;
+                newrow["Clos(Qty)"] = closqty;
+                newrow["Clos Value"] = closvalue;
+                grand_totalClosingbal += closqty;
+                grand_totalOppValbal += oppvalue;
+                grand_totalClosValbal += closvalue;
                 DailyReport.Rows.Add(newrow);
+
+                cmd = new SqlCommand("UPDATE productmoniter set qty=@qty, price=@price WHERE productid=@productid AND branchid=@branchid");
+                cmd.Parameters.Add("@branchid", BranchID);
+                cmd.Parameters.Add("@productid", drOpp["productid"].ToString());
+                cmd.Parameters.Add("@qty", closqty);
+                cmd.Parameters.Add("@price", drOpp["price"].ToString());
+                vdm.Update(cmd);
+
+                cmd = new SqlCommand("select MAX(sno) as refno from registorclosingdetails");
+                DataTable dtoutward = vdm.SelectQuery(cmd).Tables[0];
+                string refno = dtoutward.Rows[0]["refno"].ToString();
+                cmd = new SqlCommand("insert into sub_registorclosingdetails(refno, productid, price, clo_bal,op_bal,doe,branchid,inwardqty,saleqty,return_qty) values(@refno, @productid, @price, @clo_bal,@op_bal,@doe,@branchid,@inwardqty,@saleqty,@return_qty)");
+                cmd.Parameters.Add("@refno", refno);
+                cmd.Parameters.Add("@productid", drOpp["productid"].ToString());
+                cmd.Parameters.Add("@price", drOpp["price"].ToString());
+                cmd.Parameters.Add("@clo_bal", closqty);
+                if (opqty != 0)
+                {
+                    cmd.Parameters.Add("@op_bal", opqty);
+                }
+                else
+                {
+                    cmd.Parameters.Add("@op_bal", "0");
+                }
+                cmd.Parameters.Add("@doe", fromdate);
+                cmd.Parameters.Add("@branchid", BranchID);
+                cmd.Parameters.Add("@inwardqty", inwardqty);
+                cmd.Parameters.Add("@saleqty", saleqty);
+                cmd.Parameters.Add("@return_qty", returnqty);
+                vdm.insert(cmd);
 
             }
         }

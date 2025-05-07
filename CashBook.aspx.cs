@@ -279,7 +279,7 @@ public partial class CashBook : System.Web.UI.Page
                 {
                     valnewCash = 0.0;
                     double.TryParse(CashPayReport.Compute("sum([" + dc.ToString() + "])", "[" + dc.ToString() + "]<>'0'").ToString(), out valnewCash);
-                    newCash[dc.ToString()] = valnewCash;
+                    newCash[dc.ToString()] = Math.Ceiling(valnewCash);
                 }
             }
             CashPayReport.Rows.Add(newCash);

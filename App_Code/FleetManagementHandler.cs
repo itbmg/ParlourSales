@@ -2896,6 +2896,13 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                         cmd.Parameters.Add("@totalcost", si.TotalCost);
                         cmd.Parameters.Add("@in_refno", refno);
                         vdm.insert(cmd);
+
+                        cmd = new SqlCommand("UPDATE productmoniter set qty=qty+@qty, price=@price WHERE productid=@productid AND branchid=@branchid");
+                        cmd.Parameters.Add("@branchid", branchid);
+                        cmd.Parameters.Add("@productid", si.hdnproductsno);
+                        cmd.Parameters.Add("@qty", si.Quantity);
+                        cmd.Parameters.Add("@price", si.PerUnitRs);
+                        vdm.Update(cmd);
                     }
                 }
                 string msg = "Inward Details successfully added";
@@ -4911,10 +4918,10 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                     cmd = new SqlCommand("select * from productmoniter where branchid=@branchid");
                     cmd.Parameters.Add("@branchid", branchid);
                     DataTable dtitem = vdm.SelectQuery(cmd).Tables[0];
-                    cmd = new SqlCommand("select op_bal,refno, productid, price, clo_bal,doe,branchid from sub_registorclosingdetails where branchid=@branchid and doe between @d1 and @d2");
-                    cmd.Parameters.Add("@d1", GetLowDate(closedate).AddDays(-1));
-                    cmd.Parameters.Add("@d2", GetHighDate(closedate).AddDays(-1));
-                    cmd.Parameters.Add("@branchid", branchid);
+                    cmd = new SqlCommand("select sno, refno, productid, price, op_bal as opQty, inwardqty, saleqty, clo_bal as  closeqty, branchid, doe, return_qty\r\n from sub_registorclosingdetails where (branchid=@branchid) and (doe between @d1 and @d2)");
+                    cmd.Parameters.AddWithValue("@d1", GetLowDate((closedate).AddDays(-1)));
+                    cmd.Parameters.AddWithValue("@d2", GetHighDate((closedate).AddDays(-1)));
+                    cmd.Parameters.AddWithValue("@branchid", branchid);
                     DataTable dtop = vdm.SelectQuery(cmd).Tables[0];
 
                     DateTime dt_fromdate = Convert.ToDateTime(closedate);
@@ -4947,7 +4954,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                         double return_qty = 0;
                         foreach (DataRow drop in dtop.Select("productid='" + dr["productid"].ToString() + "'"))
                         {
-                            double.TryParse(drop["clo_bal"].ToString(), out opqty);
+                            double.TryParse(drop["closeqty"].ToString(), out opqty);
                         }
                         //string date = "";
                         // DateTime dt = Convert.ToDateTime(dr["doe"].ToString());
@@ -4991,6 +4998,13 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                         cmd.Parameters.Add("@saleqty", outward);
                         cmd.Parameters.Add("@return_qty", return_qty);
                         vdm.insert(cmd);
+
+                        cmd = new SqlCommand("UPDATE productmoniter set qty=@qty, price=@price WHERE productid=@productid AND branchid=@branchid");
+                        cmd.Parameters.Add("@branchid", branchid);
+                        cmd.Parameters.Add("@productid", dr["productid"].ToString());
+                        cmd.Parameters.Add("@qty", closing);
+                        cmd.Parameters.Add("@price", dr["price"].ToString());
+                        vdm.Update(cmd);
                     }
                     string Response = GetJson("Register Details are Successfully Closed");
                     context.Response.Write(Response);
@@ -5089,8 +5103,8 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                     cmd.Parameters.Add("@branchid", branchid);
                     DataTable dtitem = vdm.SelectQuery(cmd).Tables[0];
                     cmd = new SqlCommand("select op_bal,refno, productid, price, clo_bal,doe,branchid from sub_registorclosingdetails where branchid=@branchid and doe between @d1 and @d2");
-                    cmd.Parameters.Add("@d1", GetLowDate(closedate).AddDays(-1));
-                    cmd.Parameters.Add("@d2", GetHighDate(closedate).AddDays(-1));
+                    cmd.Parameters.Add("@d1", GetLowDate(closedate).AddDays(-2));
+                    cmd.Parameters.Add("@d2", GetHighDate(closedate).AddDays(-2));
                     cmd.Parameters.Add("@branchid", branchid);
                     DataTable dtop = vdm.SelectQuery(cmd).Tables[0];
 
@@ -5167,6 +5181,14 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                         cmd.Parameters.Add("@saleqty", outward);
                         cmd.Parameters.Add("@return_qty", return_qty);
                         vdm.insert(cmd);
+
+                        cmd = new SqlCommand("UPDATE productmoniter set qty=@qty, price=@price WHERE productid=@productid AND branchid=@branchid");
+                        cmd.Parameters.Add("@branchid", branchid);
+                        cmd.Parameters.Add("@productid", dr["productid"].ToString());
+                        cmd.Parameters.Add("@qty", closing);
+                        cmd.Parameters.Add("@price", dr["price"].ToString());
+                        vdm.Update(cmd);
+
                     }
                     string Response = GetJson("Register Details are Successfully Closed");
                     context.Response.Write(Response);
@@ -5976,7 +5998,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             string status = "A";
             string billtotalvalue = obj.totalvalue;
             string vendor = obj.vendor;
-            if (vendor == null || vendor == "")
+            if (vendor == null || vendor == "" || vendor == "Select Branch")
             {
                 vendor = "0";
             }
@@ -6038,6 +6060,27 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                         cmd.Parameters.Add("@in_refno", refno);
                         cmd.Parameters.Add("@ordertax", si.ordertax);
                         vdm.insert(cmd);
+
+                        if (returntype == "parlor")
+                        {
+                            cmd = new SqlCommand("UPDATE productmoniter set qty=qty+@qty, price=@price WHERE productid=@productid AND branchid=@branchid");
+                            cmd.Parameters.Add("@branchid", branchid);
+                            cmd.Parameters.Add("@productid", si.hdnproductsno);
+                            cmd.Parameters.Add("@qty", si.Quantity);
+                            cmd.Parameters.Add("@price", si.PerUnitRs);
+                            vdm.Update(cmd);
+                        }
+                        else
+                        {
+                            cmd = new SqlCommand("UPDATE productmoniter set qty=qty-@qty, price=@price WHERE productid=@productid AND branchid=@branchid");
+                            cmd.Parameters.Add("@branchid", branchid);
+                            cmd.Parameters.Add("@productid", si.hdnproductsno);
+                            cmd.Parameters.Add("@qty", si.Quantity);
+                            cmd.Parameters.Add("@price", si.PerUnitRs);
+                            vdm.Update(cmd);
+                        }
+
+
                     }
                 }
                 string msg = "Store Return Details successfully added";
@@ -10791,8 +10834,9 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             string todate = context.Request["todate"];
             DateTime dt_fromdate = Convert.ToDateTime(fromdate);
             DateTime dt_todate = Convert.ToDateTime(todate);
-            cmd = new SqlCommand("Select aa.return_qty,aa.inwardqty,aa.saleqty,aa.op_bal,aa.refno, aa.productid,aa.sno, aa.price, aa.clo_bal,aa.doe,aa.branchid,bb.productname from sub_registorclosingdetails as aa INNER JOIN productmaster bb ON aa.productid=bb.productid WHERE (aa.productid = @productid) AND (aa.doe BETWEEN @d1 AND @d2) order by aa.doe");
+            cmd = new SqlCommand("Select aa.return_qty,aa.inwardqty,aa.saleqty,aa.op_bal,aa.refno, aa.productid,aa.sno, aa.price, aa.clo_bal,aa.doe,aa.branchid,bb.productname from sub_registorclosingdetails as aa INNER JOIN productmaster bb ON aa.productid=bb.productid WHERE  aa.branchid  = @Branchid  and (aa.productid = @productid) AND (aa.doe BETWEEN @d1 AND @d2) order by aa.doe");
             cmd.Parameters.AddWithValue("@productid", productid);
+            cmd.Parameters.AddWithValue("@Branchid", branchid);
             cmd.Parameters.AddWithValue("@d1", GetLowDate(dt_fromdate));
             cmd.Parameters.AddWithValue("@d2", GetHighDate(dt_todate));
             DataTable dtitem = vdm.SelectQuery(cmd).Tables[0];
@@ -10875,7 +10919,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             foreach (Item_Bal_Trans o in obj.filldetails)
             {
                 DateTime dtIndent = Convert.ToDateTime(o.doe);
-                cmd = new SqlCommand("UPDATE sub_registorclosingdetails set op_bal=@opp_balance,return_qty=@return_qty,inwardqty=@inwardqty,saleqty=@saleqty,clo_bal=@clo_balance,doe=@doe  where sno=@sno and productid=@productid AND doe between @d1 and @d2");
+                cmd = new SqlCommand("UPDATE sub_registorclosingdetails set op_bal=@opp_balance,return_qty=@return_qty,inwardqty=@inwardqty,saleqty=@saleqty,clo_bal=@clo_balance  where sno=@sno and productid=@productid AND doe between @d1 and @d2");
                 cmd.Parameters.AddWithValue("@d1", GetLowDate(dtIndent));
                 cmd.Parameters.AddWithValue("@d2", GetHighDate(dtIndent));
                 cmd.Parameters.AddWithValue("@opp_balance", o.opp_balance);
@@ -10885,7 +10929,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                 cmd.Parameters.AddWithValue("@clo_balance", o.clo_balance);
                 cmd.Parameters.AddWithValue("@productid", o.productid);
                 cmd.Parameters.AddWithValue("@sno", o.sno);
-                cmd.Parameters.AddWithValue("@doe", dtIndent);
+               // cmd.Parameters.AddWithValue("@doe", dtIndent);
                 vdm.Update(cmd);
             }
             string msg = "Balances Successfully Updated";

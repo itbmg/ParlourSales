@@ -33,6 +33,16 @@
                                             </asp:DropDownList>
                                         </td>
                                 <td>
+                                    <td style="width: 2%;"></td>
+        <td>
+            <label>
+                Return Type</label>
+            <asp:DropDownList ID="ddlRetrunType" runat="server" CssClass="form-control">
+                <asp:ListItem Value="parlor">Customer Return To Parlor</asp:ListItem>
+                <asp:ListItem Value="Company">Return To Vendor</asp:ListItem>
+            </asp:DropDownList>
+        </td>
+<td>
                              <label for="cash_in_hand">
                                     FromDate</label>
                                 <asp:TextBox ID="dtp_FromDate" runat="server" CssClass="form-control"></asp:TextBox>

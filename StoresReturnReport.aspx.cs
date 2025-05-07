@@ -126,6 +126,7 @@ public partial class StoresReturnReport : System.Web.UI.Page
         DataTable Report = new DataTable();
         Report.Columns.Add("Sno");
         Report.Columns.Add("Date");
+        Report.Columns.Add("Retrun Type");
         Report.Columns.Add("Retrun No");
         Report.Columns.Add("Ref no");
         Report.Columns.Add("ItemName");
@@ -136,10 +137,11 @@ public partial class StoresReturnReport : System.Web.UI.Page
 
         vdm = new SalesDBManager();
         //string branchid = Session["BranchID"].ToString();
-        cmd = new SqlCommand("select productmaster.productname, SR.sno, SR.returntype, SR.doe, SR.branchid, SR.remarks, SR.invoiceno, SR.refno, SR.billtotalvalue, SR.entryby, SR.createdon, SR.status, SSR.productid, SSR.quantity, SSR.price, SSR.storesreturn_sno, SSR.totalvalue, SSR.ordertax  from stores_return AS SR INNER JOIN sub_stores_return AS SSR ON SR.sno=SSR.storesreturn_sno INNER JOIN productmaster ON productmaster.productid = SSR.productid WHERE SR.doe between @d1 and @d2 AND SR.branchid=@branchid ");//, inwarddetails.indentno
+        cmd = new SqlCommand("select productmaster.productname, SR.sno, SR.returntype, SR.doe, SR.branchid, SR.remarks, SR.invoiceno, SR.refno, SR.billtotalvalue, SR.entryby, SR.createdon, SR.status, SSR.productid, SSR.quantity, SSR.price, SSR.storesreturn_sno, SSR.totalvalue, SSR.ordertax  from stores_return AS SR INNER JOIN sub_stores_return AS SSR ON SR.sno=SSR.storesreturn_sno INNER JOIN productmaster ON productmaster.productid = SSR.productid WHERE SR.doe between @d1 and @d2 AND SR.branchid=@branchid and sr.returntype =@returntype ");//, inwarddetails.indentno
         cmd.Parameters.AddWithValue("@d1", GetLowDate(fromdate));
         cmd.Parameters.AddWithValue("@d2", GetHighDate(todate));
         cmd.Parameters.AddWithValue("@branchid", branchid);
+        cmd.Parameters.AddWithValue("@returntype", ddlRetrunType.SelectedValue);
         DataTable routes = vdm.SelectQuery(cmd).Tables[0];
         DataView view = new DataView(routes);
         DataTable dtinward = view.ToTable(true, "sno", "returntype", "doe", "branchid", "refno", "status", "remarks", "billtotalvalue", "invoiceno");//, "indentno"
@@ -170,6 +172,7 @@ public partial class StoresReturnReport : System.Web.UI.Page
                 Report.Rows.Add(newrow);
             }
             DataRow newrow2 = Report.NewRow();
+            newrow2["Retrun Type"] = dr["returntype"].ToString();
             newrow2["Retrun No"] = dr["sno"].ToString();
             newrow2["Ref no"] = dr["refno"].ToString();
             newrow2["Remarks"] = dr["remarks"].ToString();
