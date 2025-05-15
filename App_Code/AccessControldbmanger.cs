@@ -140,50 +140,50 @@ public class AccessControldbmanger
         }
     }
 
-    public bool Update(string table, string[] fieldNames, string[] fieldValues, string[] conFieldNames, string[] conFieldValues, string[] Operators)
-    {
-        lock (obj_lock)
-        {
-            string UpdateString = "";
-            string ConditionStr = "";
-            cmd = new SqlCommand();
-            SqlParameter param;
-            try
-            {
-                if (fieldNames.Count() == fieldValues.Count() && conFieldNames.Count() == conFieldValues.Count())
-                {
-                    for (int i = 0; i < fieldNames.Count(); i++)
-                    {
-                        UpdateString += fieldNames[i] + ", ";
-                        param = new SqlParameter(fieldNames[i].Split('=')[1], fieldValues[i]);
-                        cmd.Parameters.Add(param);
-                    }
-                    UpdateString = UpdateString.Substring(0, UpdateString.LastIndexOf(","));
+    //public bool Update(string table, string[] fieldNames, string[] fieldValues, string[] conFieldNames, string[] conFieldValues, string[] Operators)
+    //{
+    //    lock (obj_lock)
+    //    {
+    //        string UpdateString = "";
+    //        string ConditionStr = "";
+    //        cmd = new SqlCommand();
+    //        SqlParameter param;
+    //        try
+    //        {
+    //            if (fieldNames.Count() == fieldValues.Count() && conFieldNames.Count() == conFieldValues.Count())
+    //            {
+    //                for (int i = 0; i < fieldNames.Count(); i++)
+    //                {
+    //                    UpdateString += fieldNames[i] + ", ";
+    //                    param = new SqlParameter(fieldNames[i].Split('=')[1], fieldValues[i]);
+    //                    cmd.Parameters.Add(param);
+    //                }
+    //                UpdateString = UpdateString.Substring(0, UpdateString.LastIndexOf(","));
 
-                    for (int j = 0; j < conFieldNames.Count(); j++)
-                    {
-                        ConditionStr += conFieldNames[j] + Operators[j];
-                        param = new SqlParameter(conFieldNames[j].Split('=')[1], conFieldValues[j]);
-                        cmd.Parameters.Add(param);
-                    }
+    //                for (int j = 0; j < conFieldNames.Count(); j++)
+    //                {
+    //                    ConditionStr += conFieldNames[j] + Operators[j];
+    //                    param = new SqlParameter(conFieldNames[j].Split('=')[1], conFieldValues[j]);
+    //                    cmd.Parameters.Add(param);
+    //                }
 
-                    cmd.CommandText = "update " + table + " set " + UpdateString + " where " + ConditionStr;
-                    cmd.Connection = conn;
-                    conn.Open();
-                    cmd.ExecuteNonQuery();
-                    conn.Close();
-                    return true;
-                }
-                return false;
-            }
-            catch (SqlException exe)
-            {
-                conn.Close();
-                throw new ApplicationException(exe.ErrorCode.ToString());
-            }
-        }
+    //                cmd.CommandText = "update " + table + " set " + UpdateString + " where " + ConditionStr;
+    //                cmd.Connection = conn;
+    //                conn.Open();
+    //                cmd.ExecuteNonQuery();
+    //                conn.Close();
+    //                return true;
+    //            }
+    //            return false;
+    //        }
+    //        catch (SqlException exe)
+    //        {
+    //            conn.Close();
+    //            throw new ApplicationException(exe.ErrorCode.ToString());
+    //        }
+    //    }
 
-    }
+    //}
 
     public   bool Delete(string table, string condition)
     {

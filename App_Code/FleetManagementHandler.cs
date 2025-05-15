@@ -4381,7 +4381,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             vdm = new SalesDBManager();
             string LevelType = context.Session["LevelType"].ToString();
             string BranchID = context.Session["BranchID"].ToString();
-            if (LevelType == "SuperAdmin")
+            if (LevelType == "SuperAdmin" || LevelType == "AccountsOfficer")
             {
                 cmd = new SqlCommand("SELECT cmpid, locationid, branchid, branchname, address, phone, tino, stno, cstno, emailid, gstin, regtype, stateid, titlename, branchcode, pramoterid, lat, long, flag,  panno, branchtype, status, pramotername, tallyledger, sapledger, sapledgercode FROM  branchmaster as aa INNER JOIN branchmapping as bb ON aa.branchid=bb.subbranch where bb.superbranch=@branchid ");
             }
@@ -5793,7 +5793,6 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             }
             else
             {
-                branchid = context.Session["BranchID"].ToString();
                 cmd = new SqlCommand("SELECT SUM(possale_subdetails.totvalue) AS Itemsalevalue, SUM(possale_subdetails.qty) AS Avgsale, SUM(possale_subdetails.ordertax) AS ordertax, AVG(possale_subdetails.ordertax) AS Avgtax, productmaster.productname, possale_subdetails.productid  FROM  productmaster INNER JOIN  possale_subdetails ON productmaster.productid = possale_subdetails.productid INNER JOIN  possale_maindetails ON possale_subdetails.refno = possale_maindetails.sno   WHERE  (possale_maindetails.branchid = @bid) AND (possale_maindetails.doe BETWEEN @d1 AND @d2) AND (productmaster.subcategoryid = @subcatid) AND (productmaster.categoryid=@catid) AND (possale_maindetails.status = 'C')  GROUP BY productmaster.productname, possale_subdetails.productid");
                 cmd.Parameters.Add("@bid", branchid);
             }
@@ -10773,7 +10772,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                 dtmarch = DateTime.Parse(march);
             }
 
-            cmd = new SqlCommand("update possale_maindetails set totalpaying=totalpaying where sno=@sno)");
+            cmd = new SqlCommand("update possale_maindetails set totalpaying=totalpaying where sno=@sno");
             cmd.Parameters.Add("@totalpaying", totalpaying);
             cmd.Parameters.Add("@sno", InvoiceNo);
             vdm.Update(cmd);
@@ -10782,7 +10781,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             {
                 if (si.hdnproductsno != "0")
                 {
-                    cmd = new SqlCommand("update possale_subdetails set productid=@productid, qty=qty, price=price, totvalue=totvalue,ordertax=@ordertax where productid=@productid and refno=refno");
+                    cmd = new SqlCommand("update possale_subdetails set productid=@productid, qty=@qty, price=@price, totvalue=@totvalue,ordertax=@ordertax where productid=@productid and refno=@refno");
                     cmd.Parameters.Add("@productname", si.productname);
                     cmd.Parameters.Add("@productid", si.hdnproductsno);
                     cmd.Parameters.Add("@qty", si.Quantity);
@@ -10842,23 +10841,25 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             DataTable dtitem = vdm.SelectQuery(cmd).Tables[0];
 
 
-            cmd = new SqlCommand("SELECT SUM(inward_subdetails.qty) AS inwardqty,productmaster.productname,productmaster.productid,CAST(inward_maindetails.doe  AS date)  FROM   inward_maindetails INNER JOIN  inward_subdetails ON inward_maindetails.sno = inward_subdetails.refno INNER JOIN productmaster ON productmaster.productid = inward_subdetails.productid  WHERE (inward_maindetails.doe BETWEEN @d11 AND @d22) AND (inward_maindetails.branchid = @bidd) AND (inward_subdetails.productid = @productid) AND (inward_maindetails.status = 'A') GROUP BY  productmaster.productname,CAST(inward_maindetails.doe  AS date),productmaster.productid");
-            cmd.Parameters.Add("@d11", GetLowDate(dt_fromdate));
-            cmd.Parameters.Add("@d22", GetHighDate(dt_todate));
-            cmd.Parameters.Add("@bidd", branchid);
-            cmd.Parameters.AddWithValue("@productid", productid);
-            DataTable dtinward = vdm.SelectQuery(cmd).Tables[0];
+            //cmd = new SqlCommand("SELECT SUM(inward_subdetails.qty) AS inwardqty,productmaster.productname,productmaster.productid,CAST(inward_maindetails.doe  AS date)  FROM   inward_maindetails INNER JOIN  inward_subdetails ON inward_maindetails.sno = inward_subdetails.refno INNER JOIN productmaster ON productmaster.productid = inward_subdetails.productid  WHERE (inward_maindetails.doe BETWEEN @d11 AND @d22) AND (inward_maindetails.branchid = @bidd) AND (inward_subdetails.productid = @productid) AND (inward_maindetails.status = 'A') GROUP BY  productmaster.productname,CAST(inward_maindetails.doe  AS date),productmaster.productid");
+            //cmd.Parameters.Add("@d11", GetLowDate(dt_fromdate));
+            //cmd.Parameters.Add("@d22", GetHighDate(dt_todate));
+            //cmd.Parameters.Add("@bidd", branchid);
+            //cmd.Parameters.AddWithValue("@productid", productid);
+            //DataTable dtinward = vdm.SelectQuery(cmd).Tables[0];
 
-            cmd = new SqlCommand("SELECT   Sum(possale_subdetails.qty) AS outwardqty,Sum(possale_subdetails.ordertax) AS ordertax, productmaster.productid,productmaster.productname, possale_subdetails.price, Sum(possale_subdetails.totvalue) AS totvalue, Sum(possale_subdetails.ordertax) AS ordertax,CAST(possale_maindetails.doe AS date) FROM possale_maindetails INNER JOIN possale_subdetails on possale_subdetails.refno = possale_maindetails.sno INNER JOIN productmaster ON productmaster.productid = possale_subdetails.productid  WHERE (possale_maindetails.doe BETWEEN @d1 AND @d2) AND (possale_maindetails.branchid=@bid) AND (possale_subdetails.productid=@productid)  GROUP BY  productmaster.productname, possale_subdetails.price,productmaster.productid,CAST(possale_maindetails.doe AS date)");
-            cmd.Parameters.Add("@d1", GetLowDate(dt_fromdate));
-            cmd.Parameters.Add("@d2", GetHighDate(dt_fromdate));
-            cmd.Parameters.Add("@bid", branchid);
-            cmd.Parameters.AddWithValue("@productid", productid);
-            DataTable dtouward = vdm.SelectQuery(cmd).Tables[0];
+            //cmd = new SqlCommand("SELECT   Sum(possale_subdetails.qty) AS outwardqty,Sum(possale_subdetails.ordertax) AS ordertax, productmaster.productid,productmaster.productname, possale_subdetails.price, Sum(possale_subdetails.totvalue) AS totvalue, Sum(possale_subdetails.ordertax) AS ordertax,CAST(possale_maindetails.doe AS date) FROM possale_maindetails INNER JOIN possale_subdetails on possale_subdetails.refno = possale_maindetails.sno INNER JOIN productmaster ON productmaster.productid = possale_subdetails.productid  WHERE (possale_maindetails.doe BETWEEN @d1 AND @d2) AND (possale_maindetails.branchid=@bid) AND (possale_subdetails.productid=@productid)  GROUP BY  productmaster.productname, possale_subdetails.price,productmaster.productid,CAST(possale_maindetails.doe AS date)");
+            //cmd.Parameters.Add("@d1", GetLowDate(dt_fromdate));
+            //cmd.Parameters.Add("@d2", GetHighDate(dt_fromdate));
+            //cmd.Parameters.Add("@bid", branchid);
+            //cmd.Parameters.AddWithValue("@productid", productid);
+            //DataTable dtouward = vdm.SelectQuery(cmd).Tables[0];
             List<Item_Bal_Trans> ItemBalList = new List<Item_Bal_Trans>();
 
 
             foreach (DataRow dr in dtitem.Rows)
+
+
             {
                 Item_Bal_Trans getBalanceItem = new Item_Bal_Trans();
 

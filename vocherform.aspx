@@ -1954,7 +1954,7 @@
             <div class="box-body">
                 <div style="width: 100%; background-color: #fff">
                    
-                  <div id="div_raisevoucher" style="text-align: -webkit-right;" >
+                  <div id="div_raisevoucher" style="text-align: -webkit-righdivSOfficet;" >
                    <table>
                         <tr>
                             <td>

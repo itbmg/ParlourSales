@@ -133,16 +133,23 @@ public partial class SummaryReport : System.Web.UI.Page
         double grandtotal_returnqty = 0;
         double grandtotal_returnvalue = 0;
 
-        cmd = new SqlCommand("Delete from registorclosingdetails where parlorid=@parlorid and  createdon between @d1 and @d2");//,color,@color
-        cmd.Parameters.Add("@parlorid", BranchID);
-        cmd.Parameters.Add("@d1", GetLowDate(fromdate));
-        cmd.Parameters.Add("@d2", GetHighDate(fromdate));
-        vdm.Delete(cmd);
-        cmd = new SqlCommand("Delete from sub_registorclosingdetails where branchid=@branchid and  doe between @d1 and @d2");//,color,@color
-        cmd.Parameters.Add("@branchid", BranchID);
-        cmd.Parameters.Add("@d1", GetLowDate(fromdate));
-        cmd.Parameters.Add("@d2", GetHighDate(fromdate));
-        vdm.Delete(cmd);
+        //cmd = new SqlCommand("Delete from registorclosingdetails where parlorid=@parlorid and  createdon between @d1 and @d2");//,color,@color
+        //cmd.Parameters.Add("@parlorid", BranchID);
+        //cmd.Parameters.Add("@d1", GetLowDate(fromdate));
+        //cmd.Parameters.Add("@d2", GetHighDate(fromdate));
+        //vdm.Delete(cmd);
+        //cmd = new SqlCommand("Delete from sub_registorclosingdetails where branchid=@branchid and  doe between @d1 and @d2");//,color,@color
+        //cmd.Parameters.Add("@branchid", BranchID);
+        //cmd.Parameters.Add("@d1", GetLowDate(fromdate));
+        //cmd.Parameters.Add("@d2", GetHighDate(fromdate));
+        //vdm.Delete(cmd);
+
+        //cmd = new SqlCommand("insert into registorclosingdetails( parlorid, createdon, closedby, doe) values (@parlorid, @createdon, @closedby, @doe)");//,color,@color
+        //cmd.Parameters.Add("@parlorid", BranchID);
+        //cmd.Parameters.Add("@createdon", fromdate);
+        //cmd.Parameters.Add("@doe", fromdate);
+        //cmd.Parameters.Add("@closedby", 10);
+        //vdm.insert(cmd);
 
         DataTable DailyReport = new DataTable();
         DailyReport.Columns.Add("Sno");
@@ -155,8 +162,10 @@ public partial class SummaryReport : System.Web.UI.Page
         DailyReport.Columns.Add("Rec Value");
         DailyReport.Columns.Add("Issue(Qty)");
         DailyReport.Columns.Add("Issue Value");
-        DailyReport.Columns.Add("Return(Qty)");
+        DailyReport.Columns.Add("Return(Prlr)");
         DailyReport.Columns.Add("Return Value");
+        DailyReport.Columns.Add("Return(Plant)");
+        DailyReport.Columns.Add("Return_Value");
         DailyReport.Columns.Add("Clos(Qty)");
         DailyReport.Columns.Add("Clos Value");
 
@@ -180,11 +189,16 @@ public partial class SummaryReport : System.Web.UI.Page
         cmd.Parameters.Add("@d1", GetLowDate(fromdate));
         cmd.Parameters.Add("@d2", GetHighDate(todate));
         DataTable dtclosing = SalesDB.SelectQuery(cmd).Tables[0];
-        cmd = new SqlCommand("select  SSR.productid, Sum(SSR.quantity) as ReturnQty,(CONVERT(NVARCHAR(10), SR.doe, 120)) AS doe   from stores_return AS SR INNER JOIN sub_stores_return AS SSR ON SR.sno=SSR.storesreturn_sno INNER JOIN productmaster ON productmaster.productid = SSR.productid WHERE SR.doe between @d1 and @d2 AND SR.branchid=@branchid GROUP BY SSR.productid,(CONVERT(NVARCHAR(10), SR.doe, 120))");//, inwarddetails.indentno
+        cmd = new SqlCommand("select  SSR.productid, Sum(SSR.quantity) as ReturnQty,(CONVERT(NVARCHAR(10), SR.doe, 120)) AS doe   from stores_return AS SR INNER JOIN sub_stores_return AS SSR ON SR.sno=SSR.storesreturn_sno INNER JOIN productmaster ON productmaster.productid = SSR.productid WHERE SR.doe between @d1 and @d2 AND SR.branchid=@branchid and SR.ReturnType='parlor' GROUP BY SSR.productid,(CONVERT(NVARCHAR(10), SR.doe, 120))");//, inwarddetails.indentno
         cmd.Parameters.Add("@d1", GetLowDate(fromdate));
         cmd.Parameters.Add("@d2", GetHighDate(todate));
         cmd.Parameters.Add("@branchid", BranchID);
-        DataTable dtRetrun = vdm.SelectQuery(cmd).Tables[0];
+        DataTable dtRetrunParloor = vdm.SelectQuery(cmd).Tables[0];
+        cmd = new SqlCommand("select  SSR.productid, Sum(SSR.quantity) as ReturnQty,(CONVERT(NVARCHAR(10), SR.doe, 120)) AS doe   from stores_return AS SR INNER JOIN sub_stores_return AS SSR ON SR.sno=SSR.storesreturn_sno INNER JOIN productmaster ON productmaster.productid = SSR.productid WHERE SR.doe between @d1 and @d2 AND SR.branchid=@branchid and SR.ReturnType='Company' GROUP BY SSR.productid,(CONVERT(NVARCHAR(10), SR.doe, 120))");//, inwarddetails.indentno
+        cmd.Parameters.Add("@d1", GetLowDate(fromdate));
+        cmd.Parameters.Add("@d2", GetHighDate(todate));
+        cmd.Parameters.Add("@branchid", BranchID);
+        DataTable dtRetrunPlant = vdm.SelectQuery(cmd).Tables[0];
         if (dtOpping.Rows.Count > 0)
         {
             sumsalequantity = 0;
@@ -198,12 +212,7 @@ public partial class SummaryReport : System.Web.UI.Page
 
            
 
-            cmd = new SqlCommand("insert into registorclosingdetails( parlorid, createdon, closedby, doe) values (@parlorid, @createdon, @closedby, @doe)");//,color,@color
-            cmd.Parameters.Add("@parlorid", BranchID);
-            cmd.Parameters.Add("@createdon", fromdate);
-            cmd.Parameters.Add("@doe", fromdate);
-            cmd.Parameters.Add("@closedby", 1);
-            vdm.insert(cmd);
+            
             foreach (DataRow drOpp in dtOpping.Rows)
             {
                 DataRow newrow = DailyReport.NewRow();
@@ -269,22 +278,30 @@ public partial class SummaryReport : System.Web.UI.Page
                 grandtotalgrandtotalsumvalue += grandtotalvalue;
 
                 double totreturnvalue = 0;
-                double returnqty = 0;
-                foreach (DataRow dra in dtRetrun.Select("productid='" + drOpp["productid"].ToString() + "'"))
+                double return_Parlourqty = 0;
+                foreach (DataRow dra in dtRetrunParloor.Select("productid='" + drOpp["productid"].ToString() + "'"))
                 {
-                    double.TryParse(dra["ReturnQty"].ToString(), out returnqty);
+                    double.TryParse(dra["ReturnQty"].ToString(), out return_Parlourqty);
+                }
+
+                double return_Plantqty = 0;
+                foreach (DataRow dra in dtRetrunPlant.Select("productid='" + drOpp["productid"].ToString() + "'"))
+                {
+                    double.TryParse(dra["ReturnQty"].ToString(), out return_Plantqty);
                 }
                 //double.TryParse(drtrans["return_qty"].ToString(), out returnqty);
-                totreturnvalue = price * returnqty;
-                newrow["Return(Qty)"] = returnqty;
-                grandtotal_returnqty += returnqty;
+                totreturnvalue = price * return_Parlourqty;
+                newrow["Return(Prlr)"] = return_Parlourqty;
+                newrow["Return(Plant)"] = return_Plantqty;
+                grandtotal_returnqty += return_Parlourqty;
                 newrow["Return Value"] = totreturnvalue;
+                newrow["Return_Value"] = price * return_Plantqty;
                 grandtotal_returnvalue += totreturnvalue;
 
                 double clos_qty = 0;
                 if (closqty == 0)
                 {
-                    clos_qty = (opqty + inwardqty + returnqty) - saleqty;
+                    clos_qty = (opqty + inwardqty + return_Parlourqty) - (saleqty + return_Plantqty);
                     closqty = clos_qty;
                 }
                 double closvalue = 0;
@@ -297,35 +314,42 @@ public partial class SummaryReport : System.Web.UI.Page
                 grand_totalClosValbal += closvalue;
                 DailyReport.Rows.Add(newrow);
 
-                cmd = new SqlCommand("UPDATE productmoniter set qty=@qty, price=@price WHERE productid=@productid AND branchid=@branchid");
-                cmd.Parameters.Add("@branchid", BranchID);
-                cmd.Parameters.Add("@productid", drOpp["productid"].ToString());
-                cmd.Parameters.Add("@qty", closqty);
-                cmd.Parameters.Add("@price", drOpp["price"].ToString());
-                vdm.Update(cmd);
+                //cmd = new SqlCommand("UPDATE productmoniter set qty=@qty, price=@price WHERE productid=@productid AND branchid=@branchid");
+                //cmd.Parameters.Add("@branchid", BranchID);
+                //cmd.Parameters.Add("@productid", drOpp["productid"].ToString());
+                //cmd.Parameters.Add("@qty", closqty);
+                //cmd.Parameters.Add("@price", drOpp["price"].ToString());
+                //vdm.Update(cmd);
 
-                cmd = new SqlCommand("select MAX(sno) as refno from registorclosingdetails");
-                DataTable dtoutward = vdm.SelectQuery(cmd).Tables[0];
-                string refno = dtoutward.Rows[0]["refno"].ToString();
-                cmd = new SqlCommand("insert into sub_registorclosingdetails(refno, productid, price, clo_bal,op_bal,doe,branchid,inwardqty,saleqty,return_qty) values(@refno, @productid, @price, @clo_bal,@op_bal,@doe,@branchid,@inwardqty,@saleqty,@return_qty)");
-                cmd.Parameters.Add("@refno", refno);
-                cmd.Parameters.Add("@productid", drOpp["productid"].ToString());
-                cmd.Parameters.Add("@price", drOpp["price"].ToString());
-                cmd.Parameters.Add("@clo_bal", closqty);
-                if (opqty != 0)
-                {
-                    cmd.Parameters.Add("@op_bal", opqty);
-                }
-                else
-                {
-                    cmd.Parameters.Add("@op_bal", "0");
-                }
-                cmd.Parameters.Add("@doe", fromdate);
-                cmd.Parameters.Add("@branchid", BranchID);
-                cmd.Parameters.Add("@inwardqty", inwardqty);
-                cmd.Parameters.Add("@saleqty", saleqty);
-                cmd.Parameters.Add("@return_qty", returnqty);
-                vdm.insert(cmd);
+                //cmd = new SqlCommand("select MAX(sno) as refno from registorclosingdetails");
+                //DataTable dtoutward = vdm.SelectQuery(cmd).Tables[0];
+                //string refno = dtoutward.Rows[0]["refno"].ToString();
+                //try
+                //{
+                //    cmd = new SqlCommand("insert into sub_registorclosingdetails(refno, productid, price, clo_bal,op_bal,doe,branchid,inwardqty,saleqty,return_qty) values(@refno, @productid, @price, @clo_bal,@op_bal,@doe,@branchid,@inwardqty,@saleqty,@return_qty)");
+                //    cmd.Parameters.Add("@refno", refno);
+                //    cmd.Parameters.Add("@productid", drOpp["productid"].ToString());
+                //    cmd.Parameters.Add("@price", drOpp["price"].ToString());
+                //    cmd.Parameters.Add("@clo_bal", closqty);
+                //    if (opqty != 0)
+                //    {
+                //        cmd.Parameters.Add("@op_bal", opqty);
+                //    }
+                //    else
+                //    {
+                //        cmd.Parameters.Add("@op_bal", "0");
+                //    }
+                //    cmd.Parameters.Add("@doe", fromdate);
+                //    cmd.Parameters.Add("@branchid", BranchID);
+                //    cmd.Parameters.Add("@inwardqty", inwardqty);
+                //    cmd.Parameters.Add("@saleqty", saleqty);
+                //    cmd.Parameters.Add("@return_qty", return_Plantqty);
+                //    vdm.insert(cmd);
+                //}
+                //catch
+                //{
+
+                //}
 
             }
         }
@@ -338,7 +362,7 @@ public partial class SummaryReport : System.Web.UI.Page
         newvartical3["Issue Value"] = Math.Round(grandtotalsumsalevalue, 2);
         newvartical3["Opp(Qty)"] = Math.Round(grand_totaloppbal, 2);
         newvartical3["OppValue"] = Math.Round(grand_totalOppValbal, 2);
-        newvartical3["Return(Qty)"] = Math.Round(grandtotal_returnqty, 2);
+        newvartical3["Return(Prlr)"] = Math.Round(grandtotal_returnqty, 2);
         newvartical3["Return Value"] = Math.Round(grandtotal_returnvalue, 2);
         newvartical3["Clos(Qty)"] = Math.Round(grand_totalClosingbal, 2);
         newvartical3["Clos Value"] = Math.Round(grand_totalClosValbal, 2);

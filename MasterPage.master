@@ -116,13 +116,14 @@
             $('#lidefault').css('display', 'block');
             $('#lidashboard').css('display', 'block ');
             $('#lipos').css('display', 'none');
-            $('#lirecipe').css('display', 'block');
+            $('#lirecipe').css('display', 'none');
             $('#limaster').css('display', 'block ');
             $('#lisales').css('display', 'block');
-            $('#litransactions').css('display', 'block');
+            $('#litransactions').css('display', 'none');
             $('#ligiftcards').css('display', 'block');
             $('#lireports').css('display', 'block ');
             $('#storereturn').css('display', 'none');
+            $('#liOperations').css('display', 'block');
             
             $('#lidistibutor').css('display', 'block ');
             $('#Li8').css('display', 'none');

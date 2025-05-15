@@ -206,7 +206,7 @@ public partial class CashBook : System.Web.UI.Page
                 }
                 else
                 {
-                    newrow["Received Amount"] = totaloutward;//.ToString("#,##0.00");
+                    newrow["Received Amount"] =Math.Round(totaloutward);//.ToString("#,##0.00");
                     RouteReport.Rows.Add(newrow);
                 }
             }
@@ -609,7 +609,7 @@ public partial class CashBook : System.Web.UI.Page
                         {
                             double ReceivedAmount = 0;
                             double.TryParse(dr["Amount"].ToString(), out ReceivedAmount);
-                            newrow["IOUAmount"] = ReceivedAmount;
+                            newrow["IOUAmount"] =Math.Round(ReceivedAmount);
                             DueAmount += ReceivedAmount;
                         }
                         if (VoucherType == "Credit")

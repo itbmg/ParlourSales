@@ -1,5 +1,6 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/MasterPage.master" AutoEventWireup="true"
     CodeFile="RatesManage.aspx.cs" Inherits="RatesManage" %>
+
 <%@ Register Assembly="AjaxControlToolkit" Namespace="AjaxControlToolkit" TagPrefix="asp" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
 </asp:Content>
@@ -30,18 +31,32 @@
                         <i style="padding-right: 5px;" class="fa fa-cog"></i>Import Details
                     </h3>
                 </div>
-                <div class="box-body">
-                    <table>
+                <div class="box-body" style="overflow:scroll;">
+                    <table style="width:100%;">
                         <tr>
-                            <td>
-                                <asp:FileUpload ID="fileuploadExcel" runat="server" />
-                            </td>
-                            <td style="width: 5px;">
-                            </td>
-                            <td>
-                                <asp:Button ID="btnImport" runat="server" Text="Import" class="btn btn-primary"
-                                    OnClick="btnImport_Click" />
-                            </td>
+                            <td style="float: left;">
+                                          
+                                 <asp:Button ID="Button1" runat="server" Text="Generate" class="btn btn-primary"
+     OnClick="btnGenerate_Click" />
+                                        </td>
+                             <td style="width:5px;">
+</td>
+                             <td style="float: left;">
+                           <%-- <asp:Button ID="Button3" Text="Export To Excel" runat="server" CssClass="btn btn-primary"
+                                OnClick="btn_Export_Click" />--%>
+  <asp:HyperLink ID="HyperLink2" runat="server" NavigateUrl="~/exporttoxl.aspx">Export to xl</asp:HyperLink>
+                        </td>
+                         <td style="width:5px;">
+                        </td>
+                           
+                                        <td style="width: 25%;">
+                                            <asp:FileUpload ID="FileUploadToServer" runat="server" Style="height: 25px; font-size: 16px;" />&nbsp;&nbsp;
+                                        </td>
+                                        <td>
+                                            <asp:Button ID="Button2" Text="Import" runat="server" CssClass="btn btn-primary"
+                                                OnClick="btn_Import_Click" />
+                                        </td>
+                            
                         </tr>
                     </table>
                     
@@ -54,7 +69,7 @@
                             </asp:GridView>
                             </dr>
                             <asp:Label ID="lblmsg" Text="" runat="server" ForeColor="Red"></asp:Label>
-                            <asp:Button ID="btnsave" runat="server" Text="save" class="btn btn-primary"
+                            <asp:Button ID="btnsave" runat="server" Visible="false" Text="save" class="btn btn-primary"
                                 OnClick="btnSave_Click" />
                         </ContentTemplate>
                     </asp:UpdatePanel>

@@ -150,31 +150,31 @@ public class VehicleDBMgr
             MySqlParameter param;
             try
             {
-                if (fieldNames.Count() == fieldValues.Count() && conFieldNames.Count() == conFieldValues.Count())
+                if (fieldNames.Count() != fieldValues.Count() || conFieldNames.Count() != conFieldValues.Count())
                 {
-                    for (int i = 0; i < fieldNames.Count(); i++)
-                    {
-                        UpdateString += fieldNames[i] + ", ";
-                        param = new MySqlParameter(fieldNames[i].Split('=')[1], fieldValues[i]);
-                        vecmd.Parameters.Add(param);
-                    }
-                    UpdateString = UpdateString.Substring(0, UpdateString.LastIndexOf(","));
-
-                    for (int j = 0; j < conFieldNames.Count(); j++)
-                    {
-                        ConditionStr += conFieldNames[j] + Operators[j];
-                        param = new MySqlParameter(conFieldNames[j].Split('=')[1], conFieldValues[j]);
-                        vecmd.Parameters.Add(param);
-                    }
-
-                    vecmd.CommandText = "update " + table + " set " + UpdateString + " where " + ConditionStr;
-                    vecmd.Connection = conn;
-                    conn.Open();
-                    vecmd.ExecuteNonQuery();
-                    conn.Close();
-                    return true;
+                    return false;
                 }
-                return false;
+                for (int i = 0; i < fieldNames.Count(); i++)
+                {
+                    UpdateString += fieldNames[i] + ", ";
+                    param = new MySqlParameter(fieldNames[i].Split('=')[1], fieldValues[i]);
+                    vecmd.Parameters.Add(param);
+                }
+                UpdateString = UpdateString.Substring(0, UpdateString.LastIndexOf(","));
+
+                for (int j = 0; j < conFieldNames.Count(); j++)
+                {
+                    ConditionStr += conFieldNames[j] + Operators[j];
+                    param = new MySqlParameter(conFieldNames[j].Split('=')[1], conFieldValues[j]);
+                    vecmd.Parameters.Add(param);
+                }
+
+                vecmd.CommandText = "update " + table + " set " + UpdateString + " where " + ConditionStr;
+                vecmd.Connection = conn;
+                conn.Open();
+                vecmd.ExecuteNonQuery();
+                conn.Close();
+                return true;
             }
             catch (MySqlException exe)
             {
