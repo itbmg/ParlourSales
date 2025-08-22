@@ -133,23 +133,23 @@ public partial class SummaryReport : System.Web.UI.Page
         double grandtotal_returnqty = 0;
         double grandtotal_returnvalue = 0;
 
-        //cmd = new SqlCommand("Delete from registorclosingdetails where parlorid=@parlorid and  createdon between @d1 and @d2");//,color,@color
-        //cmd.Parameters.Add("@parlorid", BranchID);
-        //cmd.Parameters.Add("@d1", GetLowDate(fromdate));
-        //cmd.Parameters.Add("@d2", GetHighDate(fromdate));
-        //vdm.Delete(cmd);
-        //cmd = new SqlCommand("Delete from sub_registorclosingdetails where branchid=@branchid and  doe between @d1 and @d2");//,color,@color
-        //cmd.Parameters.Add("@branchid", BranchID);
-        //cmd.Parameters.Add("@d1", GetLowDate(fromdate));
-        //cmd.Parameters.Add("@d2", GetHighDate(fromdate));
-        //vdm.Delete(cmd);
+        cmd = new SqlCommand("Delete from registorclosingdetails where parlorid=@parlorid and  createdon between @d1 and @d2");//,color,@color
+        cmd.Parameters.Add("@parlorid", BranchID);
+        cmd.Parameters.Add("@d1", GetLowDate(fromdate));
+        cmd.Parameters.Add("@d2", GetHighDate(fromdate));
+        vdm.Delete(cmd);
+        cmd = new SqlCommand("Delete from sub_registorclosingdetails where branchid=@branchid and  doe between @d1 and @d2");//,color,@color
+        cmd.Parameters.Add("@branchid", BranchID);
+        cmd.Parameters.Add("@d1", GetLowDate(fromdate));
+        cmd.Parameters.Add("@d2", GetHighDate(fromdate));
+        vdm.Delete(cmd);
 
-        //cmd = new SqlCommand("insert into registorclosingdetails( parlorid, createdon, closedby, doe) values (@parlorid, @createdon, @closedby, @doe)");//,color,@color
-        //cmd.Parameters.Add("@parlorid", BranchID);
-        //cmd.Parameters.Add("@createdon", fromdate);
-        //cmd.Parameters.Add("@doe", fromdate);
-        //cmd.Parameters.Add("@closedby", 10);
-        //vdm.insert(cmd);
+        cmd = new SqlCommand("insert into registorclosingdetails( parlorid, createdon, closedby, doe) values (@parlorid, @createdon, @closedby, @doe)");//,color,@color
+        cmd.Parameters.Add("@parlorid", BranchID);
+        cmd.Parameters.Add("@createdon", fromdate);
+        cmd.Parameters.Add("@doe", fromdate);
+        cmd.Parameters.Add("@closedby", 10);
+        vdm.insert(cmd);
 
         DataTable DailyReport = new DataTable();
         DailyReport.Columns.Add("Sno");
@@ -209,10 +209,6 @@ public partial class SummaryReport : System.Web.UI.Page
             grandtotalsuminwardqty = 0;
             int i = 1;
 
-
-           
-
-            
             foreach (DataRow drOpp in dtOpping.Rows)
             {
                 DataRow newrow = DailyReport.NewRow();
@@ -313,43 +309,48 @@ public partial class SummaryReport : System.Web.UI.Page
                 grand_totalOppValbal += oppvalue;
                 grand_totalClosValbal += closvalue;
                 DailyReport.Rows.Add(newrow);
+                DateTime ServerDateCurrentdate = SalesDBManager.GetTime(vdm.conn);
+                string strserv = GetLowDate(ServerDateCurrentdate).ToString();
+                string strfrmdate = GetLowDate(fromdate).ToString();
+                if (strserv == strfrmdate)
+                {
+                    cmd = new SqlCommand("UPDATE productmoniter set qty=@qty, price=@price WHERE productid=@productid AND branchid=@branchid");
+                    cmd.Parameters.Add("@branchid", BranchID);
+                    cmd.Parameters.Add("@productid", drOpp["productid"].ToString());
+                    cmd.Parameters.Add("@qty", closqty);
+                    cmd.Parameters.Add("@price", drOpp["price"].ToString());
+                    vdm.Update(cmd);
+                }
+                cmd = new SqlCommand("select MAX(sno) as refno from registorclosingdetails");
+                DataTable dtoutward = vdm.SelectQuery(cmd).Tables[0];
+                string refno = dtoutward.Rows[0]["refno"].ToString();
+                try
+                {
+                    cmd = new SqlCommand("insert into sub_registorclosingdetails(refno, productid, price, clo_bal,op_bal,doe,branchid,inwardqty,saleqty,return_qty,return_plantqty) values(@refno, @productid, @price, @clo_bal,@op_bal,@doe,@branchid,@inwardqty,@saleqty,@return_qty,@return_plantqty)");
+                    cmd.Parameters.Add("@refno", refno);
+                    cmd.Parameters.Add("@productid", drOpp["productid"].ToString());
+                    cmd.Parameters.Add("@price", drOpp["price"].ToString());
+                    cmd.Parameters.Add("@clo_bal", closqty);
+                    if (opqty != 0)
+                    {
+                        cmd.Parameters.Add("@op_bal", opqty);
+                    }
+                    else
+                    {
+                        cmd.Parameters.Add("@op_bal", "0");
+                    }
+                    cmd.Parameters.Add("@doe", fromdate);
+                    cmd.Parameters.Add("@branchid", BranchID);
+                    cmd.Parameters.Add("@inwardqty", inwardqty);
+                    cmd.Parameters.Add("@saleqty", saleqty);
+                    cmd.Parameters.Add("@return_qty", return_Parlourqty);
+                    cmd.Parameters.Add("@return_plantqty", return_Plantqty);
+                    vdm.insert(cmd);
+                }
+                catch
+                {
 
-                //cmd = new SqlCommand("UPDATE productmoniter set qty=@qty, price=@price WHERE productid=@productid AND branchid=@branchid");
-                //cmd.Parameters.Add("@branchid", BranchID);
-                //cmd.Parameters.Add("@productid", drOpp["productid"].ToString());
-                //cmd.Parameters.Add("@qty", closqty);
-                //cmd.Parameters.Add("@price", drOpp["price"].ToString());
-                //vdm.Update(cmd);
-
-                //cmd = new SqlCommand("select MAX(sno) as refno from registorclosingdetails");
-                //DataTable dtoutward = vdm.SelectQuery(cmd).Tables[0];
-                //string refno = dtoutward.Rows[0]["refno"].ToString();
-                //try
-                //{
-                //    cmd = new SqlCommand("insert into sub_registorclosingdetails(refno, productid, price, clo_bal,op_bal,doe,branchid,inwardqty,saleqty,return_qty) values(@refno, @productid, @price, @clo_bal,@op_bal,@doe,@branchid,@inwardqty,@saleqty,@return_qty)");
-                //    cmd.Parameters.Add("@refno", refno);
-                //    cmd.Parameters.Add("@productid", drOpp["productid"].ToString());
-                //    cmd.Parameters.Add("@price", drOpp["price"].ToString());
-                //    cmd.Parameters.Add("@clo_bal", closqty);
-                //    if (opqty != 0)
-                //    {
-                //        cmd.Parameters.Add("@op_bal", opqty);
-                //    }
-                //    else
-                //    {
-                //        cmd.Parameters.Add("@op_bal", "0");
-                //    }
-                //    cmd.Parameters.Add("@doe", fromdate);
-                //    cmd.Parameters.Add("@branchid", BranchID);
-                //    cmd.Parameters.Add("@inwardqty", inwardqty);
-                //    cmd.Parameters.Add("@saleqty", saleqty);
-                //    cmd.Parameters.Add("@return_qty", return_Plantqty);
-                //    vdm.insert(cmd);
-                //}
-                //catch
-                //{
-
-                //}
+                }
 
             }
         }

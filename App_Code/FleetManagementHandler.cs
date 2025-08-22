@@ -2138,6 +2138,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
         public string supplierid { get; set; }
         public string supplier { get; set; }
         public string price { get; set; }
+        public string discount { get; set; }
         public string mrp { get; set; }
         public string moniterqty { get; set; }
         public string puim { get; set; }
@@ -2275,11 +2276,11 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             string subcatid = context.Request["subcatid"].ToString();
             if (subcatid == "0")
             {
-                cmd = new SqlCommand("SELECT productmaster.productid, productmaster.categoryid,productmaster.price as mrp, productmaster.imagepath, productmaster.subcategoryid, productmaster.uim AS Puim,  productmaster.productname, productmaster.billingprice,   productmaster.productcode, productmaster.hsncode, productmaster.sub_cat_code, productmaster.sku, productmaster.description, productmaster.igst, productmaster.cgst, productmaster.sgst, productmaster.gsttaxcategory, productmaster.status, productmaster.createdby, productmaster.createdon, uimmaster.uim, productmoniter.qty, productmoniter.price, categorymaster.category, subcategorymaster.subcategoryname, productmaster.supplierid  FROM productmaster INNER JOIN productmoniter ON productmaster.productid=productmoniter.productid INNER JOIN categorymaster ON productmaster.categoryid = categorymaster.categoryid INNER JOIN subcategorymaster ON productmaster.subcategoryid = subcategorymaster.subcategoryid LEFT OUTER JOIN uimmaster ON uimmaster.sno=productmaster.uim  WHERE (productmoniter.branchid = @branchid)");
+                cmd = new SqlCommand("SELECT productmaster.productid, productmaster.categoryid,productmaster.price as mrp, productmaster.imagepath, productmaster.subcategoryid, productmaster.uim AS Puim,  productmaster.productname, productmaster.billingprice,   productmaster.productcode, productmaster.hsncode, productmaster.sub_cat_code, productmaster.sku, productmaster.description, productmaster.igst, productmaster.cgst, productmaster.sgst, productmaster.gsttaxcategory, productmaster.status, productmaster.createdby, productmaster.createdon, uimmaster.uim, productmoniter.qty, productmoniter.price,productmoniter.discount, categorymaster.category, subcategorymaster.subcategoryname, productmaster.supplierid  FROM productmaster INNER JOIN productmoniter ON productmaster.productid=productmoniter.productid INNER JOIN categorymaster ON productmaster.categoryid = categorymaster.categoryid INNER JOIN subcategorymaster ON productmaster.subcategoryid = subcategorymaster.subcategoryid LEFT OUTER JOIN uimmaster ON uimmaster.sno=productmaster.uim  WHERE (productmoniter.branchid = @branchid)");
             }
             else
             {
-                cmd = new SqlCommand("SELECT productmaster.productid, productmaster.categoryid,productmaster.price as mrp, productmaster.imagepath, productmaster.subcategoryid, productmaster.uim AS Puim,  productmaster.productname, productmaster.billingprice,   productmaster.productcode, productmaster.hsncode, productmaster.sub_cat_code, productmaster.sku, productmaster.description, productmaster.igst, productmaster.cgst, productmaster.sgst, productmaster.gsttaxcategory, productmaster.status, productmaster.createdby, productmaster.createdon, uimmaster.uim, productmoniter.qty, productmoniter.price, categorymaster.category, subcategorymaster.subcategoryname, productmaster.supplierid  FROM productmaster INNER JOIN productmoniter ON productmaster.productid=productmoniter.productid INNER JOIN categorymaster ON productmaster.categoryid = categorymaster.categoryid INNER JOIN subcategorymaster ON productmaster.subcategoryid = subcategorymaster.subcategoryid LEFT OUTER JOIN uimmaster ON uimmaster.sno=productmaster.uim  WHERE (productmoniter.branchid = @branchid) AND (productmaster.subcategoryid=@subcatid)");
+                cmd = new SqlCommand("SELECT productmaster.productid, productmaster.categoryid,productmaster.price as mrp, productmaster.imagepath, productmaster.subcategoryid, productmaster.uim AS Puim,  productmaster.productname, productmaster.billingprice,   productmaster.productcode, productmaster.hsncode, productmaster.sub_cat_code, productmaster.sku, productmaster.description, productmaster.igst, productmaster.cgst, productmaster.sgst, productmaster.gsttaxcategory, productmaster.status, productmaster.createdby, productmaster.createdon, uimmaster.uim, productmoniter.qty, productmoniter.price,productmoniter.discount, categorymaster.category, subcategorymaster.subcategoryname, productmaster.supplierid  FROM productmaster INNER JOIN productmoniter ON productmaster.productid=productmoniter.productid INNER JOIN categorymaster ON productmaster.categoryid = categorymaster.categoryid INNER JOIN subcategorymaster ON productmaster.subcategoryid = subcategorymaster.subcategoryid LEFT OUTER JOIN uimmaster ON uimmaster.sno=productmaster.uim  WHERE (productmoniter.branchid = @branchid) AND (productmaster.subcategoryid=@subcatid)");
                 cmd.Parameters.Add("@subcatid", subcatid);
             }// cmd = new SqlCommand("SELECT productmaster.hsncode, productmaster.sgst, productmaster.cgst, productmaster.igst, productmaster.imagepath, productmaster.productid, productmaster.subcategoryid, productmoniter.qty, productmaster.productname, productmaster.productcode,  productmaster.sub_cat_code,  productmaster.sku,  productmaster.description, productmaster.supplierid,  productmaster.modifierset,uimmaster.uim, productmaster.availablestores,  productmaster.color,  productmaster.uim AS puim,  productmaster.price FROM  productmaster  INNER JOIN productmoniter ON productmaster.productid=productmoniter.productid LEFT OUTER JOIN uimmaster ON uimmaster.sno=productmaster.uim  WHERE (productmoniter.branchid = @branchid)");
             cmd.Parameters.Add("@branchid", branchid);
@@ -2312,6 +2313,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                 getproductdetails.igst = dr["igst"].ToString();
                 getproductdetails.mrp = dr["mrp"].ToString();
                 getproductdetails.price = dr["price"].ToString();
+                getproductdetails.discount = dr["discount"].ToString();
                 getproductdetails.productid = dr["productid"].ToString();
                 getproductdetails.subcategoryid = dr["subcategoryid"].ToString();
                 // getproductdetails.imagepath = dr["imagepath"].ToString();
@@ -2388,6 +2390,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                     price = dra["price"].ToString();
                 }
                 getproductdetails.price = price;
+                //getproductdetails.discount = 0;
                 getproductdetails.productid = dr["productid"].ToString();
                 getproductdetails.subcategoryid = dr["subcategoryid"].ToString();
                 // getproductdetails.imagepath = dr["imagepath"].ToString();
@@ -2416,7 +2419,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
             vdm = new SalesDBManager();
             string branchid = context.Session["BranchID"].ToString();
             string productid = context.Request["productid"].ToString();
-            cmd = new SqlCommand("SELECT productmaster.hsncode, productmaster.sgst, productmaster.cgst, productmaster.igst, productmaster.imagepath, productmaster.productid, productmaster.subcategoryid, productmoniter.qty, productmaster.productname, productmaster.productcode,  productmaster.sub_cat_code,  productmaster.sku,  productmaster.description, productmaster.supplierid,  productmaster.modifierset,uimmaster.uim, productmaster.availablestores,  productmaster.color,  productmaster.uim AS puim,  productmaster.price FROM  productmaster  INNER JOIN productmoniter ON productmaster.productid=productmoniter.productid LEFT OUTER JOIN uimmaster ON uimmaster.sno=productmaster.uim  WHERE (productmoniter.branchid = @branchid) AND (productmoniter.productid = @productid)");
+            cmd = new SqlCommand("SELECT productmaster.hsncode, productmaster.sgst, productmaster.cgst, productmaster.igst, productmaster.imagepath, productmaster.productid, productmaster.subcategoryid, productmoniter.qty, productmaster.productname, productmaster.productcode,  productmaster.sub_cat_code,  productmaster.sku,  productmaster.description, productmaster.supplierid,  productmaster.modifierset,uimmaster.uim, productmaster.availablestores,  productmaster.color,  productmaster.uim AS puim,  productmaster.price,productmaster.discount FROM  productmaster  INNER JOIN productmoniter ON productmaster.productid=productmoniter.productid LEFT OUTER JOIN uimmaster ON uimmaster.sno=productmaster.uim  WHERE (productmoniter.branchid = @branchid) AND (productmoniter.productid = @productid)");
             cmd.Parameters.Add("@branchid", branchid);
             DataTable routes = vdm.SelectQuery(cmd).Tables[0];
             List<ProductDetails> ProductDetails = new List<ProductDetails>();
@@ -2442,6 +2445,7 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                 getproductdetails.cgst = dr["cgst"].ToString();
                 getproductdetails.igst = dr["igst"].ToString();
                 getproductdetails.price = dr["price"].ToString();
+                getproductdetails.discount = dr["discount"].ToString();
                 getproductdetails.productid = dr["productid"].ToString();
                 getproductdetails.subcategoryid = dr["subcategoryid"].ToString();
                 getproductdetails.imagepath = dr["imagepath"].ToString();
@@ -4937,11 +4941,16 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                     cmd.Parameters.Add("@bid", branchid);
                     DataTable dtouward = vdm.SelectQuery(cmd).Tables[0];
 
-                    cmd = new SqlCommand("select  SSR.productid, Sum(SSR.quantity) as quantity,(CONVERT(NVARCHAR(10), SR.doe, 120)) AS doe   from stores_return AS SR INNER JOIN sub_stores_return AS SSR ON SR.sno=SSR.storesreturn_sno INNER JOIN productmaster ON productmaster.productid = SSR.productid WHERE SR.doe between @d1 and @d2 AND SR.branchid=@branchid GROUP BY SSR.productid,(CONVERT(NVARCHAR(10), SR.doe, 120))");//, inwarddetails.indentno
+                    cmd = new SqlCommand("select  SSR.productid, Sum(SSR.quantity) as ReturnQty,(CONVERT(NVARCHAR(10), SR.doe, 120)) AS doe   from stores_return AS SR INNER JOIN sub_stores_return AS SSR ON SR.sno=SSR.storesreturn_sno INNER JOIN productmaster ON productmaster.productid = SSR.productid WHERE SR.doe between @d1 and @d2 AND SR.branchid=@branchid and SR.ReturnType='parlor' GROUP BY SSR.productid,(CONVERT(NVARCHAR(10), SR.doe, 120))");//, inwarddetails.indentno
                     cmd.Parameters.Add("@d1", GetLowDate(dt_fromdate).AddDays(-1));
                     cmd.Parameters.Add("@d2", GetHighDate(dt_fromdate));
                     cmd.Parameters.Add("@branchid", branchid);
-                    DataTable dtRetrun = vdm.SelectQuery(cmd).Tables[0];
+                    DataTable dtRetrunParloor = vdm.SelectQuery(cmd).Tables[0];
+                    cmd = new SqlCommand("select  SSR.productid, Sum(SSR.quantity) as ReturnQty,(CONVERT(NVARCHAR(10), SR.doe, 120)) AS doe   from stores_return AS SR INNER JOIN sub_stores_return AS SSR ON SR.sno=SSR.storesreturn_sno INNER JOIN productmaster ON productmaster.productid = SSR.productid WHERE SR.doe between @d1 and @d2 AND SR.branchid=@branchid and SR.ReturnType='Company' GROUP BY SSR.productid,(CONVERT(NVARCHAR(10), SR.doe, 120))");//, inwarddetails.indentno
+                    cmd.Parameters.Add("@d1", GetLowDate(dt_fromdate).AddDays(-1));
+                    cmd.Parameters.Add("@d2", GetHighDate(dt_fromdate));
+                    cmd.Parameters.Add("@branchid", branchid);
+                    DataTable dtRetrunPlant = vdm.SelectQuery(cmd).Tables[0];
 
                     foreach (DataRow dr in dtitem.Rows)
                     {
@@ -4965,9 +4974,16 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                             double.TryParse(drin["inwardqty"].ToString(), out inward);
                         }
 
-                        foreach (DataRow drreturn in dtRetrun.Select("productid='" + dr["productid"].ToString() + "'"))
+                        double return_Parlourqty = 0;
+                        foreach (DataRow dra in dtRetrunParloor.Select("productid='" + dr["productid"].ToString() + "'"))
                         {
-                            double.TryParse(drreturn["quantity"].ToString(), out return_qty);
+                            double.TryParse(dra["ReturnQty"].ToString(), out return_Parlourqty);
+                        }
+
+                        double return_Plantqty = 0;
+                        foreach (DataRow dra in dtRetrunPlant.Select("productid='" + dr["productid"].ToString() + "'"))
+                        {
+                            double.TryParse(dra["ReturnQty"].ToString(), out return_Plantqty);
                         }
 
                         foreach (DataRow drout in dtouward.Select("productid='" + dr["productid"].ToString() + "'"))
@@ -4977,9 +4993,9 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                             totaloutward = outward + ordertax;
                             totaloutward = Math.Round(totaloutward, 2);
                         }
-                        double total = opqty + inward + return_qty;
-                        closing = total - outward;
-                        cmd = new SqlCommand("insert into sub_registorclosingdetails(refno, productid, price, clo_bal,op_bal,doe,branchid,inwardqty,saleqty,return_qty) values(@refno, @productid, @price, @clo_bal,@op_bal,@doe,@branchid,@inwardqty,@saleqty,@return_qty)");
+                        double total = opqty + inward + return_Parlourqty;
+                        closing = total - (outward+ return_Plantqty);
+                        cmd = new SqlCommand("insert into sub_registorclosingdetails(refno, productid, price, clo_bal,op_bal,doe,branchid,inwardqty,saleqty,return_qty,return_plantqty) values(@refno, @productid, @price, @clo_bal,@op_bal,@doe,@branchid,@inwardqty,@saleqty,@return_qty,@return_plantqty)");
                         cmd.Parameters.Add("@refno", refno);
                         cmd.Parameters.Add("@productid", dr["productid"].ToString());
                         cmd.Parameters.Add("@price", dr["price"].ToString());
@@ -4995,9 +5011,11 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                         cmd.Parameters.Add("@doe", closedate);
                         cmd.Parameters.Add("@branchid", branchid);
                         cmd.Parameters.Add("@inwardqty", inward);
-                        cmd.Parameters.Add("@saleqty", outward);
-                        cmd.Parameters.Add("@return_qty", return_qty);
+                        cmd.Parameters.Add("@saleqty", outward); 
+                        cmd.Parameters.Add("@return_qty", return_Parlourqty);
+                        cmd.Parameters.Add("@return_plantqty", return_Plantqty);
                         vdm.insert(cmd);
+
 
                         cmd = new SqlCommand("UPDATE productmoniter set qty=@qty, price=@price WHERE productid=@productid AND branchid=@branchid");
                         cmd.Parameters.Add("@branchid", branchid);
@@ -5121,11 +5139,22 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                     cmd.Parameters.Add("@bid", branchid);
                     DataTable dtouward = vdm.SelectQuery(cmd).Tables[0];
 
-                    cmd = new SqlCommand("select  SSR.productid, Sum(SSR.quantity) as quantity,(CONVERT(NVARCHAR(10), SR.doe, 120)) AS doe   from stores_return AS SR INNER JOIN sub_stores_return AS SSR ON SR.sno=SSR.storesreturn_sno INNER JOIN productmaster ON productmaster.productid = SSR.productid WHERE SR.doe between @d1 and @d2 AND SR.branchid=@branchid GROUP BY SSR.productid,(CONVERT(NVARCHAR(10), SR.doe, 120))");//, inwarddetails.indentno
+                    //cmd = new SqlCommand("select  SSR.productid, Sum(SSR.quantity) as quantity,(CONVERT(NVARCHAR(10), SR.doe, 120)) AS doe   from stores_return AS SR INNER JOIN sub_stores_return AS SSR ON SR.sno=SSR.storesreturn_sno INNER JOIN productmaster ON productmaster.productid = SSR.productid WHERE SR.doe between @d1 and @d2 AND SR.branchid=@branchid GROUP BY SSR.productid,(CONVERT(NVARCHAR(10), SR.doe, 120))");//, inwarddetails.indentno
+                    //cmd.Parameters.Add("@d1", GetLowDate(dt_fromdate).AddDays(-1));
+                    //cmd.Parameters.Add("@d2", GetHighDate(dt_fromdate));
+                    //cmd.Parameters.Add("@branchid", branchid);
+                    //DataTable dtRetrun = vdm.SelectQuery(cmd).Tables[0];
+
+                    cmd = new SqlCommand("select  SSR.productid, Sum(SSR.quantity) as ReturnQty,(CONVERT(NVARCHAR(10), SR.doe, 120)) AS doe   from stores_return AS SR INNER JOIN sub_stores_return AS SSR ON SR.sno=SSR.storesreturn_sno INNER JOIN productmaster ON productmaster.productid = SSR.productid WHERE SR.doe between @d1 and @d2 AND SR.branchid=@branchid and SR.ReturnType='parlor' GROUP BY SSR.productid,(CONVERT(NVARCHAR(10), SR.doe, 120))");//, inwarddetails.indentno
                     cmd.Parameters.Add("@d1", GetLowDate(dt_fromdate).AddDays(-1));
                     cmd.Parameters.Add("@d2", GetHighDate(dt_fromdate));
                     cmd.Parameters.Add("@branchid", branchid);
-                    DataTable dtRetrun = vdm.SelectQuery(cmd).Tables[0];
+                    DataTable dtRetrunParloor = vdm.SelectQuery(cmd).Tables[0];
+                    cmd = new SqlCommand("select  SSR.productid, Sum(SSR.quantity) as ReturnQty,(CONVERT(NVARCHAR(10), SR.doe, 120)) AS doe   from stores_return AS SR INNER JOIN sub_stores_return AS SSR ON SR.sno=SSR.storesreturn_sno INNER JOIN productmaster ON productmaster.productid = SSR.productid WHERE SR.doe between @d1 and @d2 AND SR.branchid=@branchid and SR.ReturnType='Company' GROUP BY SSR.productid,(CONVERT(NVARCHAR(10), SR.doe, 120))");//, inwarddetails.indentno
+                    cmd.Parameters.Add("@d1", GetLowDate(dt_fromdate).AddDays(-1));
+                    cmd.Parameters.Add("@d2", GetHighDate(dt_fromdate));
+                    cmd.Parameters.Add("@branchid", branchid);
+                    DataTable dtRetrunPlant = vdm.SelectQuery(cmd).Tables[0];
 
                     foreach (DataRow dr in dtop.Rows)
                     {
@@ -5149,9 +5178,20 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                             double.TryParse(drin["inwardqty"].ToString(), out inward);
                         }
 
-                        foreach (DataRow drreturn in dtRetrun.Select("productid='" + dr["productid"].ToString() + "'AND doe='" + date + "'"))
+                        //foreach (DataRow drreturn in dtRetrun.Select("productid='" + dr["productid"].ToString() + "'AND doe='" + date + "'"))
+                        //{
+                        //    double.TryParse(drreturn["quantity"].ToString(), out return_qty);
+                        //}
+                        double return_Parlourqty = 0;
+                        foreach (DataRow dra in dtRetrunParloor.Select("productid='" + dr["productid"].ToString() + "'"))
                         {
-                            double.TryParse(drreturn["quantity"].ToString(), out return_qty);
+                            double.TryParse(dra["ReturnQty"].ToString(), out return_Parlourqty);
+                        }
+
+                        double return_Plantqty = 0;
+                        foreach (DataRow dra in dtRetrunPlant.Select("productid='" + dr["productid"].ToString() + "'"))
+                        {
+                            double.TryParse(dra["ReturnQty"].ToString(), out return_Plantqty);
                         }
                         foreach (DataRow drout in dtouward.Select("productid='" + dr["productid"].ToString() + "'"))
                         {
@@ -5160,9 +5200,9 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                             totaloutward = outward; //+ ordertax;
                             totaloutward = Math.Round(totaloutward, 2);
                         }
-                        double total = opqty + inward + return_qty;
-                        closing = total - outward;
-                        cmd = new SqlCommand("insert into sub_registorclosingdetails(refno, productid, price, clo_bal,op_bal,doe,branchid,inwardqty,saleqty,return_qty) values(@refno, @productid, @price, @clo_bal,@op_bal,@doe,@branchid,@inwardqty,@saleqty,@return_qty)");
+                        double total = opqty + inward + return_Parlourqty;
+                        closing = total - (outward + return_Plantqty);
+                        cmd = new SqlCommand("insert into sub_registorclosingdetails(refno, productid, price, clo_bal,op_bal,doe,branchid,inwardqty,saleqty,return_qty,return_plantqty) values(@refno, @productid, @price, @clo_bal,@op_bal,@doe,@branchid,@inwardqty,@saleqty,@return_qty,@return_plantqty)");
                         cmd.Parameters.Add("@refno", refno);
                         cmd.Parameters.Add("@productid", dr["productid"].ToString());
                         cmd.Parameters.Add("@price", dr["price"].ToString());
@@ -5179,7 +5219,8 @@ public class FleetManagementHandler : IHttpHandler, IRequiresSessionState
                         cmd.Parameters.Add("@branchid", branchid);
                         cmd.Parameters.Add("@inwardqty", inward);
                         cmd.Parameters.Add("@saleqty", outward);
-                        cmd.Parameters.Add("@return_qty", return_qty);
+                        cmd.Parameters.Add("@return_qty", return_Parlourqty);
+                        cmd.Parameters.Add("@return_plantqty", return_Plantqty);
                         vdm.insert(cmd);
 
                         cmd = new SqlCommand("UPDATE productmoniter set qty=@qty, price=@price WHERE productid=@productid AND branchid=@branchid");

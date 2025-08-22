@@ -14,7 +14,7 @@ using System.Configuration;
 using System.IdentityModel.Protocols.WSTrust;
 using System;
 
-public partial class RatesManage : System.Web.UI.Page
+public partial class DiscountRates : System.Web.UI.Page
 {
     SalesDBManager vdm;
     SqlCommand cmd;
@@ -36,9 +36,9 @@ public partial class RatesManage : System.Web.UI.Page
             string BranchID = Session["BranchID"].ToString();
             vdm = new SalesDBManager();
             DataTable Report = new DataTable();
-            string branchname = "RateSheet";
-            Session["filename"] = branchname + " RateSheet " + DateTime.Now.ToString("dd/MM/yyyy");
-            cmd = new SqlCommand("SELECT     productmaster.productname, productmoniter.productid, productmoniter.price, branchmaster.branchname, branchmaster.branchid\r\nFROM        productmoniter INNER JOIN\r\n                  productmaster ON productmoniter.productid = productmaster.productid INNER JOIN\r\n                  branchmaster ON productmoniter.branchid = branchmaster.branchid INNER JOIN\r\n                  branchmapping ON branchmaster.branchid = branchmapping.subbranch\r\nWHERE     (branchmaster.flag = '1') AND (branchmaster.branchid = @BranchID) OR\r\n                  (branchmapping.superbranch = @SOID) ORDER BY productmoniter.Rank");
+            string branchname = "DiscountRates";
+            Session["filename"] = branchname + " DiscountRates " + DateTime.Now.ToString("dd/MM/yyyy");
+            cmd = new SqlCommand("SELECT     productmaster.productname, productmoniter.productid, productmoniter.discount, branchmaster.branchname, branchmaster.branchid\r\nFROM        productmoniter INNER JOIN\r\n                  productmaster ON productmoniter.productid = productmaster.productid INNER JOIN\r\n                  branchmaster ON productmoniter.branchid = branchmaster.branchid INNER JOIN\r\n                  branchmapping ON branchmaster.branchid = branchmapping.subbranch\r\nWHERE     (branchmaster.flag = '1') AND (branchmaster.branchid = @BranchID) OR\r\n                  (branchmapping.superbranch = @SOID) ORDER BY productmoniter.Rank");
             cmd.Parameters.AddWithValue("@Flag", "1");
             cmd.Parameters.AddWithValue("@SOID", BranchID);
             cmd.Parameters.AddWithValue("@BranchID", BranchID);
@@ -76,9 +76,9 @@ public partial class RatesManage : System.Web.UI.Page
                             {
                                 id = dr["BranchName"].ToString();
                                 id += branch["branchid"].ToString();
-                                double unitprice = 0;
-                                double.TryParse(dr["price"].ToString(), out unitprice);
-                                newrow[dr["ProductName"].ToString()] = unitprice;
+                                double discount = 0;
+                                double.TryParse(dr["discount"].ToString(), out discount);
+                                newrow[dr["ProductName"].ToString()] = discount;
                             }
                         }
                         catch
@@ -254,7 +254,7 @@ public partial class RatesManage : System.Web.UI.Page
             vdm = new SalesDBManager();
             DateTime ServerDateCurrentdate = SalesDBManager.GetTime(vdm.conn);
             DataTable dt = (DataTable)Session["dtImport"];
-            cmd = new SqlCommand("SELECT branchid, productid, price FROM productmoniter  ");
+            cmd = new SqlCommand("SELECT branchid, productid, discount FROM productmoniter  ");
             DataTable dtBrnchPrdt = vdm.SelectQuery(cmd).Tables[0];
             int i = 0;
             foreach (DataRow dr in dt.Rows)
@@ -264,14 +264,14 @@ public partial class RatesManage : System.Web.UI.Page
                 DataTable dtAgentprdt = new DataTable();
                 dtAgentprdt.Columns.Add("branchid");
                 dtAgentprdt.Columns.Add("productid");
-                dtAgentprdt.Columns.Add("price");
+                dtAgentprdt.Columns.Add("discount");
                 DataRow[] drBp = dtBrnchPrdt.Select("branchid='" + dr["Agent Code"].ToString() + "'");
                 for (int k = 0; k < drBp.Length; k++)
                 {
                     DataRow newrow = dtAgentprdt.NewRow();
                     newrow["branchid"] = drBp[k][0].ToString();
                     newrow["productid"] = drBp[k][1].ToString();
-                    newrow["price"] = drBp[k][2].ToString();
+                    newrow["discount"] = drBp[k][2].ToString();
                     dtAgentprdt.Rows.Add(newrow);
                 }
                 int j = 3;
@@ -296,7 +296,7 @@ public partial class RatesManage : System.Web.UI.Page
                         {
                             string ProductID = dtProduct.Rows[0]["productid"].ToString();
                             DataTable oldunitprice = new DataTable();
-                            oldunitprice.Columns.Add("unitprice");
+                            oldunitprice.Columns.Add("discount");
                             DataRow[] drAp = dtAgentprdt.Select("productid='" + ProductID + "'");
                             if (drAp.Length == 0)
                             {
@@ -306,12 +306,12 @@ public partial class RatesManage : System.Web.UI.Page
                                 }
                                 else
                                 {
-                                    cmd = new SqlCommand("insert into productmoniter (branchid,productid,price) values (@branchid,@productid,@price)");
+                                    cmd = new SqlCommand("insert into productmoniter (branchid,productid,discount) values (@branchid,@productid,@discount)");
                                     cmd.Parameters.AddWithValue("@branchid", AgentCode);
                                     cmd.Parameters.AddWithValue("@productid", ProductID);
-                                    float UntCost = 0;
-                                    float.TryParse(UnitPrice, out UntCost);
-                                    cmd.Parameters.AddWithValue("@price", UntCost);
+                                    float discount = 0;
+                                    float.TryParse(UnitPrice, out discount);
+                                    cmd.Parameters.AddWithValue("@discount", discount);
                                     vdm.insert(cmd);
                                 }
                             }
@@ -320,27 +320,27 @@ public partial class RatesManage : System.Web.UI.Page
                                 for (int ap = 0; ap < drAp.Length; ap++)
                                 {
                                     DataRow newaprow = oldunitprice.NewRow();
-                                    newaprow["unitprice"] = drAp[ap][2].ToString();
+                                    newaprow["discount"] = drAp[ap][2].ToString();
                                     oldunitprice.Rows.Add(newaprow);
                                 }
                                 string oldprice = "0";
 
                                 if (oldunitprice.Rows.Count > 0)
                                 {
-                                    oldprice = oldunitprice.Rows[0]["unitprice"].ToString();
+                                    oldprice = oldunitprice.Rows[0]["discount"].ToString();
                                 }
-                                float UnitCost = 0;
-                                float.TryParse(UnitPrice, out UnitCost);
+                                float discount = 0;
+                                float.TryParse(UnitPrice, out discount);
                                 float oldUnitCost = 0;
                                 float.TryParse(oldprice, out oldUnitCost);
-                                if (UnitCost == oldUnitCost)
+                                if (discount == oldUnitCost)
                                 {
 
                                 }
                                 else
                                 {
-                                    cmd = new SqlCommand("Update productmoniter set price=@price where branchid=@branchid and productid=@productid");
-                                    cmd.Parameters.AddWithValue("@price", UnitCost);
+                                    cmd = new SqlCommand("Update productmoniter set discount=@discount where branchid=@branchid and productid=@productid");
+                                    cmd.Parameters.AddWithValue("@discount", discount);
                                     cmd.Parameters.AddWithValue("@branchid", AgentCode);
                                     cmd.Parameters.AddWithValue("@productid", ProductID);
                                     vdm.Update(cmd);

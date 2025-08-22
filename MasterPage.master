@@ -230,6 +230,7 @@
                         <li id="empmst"><a href="empmaster.aspx"><i class="fa fa-circle-o"></i>Employe Master</a></li>
                         <li id="HeadOfAcMaster"><a href="HeadOfAcMaster.aspx"><i class="fa fa-circle-o"></i>Head Of Accounts</a></li>
                         <li id="lblratemanage"><a href="RatesManage.aspx"><i class="fa fa-circle-o"></i> RateManage</a></li>
+                        <li id="lblDiscountRates"><a href="DiscountRates.aspx"><i class="fa fa-circle-o"></i> DiscountRates</a></li>
                     </ul>
                 </li>
                 <%--<li class="treeview mm_sales" id="lidistibutor"> 

@@ -148,10 +148,11 @@
             function calTotal() {
                 var $row = $(this).closest('tr');
                 price = $row.find('.price').val();
+                var discount = $row.find('.cls_discount').text();
                 quantity = $row.find('.quantity').val();
                 taxprice = $row.find('#txt_igst').val();
                 var hdntaxprice = $row.find('#hdntaxprice').val();
-                var prod_total = price * quantity;
+                var prod_total = (price - discount) * quantity;
                 prod_total = prod_total.toFixed(2);
                 var total = parseFloat(prod_total);
                 var taxtotal = 0;
@@ -160,7 +161,7 @@
                 }
 
                 else {
-                    hdntaxprice = (price * taxprice) / 100;
+                    hdntaxprice = ((price - discount) * taxprice) / 100;
                     taxtotal = hdntaxprice * quantity;
                 }
                 $row.find('#txtTotal').text(parseFloat(total).toFixed(2));
@@ -331,6 +332,7 @@
         function clstotalval() {
             var totaamount = 0; //var totalpfamount = 0;
             var tottaxamount = 0; //var totalpfamount = 0;
+            var totDiscountamount = 0; //var totalpfamount = 0;
             var rowcount = 0;
             $('.clstotal').each(function (i, obj) {
                 var totlclass = $(this).html();
@@ -351,6 +353,15 @@
                 }
             });
 
+            $('.cls_discount').each(function (i, obj) {
+                var totldiscount = $(this).html();
+                if (totldiscount == "" || totldiscount == "0") {
+                }
+                else {
+                    totDiscountamount += parseFloat(totldiscount);
+                }
+            });
+
             var totalamount1 = parseFloat(totaamount);
             var grandtotal = parseFloat(totalamount1);
             var grandtotal1 = grandtotal.toFixed(2);
@@ -365,6 +376,7 @@
             document.getElementById('total').innerHTML = grandtotal.toFixed(2);
             var totalpayable = grandtotal + tottaxamount;
             document.getElementById('total-payable').innerHTML = Math.round(totalpayable, 2);
+            document.getElementById('totds_con').innerHTML = Math.round(totDiscountamount, 2);
             document.getElementById('count').innerHTML = rowcount;
             document.getElementById('spnitem_count').innerHTML = rowcount;
             document.getElementById('spntwt').innerHTML = totalpayable.toFixed(2);
@@ -404,7 +416,13 @@
             var results = '';
             for (var i = 0; i < msg.length; i++) {
                 results += '<button type="button" data-name="' + msg[i].productname + '" id="' + msg[i].productid + '" value="' + msg[i].productid + '" class="btn btn-both btn-flat product" onclick="getme(this)">';
-                results += '<span class="bg-img"><img src="images/13.jpg" alt="' + msg[i].productname + '" style="width: 100px; height: 100px;"></span><span><span class="1">' + msg[i].productname + '</span></span></button>';
+                if (msg[i].productid == 1) {
+                    results += '<span class="bg-img"><img src="images/1.jpg" alt="' + msg[i].productname + '" style="width: 100px; height: 100px;"></span><span><span class="1">' + msg[i].productname + '</span></span></button>';
+                }
+                else {
+                    results += '<span class="bg-img"><img src="images/13.jpg" alt="' + msg[i].productname + '" style="width: 100px; height: 100px;"></span><span><span class="1">' + msg[i].productname + '</span></span></button>';
+
+                }
             }
             $("#div_ProductData").html(results);
         }
@@ -428,20 +446,22 @@
                     txtsno = rowsno;
                     productname = $(this).find('#spn_Productname').text();
                     moniterqty = $(this).find('#txtstock').text();
+                    discount = $(this).find('#txt_discount').text();
                     price = $(this).find('#txt_orgprice').text();
                     Quantity = $(this).find('#txt_quantity').val();
                     TotalCost = $(this).find('#txtTotal').text();
                     productid = $(this).find('#hdnproductsno').val();
                     perunittax = $(this).find('#txt_perunittax').val();
                     igst = $(this).find('#txt_igst').val();
-                    itemlist.push({ Sno: txtsno, productname: productname, moniterqty: moniterqty, price: price, Quantity: Quantity, TotalCost: TotalCost, productid: productid, perunittax: perunittax, igst: igst });
+                    itemlist.push({ Sno: txtsno, productname: productname, moniterqty: moniterqty, price: price, discount: discount, Quantity: Quantity, TotalCost: TotalCost, productid: productid, perunittax: perunittax, igst: igst });
                     rowsno++;
                 }
             });
             var productname = 0;
             var moniterqty = 0;
+            var discount = 0;
             var price = 0;
-            var Quantity = 1;
+            var Quantity = 0;
             var TotalCost = 0;
             var productid = 0;
             var perunittax = 0;
@@ -452,17 +472,18 @@
                     if (val == productdetails[i].productid) {
                         productname = productdetails[i].productname;
                         moniterqty = productdetails[i].moniterqty;
+                        discount = productdetails[i].discount;
                         price = productdetails[i].price;
                         productid = productdetails[i].productid;
                         var cgst = productdetails[i].cgst;
                         var sgst = productdetails[i].sgst;
                         igst = productdetails[i].igst;
-                        itemlist.push({ Sno: txtsno, productname: productname, moniterqty: moniterqty, price: price, Quantity: Quantity, TotalCost: TotalCost, productid: productid, perunittax: perunittax, igst: igst });
+                        itemlist.push({ Sno: txtsno, productname: productname, moniterqty: moniterqty, price: price, discount: discount, Quantity: Quantity, TotalCost: TotalCost, productid: productid, perunittax: perunittax, igst: igst });
                         dupliitemlist.push(val);
                     }
                 }
                 if (itemlist.length > 0) {
-                    var itemresults = '<table id="posTable" class="table table-striped table-condensed table-hover list-table" style="margin: 0px;" data-height="100"><thead> <tr class="success"><th> Product</th> <th style="width: 15%; text-align: center;"> Stock </th> <th style="width: 15%; text-align: center;"> Price </th><th style="width: 15%; text-align: center;"> Qty</th><th style="width: 20%; text-align: center;">Subtotal </th> <th style="width: 20px;" class="satu"><i class="fa fa-trash-o"></i> </th></tr></thead> ';
+                    var itemresults = '<table id="posTable" class="table table-striped table-condensed table-hover list-table" style="margin: 0px;" data-height="100"><thead> <tr class="success"><th> Product</th> <th style="width: 15%; text-align: center;"> Stock </th> <th style="width: 15%; text-align: center;"> Price </th><th> Dis </th><th style="width: 15%; text-align: center;"> Qty</th><th style="width: 20%; text-align: center;">Subtotal </th> <th style="width: 20px;" class="satu"><i class="fa fa-trash-o"></i> </th></tr></thead> ';
                     for (var i = 0; i < itemlist.length; i++) {
                         itemresults += '<tr>';
                         itemresults += '<td style="display:none;"><span class="sname" id="txt_orgprice">' + itemlist[i].price + '</span></td>';
@@ -473,10 +494,10 @@
                         else {
                             itemresults += '<td  class="btn btn-block btn-xs edit btn-warning"><span class="sname" id="spn_Productname">' + itemlist[i].productname + '</span></td>';
                         }
-                        itemresults += '<td  class="text-right" style="width:20%"><span class="clsstock text-right ssubtotal" id="txtstock">' + itemlist[i].moniterqty + '</span></td>';
+                        itemresults += '<td  class="text-left" style="width:20%"><span class="clsstock text-left ssubtotal" id="txtstock">' + itemlist[i].moniterqty + '</span></td>';
 
                         var igst = parseFloat(itemlist[i].igst);
-                        var itemprice = parseFloat(itemlist[i].price);
+                        var itemprice = parseFloat(itemlist[i].price);// parseFloat(itemlist[i].discount);
                         var divisionval = 100 + igst;
                         var taxprice = (itemprice * igst);
                         taxprice = taxprice / divisionval;
@@ -484,18 +505,20 @@
 
                         var withouttaxrate = (itemprice - taxprice);
                         withouttaxrate = withouttaxrate.toFixed(2);
-                        itemresults += '<td  class="text-right" style="width:20%"><span class="text-right sprice" id="sprice_1541067686388">' + withouttaxrate + '</span><input id="txt_perunitrs" name="prices" class="price" type="text" value="' + withouttaxrate + '" style="display:none;"/></td>';
-                        itemresults += '<td class="text-right" style="width:20%"><input id="txt_quantity" type="text" class="quantity form-control input-qty kb-pad text-center rquantity" style="width: 52% !important;float: right !important;" onkeyup="qtychage(this);"    value="' + itemlist[i].Quantity + '" name="quantity"/></td>';
+                        itemresults += '<td  class="text-left" style="width:20%"><span class="text-left sprice" id="sprice_1541067686388">' + withouttaxrate + '</span><input id="txt_perunitrs" name="prices" class="price" type="text" value="' + withouttaxrate + '" style="display:none;"/></td>';
+                        itemresults += '<td  class="text-left" ><span class="cls_discount text-left ssubtotal" id="txt_discount">' + itemlist[i].discount + '</span></td>';
+                        //itemresults += '<td class="text-center"><input id="hdndiscount" type="hidden" value="' + itemlist[i].productid + '"></td>';
+                        itemresults += '<td class="text-left" style="width:30%"><input id="txt_quantity" type="text" class="quantity form-control input-qty kb-pad text-center rquantity" style="width: 52% important;float: right !important;" onkeyup="qtychage(this);"    value="' + itemlist[i].Quantity + '" name="quantity"/></td>';
                         var it = itemlist[i].Quantity;
-                        var subtotal = it * withouttaxrate;
+                        var subtotal = it * (withouttaxrate- parseFloat(itemlist[i].discount));
                         subtotal = subtotal.toFixed(2);
-                        var taxvalue = it * taxprice;
-                        itemresults += '<td  class="text-right" style="width:20%"><span class="clstotal text-right ssubtotal" id="txtTotal">' + subtotal + '</span></td>';
+                        var taxvalue = it * (taxprice );
+                        itemresults += '<td  class="text-left" style="width:20%"><span class="clstotal text-left ssubtotal" id="txtTotal">' + subtotal + '</span></td>';
                         itemresults += '<td class="text-center"><span onclick="removerow(this);" style="cursor: pointer;color: red;"><i class="fa fa-trash-o"></i></span></td>';
                         itemresults += '<td class="text-center"><input id="hdnproductsno" type="hidden" value="' + itemlist[i].productid + '"></td>';
                         itemresults += '<td class="text-center"><input id="hdntaxprice" type="hidden" value="' + taxprice + '"></td>';
-                        itemresults += '<td  class="text-right" style="display:none;"><span class="clstax text-right ssubtotal" id="txttax">' + taxvalue + '</span><input id="txt_perunittax" name="tax" class="taxval" type="text" value="' + taxvalue + '" style="display:none;"/></td>';
-                        itemresults += '<td  class="text-right" style="display:none;"><span class="igstval text-right ssubtotal" id="txtigst">' + igst + '</span><input id="txt_igst" name="igst" class="igstval" type="text" value="' + igst + '" style="display:none;"/></td>';
+                        itemresults += '<td  class="text-left" style="display:none;"><span class="clstax text-left ssubtotal" id="txttax">' + taxvalue + '</span><input id="txt_perunittax" name="tax" class="taxval" type="text" value="' + taxvalue + '" style="display:none;"/></td>';
+                        itemresults += '<td  class="text-left" style="display:none;"><span class="igstval text-left ssubtotal" id="txtigst">' + igst + '</span><input id="txt_igst" name="igst" class="igstval" type="text" value="' + igst + '" style="display:none;"/></td>';
                         itemresults += '</tr>';
                     }
                     itemresults += '</table>';
@@ -515,12 +538,14 @@
             var price = 0;
             var quantity = 0;
             var stock = 0;
+            var discount = 0;
             var total = 0;
             price = $(thisid).closest("tr").find('#txt_perunitrs').val();
             quantity = $(thisid).closest("tr").find('#txt_quantity').val();
             stock = $(thisid).closest("tr").find('#txtstock').text();
-            if (quantity > 0) {
-                if (quantity > stock) { // Corrected condition
+            discount = $(thisid).closest("tr").find('#txt_discount').text();
+            if (parseInt(quantity) > 0) {
+                if (parseInt(quantity) > parseInt(stock)) { // Corrected condition
                     alert("Entered quantity exceeds available stock. Please enter a valid quantity.");
                     $(thisid).val("0"); // Optionally clear the invalid quantity
                     $(thisid).css("border", "2px solid red"); // Highlight the text box with a red border
@@ -528,9 +553,9 @@
                 } else {
                     $(thisid).css("border", ""); // Remove the red border if the condition is valid
                 }
-                price = parseFloat(price);
+                var Item_price = parseFloat(price) - parseFloat(discount);
                 quantity = parseFloat(quantity);
-                total = price * quantity;
+                total = Item_price * quantity;
                 //$(thisid).closest("tr").find('#txtTotal').val(parseFloat(total).toFixed(2));
                 var rows = $("#tabledetails tr:gt(0)");
                 $(rows).each(function (i, obj) {
@@ -602,13 +627,14 @@
                     txtsno = rowsno;
                     productname = $(this).find('#spn_Productname').text();
                     moniterqty = $(this).find('#txtstock').text();
+                    discount = $(this).find('#txt_discount').text();
                     price = $(this).find('#txt_orgprice').text();
                     Quantity = $(this).find('#txt_quantity').val();
                     TotalCost = $(this).find('#txtTotal').text();
                     productid = $(this).find('#hdnproductsno').val();
                     perunittax = $(this).find('#txt_perunittax').val();
                     igst = $(this).find('#txt_igst').val();
-                    itemlist.push({ Sno: txtsno, productname: productname, moniterqty: moniterqty, price: price, Quantity: Quantity, TotalCost: TotalCost, productid: productid, perunittax: perunittax, igst: igst });
+                    itemlist.push({ Sno: txtsno, productname: productname, moniterqty: moniterqty, price: price, discount: discount, Quantity: Quantity, TotalCost: TotalCost, productid: productid, perunittax: perunittax, igst: igst });
                     rowsno++;
                 }
             });
@@ -625,17 +651,18 @@
                     if (val == productdetails[i].productid) {
                         var productname = productdetails[i].productname;
                         var moniterqty = productdetails[i].moniterqty;
+                        var discount = productdetails[i].discount;
                         var price = productdetails[i].price;
                         var productid = productdetails[i].productid;
                         var cgst = productdetails[i].cgst;
                         var sgst = productdetails[i].sgst;
                         var igst = productdetails[i].igst;
-                        itemlist.push({ Sno: Sno, productname: productname, moniterqty: moniterqty, price: price, Quantity: Quantity, TotalCost: TotalCost, productid: productid, perunittax: perunittax, igst: igst });
+                        itemlist.push({ Sno: Sno, productname: productname, moniterqty: moniterqty, price: price, discount: discount, Quantity: Quantity, TotalCost: TotalCost, productid: productid, perunittax: perunittax, igst: igst });
                         dupliitemlist.push(productid);
                     }
                 }
                 if (itemlist.length > 0) {
-                    var itemresults = '<table id="posTable" class="table table-striped table-condensed table-hover list-table" style="margin: 0px;" data-height="100"><thead> <tr class="success"><th> Product</th> <th style="width: 15%; text-align: center;"> Stock </th> <th style="width: 15%; text-align: center;"> Price </th><th style="width: 15%; text-align: center;"> Qty</th><th style="width: 20%; text-align: center;">Subtotal </th> <th style="width: 20px;" class="satu"><i class="fa fa-trash-o"></i> </th></tr></thead> ';
+                    var itemresults = '<table id="posTable" class="table table-striped table-condensed table-hover list-table" style="margin: 0px;" data-height="100"><thead> <tr class="success"><th> Product</th> <th style="width: 15%; text-align: center;"> Stock </th> <th style="width: 15%; text-align: center;"> Price </th><th> Dis </th><th style="width: 15%; text-align: center;"> Qty</th><th style="width: 20%; text-align: center;">Subtotal </th> <th style="width: 20px;" class="satu"><i class="fa fa-trash-o"></i> </th></tr></thead> ';
                     for (var i = 0; i < itemlist.length; i++) {
                         itemresults += '<tr>';
                         itemresults += '<td style="display:none;"><span class="sname" id="txt_orgprice">' + itemlist[i].price + '</span></td>';
@@ -646,24 +673,25 @@
                         else {
                             itemresults += '<td  class="btn btn-block btn-xs edit btn-warning"><span class="sname" id="spn_Productname">' + itemlist[i].productname + '</span></td>';
                         }
-                        itemresults += '<td  class="text-right" style="width:20%"><span class="clsstock text-right ssubtotal" id="txtstock">' + itemlist[i].moniterqty + '</span></td>';
-                        var itemprice = parseFloat(itemlist[i].price);
+                        itemresults += '<td  class="text-left" style="width:20%"><span class="clsstock text-left ssubtotal" id="txtstock">' + itemlist[i].moniterqty + '</span></td>';
+                        itemresults += '<td  class="text-left" ><span class="cls_discount text-left ssubtotal" id="txt_discount">' + itemlist[i].discount + '</span></td>';
+                        var itemprice = parseFloat(itemlist[i].price) - parseFloat(itemlist[i].discount);
                         var igst = parseFloat(itemlist[i].igst);
                         var divisonvalue = 100 + igst;
                         var taxamt = (itemprice * igst) / divisonvalue;
                         var withouttaxprice = itemprice - taxamt;
                         withouttaxprice = withouttaxprice.toFixed(2);
-                        itemresults += '<td  class="text-right" style="width:20%"><span class="text-right sprice" id="sprice_1541067686388">' + withouttaxprice + '</span><input id="txt_perunitrs" name="prices" class="price" type="text" value="' + withouttaxprice + '" style="display:none;"/></td>';
-                        itemresults += '<td class="text-right" style="width:20%"><input id="txt_quantity" type="text" class="quantity form-control input-qty kb-pad text-center rquantity" style="width: 52% !important;float: right !important;" onkeyup="qtychage(this);" value="' + itemlist[i].Quantity + '" name="quantity"/></td>';
+                        itemresults += '<td  class="text-left" style="width:20%"><span class="text-left sprice" id="sprice_1541067686388">' + withouttaxprice + '</span><input id="txt_perunitrs" name="prices" class="price" type="text" value="' + withouttaxprice + '" style="display:none;"/></td>';
+                        itemresults += '<td class="text-left" style="width:30%"><input id="txt_quantity" type="text" class="quantity form-control input-qty kb-pad text-center rquantity" style="width: 52% important;float: right !important;" onkeyup="qtychage(this);" value="' + itemlist[i].Quantity + '" name="quantity"/></td>';
                         var it = itemlist[i].Quantity;
                         var subtotal = it * withouttaxprice;
                         subtotal = subtotal.toFixed(2);
                         var taxvalue = it * taxamt;
-                        itemresults += '<td  class="text-right" style="width:20%"><span class="clstotal text-right ssubtotal" id="txtTotal">' + subtotal + '</span></td>';
+                        itemresults += '<td  class="text-left" style="width:20%"><span class="clstotal text-left ssubtotal" id="txtTotal">' + subtotal + '</span></td>';
                         itemresults += '<td class="text-center"><span onclick="removerow(this);" style="cursor: pointer;color: red;"><i class="fa fa-trash-o"></i></span></td>';
                         itemresults += '<td class="text-center"><input id="hdnproductsno" type="hidden" value="' + itemlist[i].productid + '"></td>';
-                        itemresults += '<td class="text-right" style="display:none;"><span class="clstax text-right ssubtotal" id="txttax">' + taxvalue + '</span><input id="txt_perunittax" name="tax" class="taxval" type="text" value="' + taxvalue + '" style="display:none;"/></td>';
-                        itemresults += '<td class="text-right" style="display:none;"><span class="igstval text-right" id="txtigst">' + igst + '</span><input id="txt_igst" name="igst" class="igstval" type="text" value="' + igst + '" style="display:none;"/></td>';
+                        itemresults += '<td class="text-left" style="display:none;"><span class="clstax text-left ssubtotal" id="txttax">' + taxvalue + '</span><input id="txt_perunittax" name="tax" class="taxval" type="text" value="' + taxvalue + '" style="display:none;"/></td>';
+                        itemresults += '<td class="text-left" style="display:none;"><span class="igstval text-left" id="txtigst">' + igst + '</span><input id="txt_igst" name="igst" class="igstval" type="text" value="' + igst + '" style="display:none;"/></td>';
                         itemresults += '</tr>';
                     }
                     itemresults += '</table>';
@@ -692,13 +720,14 @@
                     txtsno = rowsno;
                     var productname = $(this).find('#spn_Productname').text();
                     var moniterqty = $(this).find('#txtstock').text();
+                    var discount = $(this).find('#txt_discount').text();
                     var PerUnitRs = $(this).find('#txt_perunitrs').val();
                     var Quantity = $(this).find('#txt_quantity').val();
                     var TotalCost = $(this).find('#txtTotal').text();
                     var Totaltax = $(this).find('#txttax').text();
                     var igst = $(this).find('#txtigst').text();
                     var hdnproductsno = $(this).find('#hdnproductsno').val();
-                    itemlist.push({ Sno: txtsno, productname: productname, moniterqty: moniterqty, price: PerUnitRs, Quantity: Quantity, TotalCost: TotalCost, perunittax: Totaltax, igst: igst, productid: hdnproductsno });
+                    itemlist.push({ Sno: txtsno, productname: productname, moniterqty: moniterqty, price: PerUnitRs, discount: discount, Quantity: Quantity, TotalCost: TotalCost, perunittax: Totaltax, igst: igst, productid: hdnproductsno });
                 }
             });
             var product_name = $(thisid).parent().parent().children('.1').html();
@@ -713,6 +742,7 @@
                 else {
                     var productname = itemlist[i].productname;
                     var moniterqty = itemlist[i].moniterqty;
+                    var discount = itemlist[i].discount;
                     var PerUnitRs = itemlist[i].price;
                     var Quantity = itemlist[i].Quantity;
                     var TotalCost = itemlist[i].TotalCost;
@@ -720,15 +750,15 @@
                     var igst = itemlist[i].igst;
                     var productid = itemlist[i].productid;
                     var sumprice = parseFloat(PerUnitRs) + parseFloat(Totaltax);
-                    dummyitem.push({ productname: productname, moniterqty: moniterqty, price: PerUnitRs, Quantity: Quantity, TotalCost: TotalCost, Totaltax: Totaltax, igst: igst, productid: productid, sumprice: sumprice });
-                    rdummyitem.push({ Sno: txtsno, productname: productname, moniterqty: moniterqty, price: sumprice, Quantity: Quantity, TotalCost: TotalCost, perunittax: Totaltax, igst: igst, productid: productid });
+                    dummyitem.push({ productname: productname, moniterqty: moniterqty, price: PerUnitRs, discount: discount, Quantity: Quantity, TotalCost: TotalCost, Totaltax: Totaltax, igst: igst, productid: productid, sumprice: sumprice });
+                    rdummyitem.push({ Sno: txtsno, productname: productname, moniterqty: moniterqty, price: sumprice, discount: discount, Quantity: Quantity, TotalCost: TotalCost, perunittax: Totaltax, igst: igst, productid: productid });
                     dupliitemlist.push(productid);
                 }
             }
             if (dummyitem.length > 0) {
                 itemlist = [];
                 itemlist = rdummyitem;
-                var itemresults = '<table id="posTable" class="table table-striped table-condensed table-hover list-table" style="margin: 0px;" data-height="100"><thead> <tr class="success"><th> Product</th> <th style="width: 15%; text-align: center;"> Stock </th><th style="width: 15%; text-align: center;"> Price </th><th style="width: 15%; text-align: center;"> Qty</th><th style="width: 20%; text-align: center;">Subtotal </th> <th style="width: 20px;" class="satu"><i class="fa fa-trash-o"></i> </th></tr></thead> ';
+                var itemresults = '<table id="posTable" class="table table-striped table-condensed table-hover list-table" style="margin: 0px;" data-height="100"><thead> <tr class="success"><th> Product</th> <th style="width: 15%; text-align: center;"> Stock </th><th style="width: 15%; text-align: center;"> Price </th><th> Dis </th><th style="width: 15%; text-align: center;"> Qty</th><th style="width: 20%; text-align: center;">Subtotal </th> <th style="width: 20px;" class="satu"><i class="fa fa-trash-o"></i> </th></tr></thead> ';
                 for (var i = 0; i < dummyitem.length; i++) {
                     itemresults += '<tr>';
                     itemresults += '<td  style="display:none;"><span class="sname" id="txt_orgprice">' + dummyitem[i].sumprice + '</span></td>';
@@ -739,13 +769,14 @@
                     else {
                         itemresults += '<td  class="btn btn-block btn-xs edit btn-warning"><span class="sname" id="spn_Productname">' + dummyitem[i].productname + '</span></td>';
                     }
-                    itemresults += '<td  class="text-right" style="width:20%"><span class="clsstock text-right ssubtotal" id="txtstock">' + itemlist[i].moniterqty + '</span></td>';
-                    itemresults += '<td  class="text-right" style="width:20%"><span class="text-right sprice" id="sprice_1541067686388">' + dummyitem[i].price + '</span><input id="txt_perunitrs" name="prices" class="price" type="text" value="' + dummyitem[i].price + '" style="display:none;"/></td>';
-                    itemresults += '<td class="text-right" style="width:20%"><input id="txt_quantity" type="text" class="quantity form-control input-qty kb-pad text-center rquantity" style="width: 52% !important;float: right !important;" onkeyup="qtychage(this);"    value="' + dummyitem[i].Quantity + '" name="quantity"/></td>';
-                    itemresults += '<td  class="text-right" style="width:20%"><span class="clstotal text-right ssubtotal" id="txtTotal">' + dummyitem[i].TotalCost + '</span></td>';
+                    itemresults += '<td  class="text-left" style="width:20%"><span class="clsstock text-left ssubtotal" id="txtstock">' + dummyitem[i].moniterqty + '</span></td>';
+                    itemresults += '<td  class="text-left" style="width:20%"><span class="text-left sprice" id="sprice_1541067686388">' + dummyitem[i].price + '</span><input id="txt_perunitrs" name="prices" class="price" type="text" value="' + dummyitem[i].price + '" style="display:none;"/></td>';
+                    itemresults += '<td  class="text-left" ><span class="cls_discount text-left ssubtotal" id="txt_discount">' + dummyitem[i].discount + '</span></td>';
+                    itemresults += '<td class="text-left" style="width:30%"><input id="txt_quantity" type="text" class="quantity form-control input-qty kb-pad text-center rquantity" style="width: 52% important;float: right !important;" onkeyup="qtychage(this);"    value="' + dummyitem[i].Quantity + '" name="quantity"/></td>';
+                    itemresults += '<td  class="text-left" style="width:20%"><span class="clstotal text-left ssubtotal" id="txtTotal">' + dummyitem[i].TotalCost + '</span></td>';
                     itemresults += '<td class="text-center"><span onclick="removerow(this);"style="cursor: pointer;color: red;"><i class="fa fa-trash-o"></i></span></td>';
-                    itemresults += '<td class="text-center" style="display:none;"><span class="clstax text-right ssubtotal" id="txttax">' + dummyitem[i].Totaltax + '</span><input id="txt_perunittax" name="tax" class="taxval" type="text" value="' + dummyitem[i].Totaltax + '" style="display:none;"/></td>';
-                    itemresults += '<td class="text-center" style="display:none;"><span class="igstval text-right " id="txtigst">' + dummyitem[i].igst + '</span><input id="txt_igst" name="igst" class="igstval" type="text" value="' + dummyitem[i].igst + '" style="display:none;"/></td>';
+                    itemresults += '<td class="text-center" style="display:none;"><span class="clstax text-left ssubtotal" id="txttax">' + dummyitem[i].Totaltax + '</span><input id="txt_perunittax" name="tax" class="taxval" type="text" value="' + dummyitem[i].Totaltax + '" style="display:none;"/></td>';
+                    itemresults += '<td class="text-center" style="display:none;"><span class="igstval text-left " id="txtigst">' + dummyitem[i].igst + '</span><input id="txt_igst" name="igst" class="igstval" type="text" value="' + dummyitem[i].igst + '" style="display:none;"/></td>';
                     itemresults += '<td class="text-center"><input id="hdnproductsno" type="hidden" value="' + dummyitem[i].productid + '"></td>';
                     itemresults += '</tr>';
                 }
@@ -1250,7 +1281,7 @@
             <table style="width: 100%;" class="layout-table">
                 <tbody>
                     <tr>
-                        <td style="width: 460px;">
+                        <td style="width: 500px;">
                             <div id="pos">
                                 <form action="https://#/pos" id="pos-sale-form" method="post" accept-charset="utf-8">
                                     <input type="hidden" name="spos_token" value="0dbeb4034dd067d5db67226fc01f3361">
@@ -1294,16 +1325,18 @@
                                                                 <tr class="success">
                                                                     <th>Product
                                                                     </th>
-                                                                     <th style="width: 15%; text-align: center;">Stock
+                                                                     <th style="width: 15%; text-align: right;">Stock
  </th>
-                                                                    <th style="width: 15%; text-align: center;">Price
+                                                                    <th style="width: 15%; text-align: right;">Price
                                                                     </th>
-                                                                    <th style="width: 15%; text-align: center;">Qty
+                                                                     <th style="width: 15%; text-align: right;">Dis
+ </th>
+                                                                    <th style="width: 30%; text-align: center;">Qty
                                                                     </th>
-                                                                    <th style="width: 20%; text-align: center;">Subtotal
+                                                                    <th style="width: 20%; text-align: left;">Subtotal
                                                                     </th>
                                                                     <th style="width: 20px;" class="satu">
-                                                                        <i class="fa fa-trash-o"></i>
+                                                                      <%--  <i class="fa fa-trash-o"></i>--%>
                                                                     </th>
                                                                 </tr>
                                                             </thead>
@@ -1325,12 +1358,12 @@
                                                         <tr class="info">
                                                             <td width="25%">Total Items
                                                             </td>
-                                                            <td class="text-right" style="padding-right: 10px;">
+                                                            <td class="text-left" style="padding-right: 10px;">
                                                                 <span id="count">0</span>
                                                             </td>
                                                             <td width="25%">Total
                                                             </td>
-                                                            <td class="text-right" colspan="2">
+                                                            <td class="text-left" colspan="2">
                                                                 <span id="total">0</span>
                                                             </td>
                                                         </tr>
@@ -1338,20 +1371,20 @@
                                                             <td width="25%">
                                                                 <a href="#" id="add_discount" style="font-weight: bold; color: #333;">Discount</a>
                                                             </td>
-                                                            <td class="text-right" style="padding-right: 10px;">
+                                                            <td class="text-left" style="padding-right: 10px;">
                                                                 <span id="totds_con">0</span>
                                                             </td>
                                                             <td width="25%">
                                                                 <a href="#" id="add_tax" style="font-weight: bold; color: #333;">Order Tax</a>
                                                             </td>
-                                                            <td class="text-right">
+                                                            <td class="text-left">
                                                                 <span id="ts_con">0</span>
                                                             </td>
                                                         </tr>
                                                         <tr class="success">
                                                             <td colspan="2" style="font-weight: bold;">Total Payable <a role="button" data-toggle="modal" data-target="#noteModal"><i class="fa fa-comment"></i></a>
                                                             </td>
-                                                            <td class="text-right" colspan="2" style="font-weight: bold;">
+                                                            <td class="text-left" colspan="2" style="font-weight: bold;">
                                                                 <span id="total-payable">0</span>
                                                             </td>
                                                         </tr>
@@ -1771,24 +1804,24 @@
                                         <tr>
                                             <td width="25%" style="border-right-color: #FFF !important;">Total Items
                                             </td>
-                                            <td width="25%" class="text-right">
+                                            <td width="25%" class="text-left">
                                                 <span id="spnitem_count">0.00</span>
                                             </td>
                                             <td width="25%" style="border-right-color: #FFF !important;">Total Payable
                                             </td>
-                                            <td width="25%" class="text-right">
+                                            <td width="25%" class="text-left">
                                                 <span id="spntwt">0.00</span>
                                             </td>
                                         </tr>
                                         <tr>
                                             <td style="border-right-color: #FFF !important;">Total Paying
                                             </td>
-                                            <td class="text-right">
+                                            <td class="text-left">
                                                 <span id="spntotal_paying">0.00</span>
                                             </td>
                                             <td style="border-right-color: #FFF !important;">Balance
                                             </td>
-                                            <td class="text-right">
+                                            <td class="text-left">
                                                 <span id="balance">0.00</span>
                                             </td>
                                         </tr>
